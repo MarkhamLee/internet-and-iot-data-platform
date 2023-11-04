@@ -12,5 +12,5 @@ The primary purrpose of this project is to see if I can improve my productivity 
 * Asana (where I keep my to do lists)
 * Air Quality & Weather via the OpenWeather API [DONE]
 * Finance tracking the S&P 500, T-Bills and maybe 1-2 other stocks 
-* Discord - I belong to some great servers that I don't monitor enough 
+* Discord - I belong to some great servers for announcement type stuff that I don't pay enough attention to 
 * Spotify - alerts for podcast updates 
