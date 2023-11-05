@@ -2,28 +2,28 @@ from datetime import datetime, timedelta
 from airflow.decorators import dag, task
 from airflow.models import Variable
 
-# key for OpenWeather API
-WEATHER_KEY = Variable.get('open_weather')
-
-# influx DB variables
-API_KEY = Variable.get('influx_key_air')
-ORG = Variable.get('influx_org')
-URL = Variable.get('influx_url')
-BUCKET = Variable.get('weather_bucket')
 
 default_args = {
     "owner": "airflow",
-    "start_date": datetime(2023, 10, 30),
+    "start_date": datetime(2023, 11, 4),
     "retries": 1,
 }
 
 
-from open_weather.weather_utilities import WeatherUtilities  # noqa E402
+from open_weather.weather_utilities import WeatherUtilities
 utilities = WeatherUtilities()
 
+# key for OpenWeather API
+WEATHER_KEY = Variable.get('open_weather')
+
+# influx DB variables
+INFLUX_KEY = Variable.get('dashboard_influx_key')
+ORG = Variable.get('influx_org')
+URL = Variable.get('influx_url')
+BUCKET = Variable.get('dashboard_bucket')
 
 @dag(schedule=timedelta(minutes=5), default_args=default_args, catchup=False)
-def open_weather_current_dag():
+def openweather_current_weather_dag():
 
     @task
     def get_weather():
@@ -33,46 +33,46 @@ def open_weather_current_dag():
         # create URL
         url = utilities.build_url_weather(WEATHER_KEY, ENDPOINT)
 
-        # get data from API
+        # get data from API 
         return utilities.get_weather_data(url)
+
 
     @task(multiple_outputs=True)
     def parse_weather_data(data: dict) -> dict:
-
+        
         return utilities.weather_parser(data)
 
-    @task(retries=2)
+
+    @task(retries=1)
     def write_data(data: dict):
 
-        from plugins.influx_client import WeatherClients  # noqa: E402
+        from plugins.influx_client import WeatherClients # noqa: E403
         influx = WeatherClients()
-
-        from influxdb_client import Point  # noqa: E402
+        
+        from influxdb_client import Point # noqa: E403
 
         # get the client for connecting to InfluxDB
-        client = influx.influx_client(API_KEY, ORG, URL)
+        client = influx.influx_client(INFLUX_KEY, ORG, URL)
 
-        # not the most elegant solution, will change later to write
-        # json directly
+        # not the most elegant solution, will change later to write json directly
         point = (
-            Point("current_weather")
-            .tag("OpenWeatherAPI", "CurrentWeather")
-            .field("Current Temp", data['temp'])
-            .field("Feels Like", data['feels_like'])
-            .field("Current Weather", data['weather'])
-            .field("Weather Description", data['weather_desc'])
-            .field("Low", data['temp_low'])
-            .field("High", data['temp_high'])
-            .field("Barometric Pressure", data['pressure'])
-            .field("Humidity", data['humidity'])
-            .field("Wind", data['wind_speed'])
-            .field("Time Stamp", data['timestamp'])
+            Point("weather")
+            .tag("OpenWeatherAPI", "current_weather")
+            .field("temp", data['temp'])
+            .field("feels_like", data['feels_like'])
+            .field("weather", data['weather'])
+            .field("description", data['weather_desc'])
+            .field("low", data['temp_low'])
+            .field("high", data['temp_high'])
+            .field("barometric_pressure", data['pressure'])
+            .field("humidity", data['humidity'])
+            .field("wind", data['wind_speed'])
+            .field("time_stamp", data['timestamp'])
         )
 
         client.write(bucket=BUCKET, org=ORG, record=point)
 
-    # nesting the methods establishes the hiearchy and creates the tasks
+    # nesting the methods establishes the hiearchy and creates the tasks 
     write_data(parse_weather_data(get_weather()))
 
-
-open_weather_current_dag()
+openweather_current_weather_dag() 
