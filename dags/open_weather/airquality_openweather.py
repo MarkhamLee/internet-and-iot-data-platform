@@ -17,12 +17,11 @@ ORG = Variable.get('influx_org')
 URL = Variable.get('influx_url')
 BUCKET = Variable.get('dashboard_bucket')
 
-from open_weather.weather_utilities import WeatherUtilities # noqa: E403
+from open_weather.weather_utilities import WeatherUtilities  # noqa: E402
 utilities = WeatherUtilities()
 
 
 @dag(schedule=timedelta(minutes=15), default_args=default_args, catchup=False)
-
 def openweather_air_quality_dag():
 
     @task(retries=1)
@@ -34,25 +33,23 @@ def openweather_air_quality_dag():
         url = utilities.build_url_air(ENDPOINT, WEATHER_KEY)
 
         return utilities.get_weather_data(url)
-    
+
     @task(task_id='parse_air_quality_data', multiple_outputs=True)
     def parse_data(data: dict) -> dict:
 
         return utilities.parse_air_data(data)
 
-  
     @task(retries=2)
     def write_data(data: dict):
 
         # Airflow will parse these files every 30s (default) so we move these
         # imports into the functions so that airflow isn't constantly wasting
-        # cycles importing libraries. 
-        
-        from plugins.influx_client import WeatherClients # noqa: E403
+        # cycles importing libraries.
+
+        from plugins.influx_client import WeatherClients  # noqa: E402
         influx = WeatherClients()
-        
-        from influxdb_client import Point # noqa: E403
- 
+
+        from influxdb_client import Point  # noqa: E402
         # get the client for connecting to InfluxDB
         client = influx.influx_client(INFLUX_KEY, ORG, URL)
 
@@ -66,7 +63,8 @@ def openweather_air_quality_dag():
 
         client.write(bucket=BUCKET, org=ORG, record=point)
 
-    # nesting the methods establishes the hiearchy and creates the tasks 
+    # nesting the methods establishes the hiearchy and creates the tasks
     write_data(parse_data(get_air_quality_data()))
 
-openweather_air_quality_dag()  
+
+openweather_air_quality_dag()

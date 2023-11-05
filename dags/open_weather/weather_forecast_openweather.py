@@ -19,7 +19,7 @@ URL = Variable.get('influx_url')
 BUCKET = Variable.get('dashboard_bucket')
 
 
-from open_weather.weather_utilities import WeatherUtilities
+from open_weather.weather_utilities import WeatherUtilities  # noqa: E402
 utilities = WeatherUtilities()
 
 
@@ -34,9 +34,8 @@ def openweather_weather_forecast_dag():
         # create URL
         url = utilities.build_url_weather(WEATHER_KEY, ENDPOINT)
 
-        # get data from API 
+        # get data from API
         return utilities.get_weather_data(url)
-
 
     @task(multiple_outputs=True)
     def parse_forecast_data(data: dict) -> dict:
@@ -48,23 +47,22 @@ def openweather_weather_forecast_dag():
         # may use this later.
         # two_day_forecast = data['list'][1]
 
-
         # parse out forecast data
         return utilities.weather_parser(tomorrow_forecast)
-
 
     @task(retries=2)
     def write_data(data: dict):
 
-        from plugins.influx_client import WeatherClients # noqa: E403
+        from plugins.influx_client import WeatherClients  # noqa: E402
         influx = WeatherClients()
-        
-        from influxdb_client import Point # noqa: E403
+
+        from influxdb_client import Point  # noqa: E402
 
         # get the client for connecting to InfluxDB
         client = influx.influx_client(INFLUX_KEY, ORG, URL)
 
-        # not the most elegant solution, will change later to write json directly
+        # not the most elegant solution, will change later
+        # to write json directly
         point = (
             Point("weather_forecast")
             .tag("OpenWeatherAPI", "weather_forecast")
@@ -80,7 +78,8 @@ def openweather_weather_forecast_dag():
 
         client.write(bucket=BUCKET, org=ORG, record=point)
 
-    # nesting the methods establishes the hiearchy and creates the tasks 
+    # nesting the methods establishes the hiearchy and creates the tasks
     write_data(parse_forecast_data(get_forecast()))
 
-openweather_weather_forecast_dag() 
+
+openweather_weather_forecast_dag()

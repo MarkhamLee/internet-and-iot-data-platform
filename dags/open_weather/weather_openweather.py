@@ -10,7 +10,7 @@ default_args = {
 }
 
 
-from open_weather.weather_utilities import WeatherUtilities
+from open_weather.weather_utilities import WeatherUtilities  # noqa: E402
 utilities = WeatherUtilities()
 
 # key for OpenWeather API
@@ -21,6 +21,7 @@ INFLUX_KEY = Variable.get('dashboard_influx_key')
 ORG = Variable.get('influx_org')
 URL = Variable.get('influx_url')
 BUCKET = Variable.get('dashboard_bucket')
+
 
 @dag(schedule=timedelta(minutes=5), default_args=default_args, catchup=False)
 def openweather_current_weather_dag():
@@ -33,28 +34,27 @@ def openweather_current_weather_dag():
         # create URL
         url = utilities.build_url_weather(WEATHER_KEY, ENDPOINT)
 
-        # get data from API 
+        # get data from API
         return utilities.get_weather_data(url)
-
 
     @task(multiple_outputs=True)
     def parse_weather_data(data: dict) -> dict:
-        
-        return utilities.weather_parser(data)
 
+        return utilities.weather_parser(data)
 
     @task(retries=1)
     def write_data(data: dict):
 
-        from plugins.influx_client import WeatherClients # noqa: E403
+        from plugins.influx_client import WeatherClients  # noqa: E402
         influx = WeatherClients()
-        
-        from influxdb_client import Point # noqa: E403
+
+        from influxdb_client import Point  # noqa: E402
 
         # get the client for connecting to InfluxDB
         client = influx.influx_client(INFLUX_KEY, ORG, URL)
 
-        # not the most elegant solution, will change later to write json directly
+        # not the most elegant solution, will change later to
+        # write json directly
         point = (
             Point("weather")
             .tag("OpenWeatherAPI", "current_weather")
@@ -72,7 +72,8 @@ def openweather_current_weather_dag():
 
         client.write(bucket=BUCKET, org=ORG, record=point)
 
-    # nesting the methods establishes the hiearchy and creates the tasks 
+    # nesting the methods establishes the hiearchy and creates the tasks
     write_data(parse_weather_data(get_weather()))
 
-openweather_current_weather_dag() 
+
+openweather_current_weather_dag()

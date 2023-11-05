@@ -4,7 +4,7 @@ class AlphaUtilities():
     def __init__(self):
 
         # create constants
-        self.base_url = 'https://www.alphavantage.co/query?function=GLOBAL_QUOTE'
+        self.base_url = 'https://www.alphavantage.co/query?function=GLOBAL_QUOTE'  # noqa: E501
         self.quote_base = '&symbol='
         self.api_key_base = '&apikey='
 

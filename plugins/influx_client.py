@@ -1,4 +1,6 @@
-
+# cliente for connecting to InfluxDB API
+# Pass the key, bucket and token and it will return an object
+# for use in writing to InfluxDB.
 
 class WeatherClients():
 
@@ -8,8 +10,8 @@ class WeatherClients():
     @staticmethod
     def influx_client(token, org, url):
 
-        import influxdb_client # noqa E403
-        from influxdb_client.client.write_api import SYNCHRONOUS # noqa E403
+        import influxdb_client # noqa E402
+        from influxdb_client.client.write_api import SYNCHRONOUS # noqa E402
 
         # create client
         write_client = influxdb_client.InfluxDBClient(url=url,

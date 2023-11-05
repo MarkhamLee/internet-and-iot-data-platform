@@ -1,4 +1,5 @@
 
+
 class WeatherUtilities():
 
     def __init__(self):
@@ -11,7 +12,7 @@ class WeatherUtilities():
         self.base_url = 'http://api.openweathermap.org/data/2.5/'
 
     @staticmethod
-    def parse_air_data(data: dict) -> dict:
+    def parse_air_data(data):
 
         qual_data = data['list'][0]['components']
 
@@ -23,20 +24,21 @@ class WeatherUtilities():
 
         return payload
 
-    def build_url_air(self, endpoint: str, key: str) -> str:
+    def build_url_air(self, endpoint, key):
 
-        url = f'{self.base_url}{endpoint}appid={key}&lat={self.lat}&lon={self.long}'  # noqa E503
+        url = f'{self.base_url}{endpoint}appid={key}&lat={self.lat}&lon={self.long}'  # noqa: E501
 
         return url
 
-    def build_url_weather(self, key: str, endpoint: str) -> str:
+    def build_url_weather(self, key, endpoint):
 
-        url = self.base_url + endpoint + 'appid=' + key + "&q=" + self.city + self.units  # noqa E503
+        url = self.base_url + endpoint + 'appid=' + key + "&q=" +\
+            self.city + self.units
 
         return url
 
     @staticmethod
-    def weather_parser(response: dict) -> dict:
+    def weather_parser(response):
 
         payload = {
             "weather": response['weather'][0]['main'],
@@ -54,7 +56,7 @@ class WeatherUtilities():
         return payload
 
     @staticmethod
-    def get_weather_data(url: str) -> dict:
+    def get_weather_data(url):
 
         import requests  # noqa: E402
 
