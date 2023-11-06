@@ -64,7 +64,7 @@ def openweather_weather_forecast_dag():
         # not the most elegant solution, will change later
         # to write json directly
         point = (
-            Point("weather_forecast")
+            Point("weather_forecasts")
             .tag("OpenWeatherAPI", "weather_forecast")
             .field("predicted_temp", data['temp'])
             .field("predicted_weather", data['weather'])
