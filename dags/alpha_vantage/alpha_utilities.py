@@ -30,11 +30,16 @@ class AlphaUtilities():
     @staticmethod
     def stock_data_parser(response: dict) -> dict:
 
+        opening_price = float(response['Global Quote']['02. open'])
+        price = float(response['Global Quote']['05. price'])
+        change = float(response['Global Quote']['09. change'])
+        change_per = round((change/opening_price), 4) * 100
+
         payload = {
-            "open": response['Global Quote']['02. open'],
-            "price": response['Global Quote']['05. price'],
-            "change_per": response['Global Quote']['10. change percent'],
-            "change": response['Global Quote']['09. change']
+            "open": opening_price,
+            "price": price,
+            "change_per": change_per,
+            "change": change
         }
 
         return payload

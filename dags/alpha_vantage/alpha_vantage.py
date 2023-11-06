@@ -8,7 +8,7 @@ default_args = {
     "retries": 1,
 }
 
-#Alpha Vantage Key
+# Alpha Vantage Key
 ALPHA_KEY = Variable.get('alpha_vantage_key')
 
 # influx DB variables
@@ -22,7 +22,7 @@ from alpha_vantage.alpha_utilities import AlphaUtilities  # noqa: E402
 utilities = AlphaUtilities()
 
 
-@dag(schedule=timedelta(hours=2), default_args=default_args, catchup=False)
+@dag(schedule=timedelta(hours=4), default_args=default_args, catchup=False)
 def alphavantage_stock_price_dag():
 
     @task(retries=1)
@@ -56,16 +56,18 @@ def alphavantage_stock_price_dag():
 
         # create object for writing to Influx
         point = (
-            Point("stocks")
+            Point("stock_prices")
             .tag("Alpha_Vantage", "current_data")
             .field("price", data['price'])
             .field("change", data['change'])
             .field("open", data['open'])
+            .field("change_per", data['change_per'])
         )
 
         client.write(bucket=BUCKET, org=ORG, record=point)
 
     # nesting the methods establishes the hiearchy and creates the tasks
     write_data(parse_data(get_stock_data()))
+
 
 alphavantage_stock_price_dag()
