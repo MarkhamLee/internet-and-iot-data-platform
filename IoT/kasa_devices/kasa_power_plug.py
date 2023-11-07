@@ -3,6 +3,9 @@
 # a Nova PM SDS011 air quality sensor
 # Productivity/Personal Dashboard:
 # https://github.com/MarkhamLee/personal_dashboard
+# Note: this data could just as easily be written directly to InfluxDB
+# via its REST API, using MQTT because I may (at some point) setup two way
+# communications, monitor if a a device is connected, etc.
 
 import asyncio
 import sys

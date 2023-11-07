@@ -10,12 +10,12 @@ The primary purrpose of this project is to see if I can improve my productivity 
 * **Eclipse-Mosquito:** for the MQTT broker that will receive messages from IoT/Smart Devices 
 * **Docker:** to run nearly everything, save a few things I might deploy directly on a device as a service
 * **Node-Red:** to manage the incoming MQTT messages, data transformation of MQTT messages and then writing the data to InfluxDB 
-* The **Zigbee2MQTT library** plus a **Sonoff Zigbee USB Dongle** to receive data from Zigbee enabled IoT devices and then send it off as MQTT messages. This allows me to use a wide variety of smart home devices and/or IoT sensors without having to purchase extra hubs or other smart home devices, I can instead connect directly to each device and run custom code/solutions to ingest the data. 
+* The **Zigbee2MQTT library** plus a **Sonoff Zigbee USB Dongle** to receive data from Zigbee enabled IoT devices and then send it off as MQTT messages. This allows me to use a wide variety of smart home devices and/or IoT sensors without having to purchase extra hubs or other smart home devices just to use the sensors. Instead, I can instead connect directly to each device and run custom code/solutions to ingest the data. 
 * **Hardware:** currently running on an *Intel NUC like* Beelink Mini S12, will probably move it to my homelab K3s cluster (Beelink SER 5 Pros Ryzen 5 5560s) in the next week or two, but for now, everything works fine where it is. A Raspberry Pi 4B runs the Zigbee2MQTT container and the Zigbee USB hub, I'm also using Raspberry Pis for the Nova PM SDS011 air quality sensors, but may move those to lower cost Le Libre or Orange Pi devices. Once the single board computing situation is more defined, I plan to set them all up to boot via PXE. 
 * **IoT/Smart Devices:** 
     * Aqara and Sonoff temperature sensors that connect via the Zigbee protocol
-    * TP Link Kasa Smart Plugs retrieving data over Wi-Fi via the [Python-Kasa library](https://python-kasa.readthedocs.io/en/latest/index.html) 
-    * A couple of "hand-rolled" IoT Air Quality sensors hooked into a Raspberry Pi 4b until I find an air quality device I both like AND uses the Zigbee protocol, and/or is built a manufacturer that provides an API for interacting with their devices. 
+    * TP Link Kasa Smart Plugs transmitting power, voltage and amp consumption data over Wi-Fi via the [Python-Kasa library](https://python-kasa.readthedocs.io/en/latest/index.html) 
+    * A couple of "hand-rolled" IoT Air Quality sensors hooked into a Raspberry Pi 4b until I find an air quality device I both like AND uses the Zigbee protocol, and/or is built by a manufacturer that provides an API for interacting with their devices. 
 
 
 ### Targeted Sources
@@ -23,13 +23,13 @@ The primary purrpose of this project is to see if I can improve my productivity 
     * Asana (where I keep my to do lists) -- *shockingly, the former project manager uses PM software for day to day task management*
     * Air Quality & Weather via the OpenWeather API [DONE]
     * Finance: tracking the S&P 500, T-Bills and maybe 1-2 other stocks [MOSTLY DONE] - need to find another finance API that allow me to track more items and get more frequent updates. 
-    * Discord - I join servers and then rarely pay attention and miss announcements related to Video Game mods, Podcasts I enjoy and other hobbies. 
+    * Discord - I join servers and then rarely pay attention and often miss announcements related to DIY/Makers, Podcasts I enjoy, Video Game Mods and other hobbies. 
     * eBay? I need to explore the API more but the plan is to track auctions and automate searches for items I'm interested in. 
     * Spotify - alerts for podcast updates 
-    * I use Roon Music Server to manage my music catalog and listen to services like Tidal and Qubuz, tentative plan is to explorer their API and potentially see if I can add now playing or even controls to Grafana or maybe create a separate web page that I bring Grafana into. 
+    * I use Roon Music Server to manage my music catalog and listen to services like Tidal and Qubuz, tentative plan is to explore their API and potentially see if I can add "now playing" or even controls to Grafana and/or maybe create a separate web page that I bring Grafana into. 
 * **Iot/Smart Devices:**
     * The [Zigbee2MQTT library](https://www.zigbee2mqtt.io/guide/getting-started/) to receive data from Zigbee enabled devices for room temperature and humidity [DONE]
-    * Power consumption from TP Link Kasa smart plugs [nearly done]
+    * Trackinig the Power consumption of my gaming rig, clusters and the devices I used for all my tinkering via TP Link Kasa smart plugs [nearly done]
     * Air Quality (PM2.5 and PM10) via Nova PM SDS011 sensors in concert with Raspbery Pis [DONE]
 
 The repo contains the the code for the Airflow Dags (written in TaskFlow API format), custom plugins for connecting to things like InfluxDB and the code for ingesting data from the IoT devices. It also has the extended but not quite custom Docker image I used for Airflow (*so it has all of my Python dependencies*). Plan is to continuously add data sources and then update the repo accordingly. 
