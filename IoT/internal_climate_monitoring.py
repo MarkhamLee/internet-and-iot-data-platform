@@ -1,5 +1,6 @@
 # Markham Lee (C) 2023
-# Personal Dashboard:
+# Productivity, Weather, Personal, et al dashboard:
+# https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
 # Slight remix of script I wrote for monitoring PC case temps:
 # https://github.com/MarkhamLee/hardware-monitor
 # the script gathers data from a DHT22 temperature sensors and a

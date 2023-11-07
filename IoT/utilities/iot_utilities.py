@@ -1,7 +1,6 @@
-# !/usr/bin/env python
 # Markham Lee (C) 2023
-# Productivity/Personal Dashboard:
-# https://github.com/MarkhamLee/personal_dashboard
+# Productivity, Weather, Personal, et al dashboard:
+# https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
 # Slight remix of utilty script from my hardware monitoring
 # repo: https://github.com/MarkhamLee/HardwareMonitoring
 
