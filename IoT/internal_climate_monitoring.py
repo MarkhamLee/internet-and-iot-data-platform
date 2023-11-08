@@ -2,7 +2,7 @@
 # Productivity, Weather, Personal, et al dashboard:
 # https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
 # Slight remix of script I wrote for monitoring PC case temps:
-# https://github.com/MarkhamLee/hardware-monitor
+# https://github.com/MarkhamLee/HardwareMonitoring
 # the script gathers data from a DHT22 temperature sensors and a
 # a Nova PM SDS011 air quality sensor and then publishes them to a
 # MQTT topic.
