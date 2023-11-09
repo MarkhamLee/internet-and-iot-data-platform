@@ -1,4 +1,6 @@
-# Trouble climate sensors tips and tricks 
+
+
+## Tips & Tricks for Troubleshoting Sensors
 
 ### Nova PM SDS011 Air Quality Sensors 
 

@@ -13,12 +13,7 @@ import sys
 import json
 import logging
 from kasa import SmartPlug
-
-# this allows us to import modules from higher level directories
-parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(parent_dir)
-
-from utilities.iot_utilities import DeviceUtilities  # noqa: E402
+from kasa_utilities import DeviceUtilities
 
 # setup logging for static methods
 logging.basicConfig(filename='hardwareData.log', level=logging.DEBUG,
