@@ -8,7 +8,7 @@ The primary purrpose of this project is to see if I can improve my productivity 
 * **InfluxDB:** for time series data, **PostgreSQL** for everything else 
 * **Grafana:** to display data
 * **Eclipse-Mosquito:** for the MQTT broker that will receive messages from IoT/Smart Devices 
-* **Docker:** to run nearly everything, save a few things I might deploy directly on a device as a service
+* **Docker:** to run nearly everything, save a few things I might deploy directly on a device as a Linux service. Used **Portainer** to manage, configure and deploy containers from images stored in my private Docker Repo. 
 * **Node-Red:** to manage the incoming MQTT messages, data transformation of MQTT messages and then writing the data to InfluxDB 
 * The **Zigbee2MQTT library** plus a **Sonoff Zigbee USB Dongle** to receive data from Zigbee enabled IoT devices and then send it off as MQTT messages. This allows me to use a wide variety of smart home devices and/or IoT sensors without having to purchase extra hubs or other smart home devices just to use the sensors. Instead, I can instead connect directly to each device and run custom code/solutions to ingest the data. 
 * **Hardware:** currently running on an *Intel NUC like* Beelink Mini S12, will probably move it to my homelab K3s cluster (Beelink SER 5 Pros Ryzen 5 5560s) in the next week or two, but for now, everything works fine where it is. A Raspberry Pi 4B runs the Zigbee2MQTT container and the Zigbee USB hub, I'm also using Raspberry Pis for the Nova PM SDS011 air quality sensors, but may move those to lower cost Le Libre or Orange Pi devices. Once the single board computing situation is more defined, I plan to set them all up to boot via PXE. 
