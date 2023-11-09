@@ -4,19 +4,18 @@
 # Python script for receiving energy data from a TP Link
 # Kasa TP25P4 smart plug. Note: this data could just as easily be written
 # directly to InfluxDB via its REST API, using MQTT because I may
-# (at some point) want to send instructions back to the device, communications,
+# (at some point) want to send instructions back to the device,
 # monitor if a device is connected, etc.
 
 import asyncio
 import os
-import sys
 import json
 import logging
 from kasa import SmartPlug
 from kasa_utilities import DeviceUtilities
 
-# setup logging
-logging.basicConfig(filename='hardwareData.log', level=logging.ERROR,
+# setup logging for static methods
+logging.basicConfig(filename='hardwareData.log', level=logging.DEBUG,
                     format='%(asctime)s %(levelname)s %(name)s %(threadName)s\
                         : %(message)s')
 
@@ -50,7 +49,7 @@ async def get_plug_data(client: object, topic: str,
 
         else:
             print(f'Failed to send {payload} to: {topic}')
-            logging.error(f'data failed to publish to MQTT topic, status code:\
+            logging.debug(f'data failed to publish to MQTT topic, status code:\
                           {status}')
 
         # wait 30 seconds
@@ -62,14 +61,12 @@ def main():
     # instantiate utilities class
     deviceUtilities = DeviceUtilities()
 
-    # parse command line arguments
-    args = sys.argv[1:]
+    # Load operating parameters
+    INTERVAL = int(os.environ['INTERVAL'])
+    DEVICE_IP = os.environ['DEVICE_IP']
+    TOPIC = os.environ['TOPIC']
 
-    INTERVAL = int(args[0])
-    DEVICE_IP = str(args[1])
-    TOPIC = str(args[2])
-
-    # Load Environmental Variables
+    # Load connection variables
     MQTT_BROKER = os.environ['MQTT_BROKER']
     MQTT_USER = os.environ['MQTT_USER']
     MQTT_SECRET = os.environ['MQTT_SECRET']

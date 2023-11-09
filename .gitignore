@@ -154,3 +154,4 @@ cython_debug/
 
 IoT/kasa_devices/config/kasa_config.json 
 IoT/kasa_devices/config/kasa_secrets.json 
+IoT/kasa_devices/*.log

@@ -1,2 +1,3 @@
 python-kasa
-asyncio 
+asyncio
+paho-mqtt==1.6.1
