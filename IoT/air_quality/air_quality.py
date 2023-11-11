@@ -25,7 +25,7 @@ class AirQuality:
 
     def defineVariables(self):
 
-        self.serialConnection = serial.Serial('/dev/ttyUSB0')
+        self.serialConnection = serial.Serial('/dev/ttyUSB1')
 
         self.pm2Bytes = 2
         self.pm10Bytes = 4

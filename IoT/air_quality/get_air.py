@@ -11,7 +11,7 @@ import gc
 import sys
 import os
 import logging
-from airquality import AirQuality
+from air_quality import AirQuality
 
 
 def air(client: object, quality: object, topic: str, interval: int) -> str:
@@ -36,10 +36,7 @@ def air(client: object, quality: object, topic: str, interval: int) -> str:
         result = client.publish(topic, payload)
         status = result[0]
 
-        if status == 0:
-            print(f'Data {payload} was published to: {topic}')
-
-        else:
+        if status != 0:
             print(f'Failed to send {payload} to: {topic}')
             logging.debug(f'data failed to publish to MQTT topic, status code:\
                           {status}')

@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 # Markham Lee (C) 2023
-# Hardware Monitor for Linux & Windows:
-# https://github.com/MarkhamLee/HardwareMonitoring
-# This script is specific to the Orange Pi 5 Plus with
-# the Rockchip 3588 System on Chip (SOC) Running Joshua Riek's
-# Ubuntu Distro for RockChip Devices:
-# https://github.com/Joshua-Riek/ubuntu-rockchip
-# CLI instructions <filename> <MQTT topic name as a string>
+# primary script for hardware monitoring container for:
+# Productivity, Home IoT, Music, Stocks & Weather Dashboard
+# https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
+# that pulls hardware data from an Orange Pi 3B and sends it via MQTT to a
+# monitoring solution. MQTT was used to facilitate future iterations with
+# two-way communication in response to a HW issue. Plus can monitor which
+# device's monitoring solutions are online.
 
 
 import json
@@ -14,8 +14,8 @@ import time
 import gc
 import os
 import logging
-from linux_cpu_data import LinuxCpuData
-from deviceTools import DeviceUtilities
+from orangepi3b_data import OrangePi3BData
+
 
 # create logger for logging errors, exceptions and the like
 logging.basicConfig(filename='hardwareDataRockChip.log', level=logging.DEBUG,
@@ -35,7 +35,7 @@ def monitor(client: object, getData: object, topic: str):
         # get current RAM use
         ram_use = getData.getRamData()
 
-        # get per CPU frequencies (bigCore0, bigCore1, littleCore)
+        # get per CPU frequencies
         cpu_freq = getData.getFreq()
 
         # get system temperatures
@@ -67,8 +67,8 @@ def monitor(client: object, getData: object, topic: str):
 
 def main():
 
-    # instantiate utilities class
-    deviceUtilities = DeviceUtilities()
+    # instantiate data and utilities class
+    opi_data = OrangePi3BData()
 
     TOPIC = os.environ['TOPIC']
 
@@ -79,19 +79,16 @@ def main():
     MQTT_PORT = int(os.environ['MQTT_PORT'])
 
     # get unique client ID
-    clientID = deviceUtilities.getClientID()
+    clientID = opi_data.getClientID()
 
     # get mqtt client
-    client, code = deviceUtilities.mqttClient(clientID, MQTT_USER,
-                                              MQTT_SECRET, MQTT_BROKER,
-                                              MQTT_PORT)
-
-    # instantiate CPU data class & utilities class
-    getData = LinuxCpuData()
+    client, code = opi_data.mqttClient(clientID, MQTT_USER,
+                                       MQTT_SECRET, MQTT_BROKER,
+                                       MQTT_PORT)
 
     # start monitoring
     try:
-        monitor(client, getData, TOPIC)
+        monitor(client, opi_data, TOPIC)
 
     finally:
         client.loop_stop()
