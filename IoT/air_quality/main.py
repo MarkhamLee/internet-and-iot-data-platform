@@ -35,10 +35,8 @@ def air(client: object, quality: object, topic: str, interval: int) -> str:
         result = client.publish(topic, payload)
         status = result[0]
 
-        if status == 0:
-            print(f'Data {payload} was published to: {topic}')
+        if status != 0:
 
-        else:
             print(f'Failed to send {payload} to: {topic}')
             logging.debug(f'data failed to publish to MQTT topic, status code:\
                           {status}')
@@ -58,7 +56,7 @@ def main():
     quality = AirQuality()
 
     # Load parameters
-    INTERVAL = os.environ['INTERVAL']
+    INTERVAL = int(os.environ['INTERVAL'])
     TOPIC = os.environ['TOPIC']
 
     # Load Environmental Variables
