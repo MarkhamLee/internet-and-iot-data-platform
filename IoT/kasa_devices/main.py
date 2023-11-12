@@ -44,7 +44,7 @@ async def get_plug_data(client: object, topic: str,
         result = client.publish(topic, payload)
         status = result[0]
 
-        if status == 0:
+        if status != 0:
 
             print(f'Failed to send {payload} to: {topic}')
             logging.debug(f'data failed to publish to MQTT topic, status code:\
