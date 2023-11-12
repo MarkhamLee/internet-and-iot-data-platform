@@ -1,13 +1,9 @@
 #!/usr/bin/env python
 # Markham Lee (C) 2023
-# primary script for hardware monitoring container for:
 # Productivity, Home IoT, Music, Stocks & Weather Dashboard
 # https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
-# that pulls hardware data from an Orange Pi 3B and sends it via MQTT to a
-# monitoring solution. MQTT was used to facilitate future iterations with
-# two-way communication in response to a HW issue. Plus can monitor which
-# device's monitoring solutions are online.
-
+# Primary script for hardware monitoring container for the Orange Pi 3B
+# pulls CPU temps, utilization and clock speed, as well as GPU temp and RAM use
 
 import json
 import time
@@ -36,7 +32,7 @@ def monitor(client: object, getData: object, topic: str):
         ram_use = getData.getRamData()
 
         # get per CPU frequencies
-        cpu_freq = getData.getFreq()
+        cpu_freq, core = getData.getFreq()
 
         # get system temperatures
         cpu_temp, gpu_temp = getData.rockchip_3566_temps()
@@ -53,15 +49,13 @@ def monitor(client: object, getData: object, topic: str):
 
         result = client.publish(topic, payload)
         status = result[0]
-        if status == 0:
-            print(f'Data {payload} was published to: {topic}')
-        else:
+        if status != 0:
+
             print(f'Failed to send {payload} to: {topic}')
             logging.debug(f'MQTT publishing failure, return code: {status}')
 
         del payload, cpu_util, ram_use, cpu_freq, cpu_temp, gpu_temp, \
             status, result
-
         gc.collect()
 
 
