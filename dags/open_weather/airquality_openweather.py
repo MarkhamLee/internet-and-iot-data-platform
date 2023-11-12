@@ -55,7 +55,7 @@ def openweather_air_quality_dag():
 
         # create object for writing to Influx
         point = (
-            Point("air")
+            Point("airq")
             .field("carbon_monoxide", data['co'])
             .field("pm_2", data['pm2'])
             .field("pm_10", data['pm10'])

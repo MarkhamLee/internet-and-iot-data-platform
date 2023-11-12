@@ -16,10 +16,12 @@ class WeatherUtilities():
 
         qual_data = data['list'][0]['components']
 
+        # influx DB is very strict about types, won't allow integers and
+        # floats in the same field. Casting to float to avoid this.
         payload = {
-            "co": qual_data['co'],
-            "pm2": qual_data['pm2_5'],
-            "pm10": qual_data['pm10']
+            "co": float(qual_data['co']),
+            "pm2": float(qual_data['pm2_5']),
+            "pm10": float(qual_data['pm10'])
         }
 
         return payload
