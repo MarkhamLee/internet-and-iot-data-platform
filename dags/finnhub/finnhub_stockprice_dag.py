@@ -35,10 +35,13 @@ def finnhub_stockprice_dag():
     @task(multiple_outputs=True)
     def parse_data(data: dict) -> dict:
 
-        from finnhub.finnhub_utilities import FinnHubUtilities  # noqa: E402
-        utilities = FinnHubUtilities()
+        payload = {
+            "previous_close": float(data['pc']),
+            "last_price": float(data['l']),
+            "change": float(data['pc'])
+        }
 
-        return utilities.parse_stock_data(data)
+        return payload
 
     @task(retries=2)
     def write_data(data: dict):
@@ -53,10 +56,10 @@ def finnhub_stockprice_dag():
 
         point = (
             Point("finnhub_quotes")
-            .tag("stock_prices")
+            .tag("finnhub_API", "stock_prices")
             .field("previous_close", data['previous_close'])
             .field("last_price", data['last_price'])
-            .field("change", data['pc'])
+            .field("change", data['change'])
         )
 
         client.write(bucket=BUCKET, org=ORG, record=point)
