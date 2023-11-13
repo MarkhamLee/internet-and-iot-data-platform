@@ -45,8 +45,8 @@ def openweather_current_weather_dag():
     @task(retries=1)
     def write_data(data: dict):
 
-        from plugins.influx_client import WeatherClients  # noqa: E402
-        influx = WeatherClients()
+        from plugins.influx_client import InfluxClient  # noqa: E402
+        influx = InfluxClient()
 
         from influxdb_client import Point  # noqa: E402
 

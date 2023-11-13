@@ -46,8 +46,8 @@ def alphavantage_stock_price_dag():
         # imports into the functions so that airflow isn't constantly wasting
         # cycles importing libraries.
 
-        from plugins.influx_client import WeatherClients  # noqa: E402
-        influx = WeatherClients()
+        from plugins.influx_client import InfluxClient  # noqa: E402
+        influx = InfluxClient()
 
         from influxdb_client import Point  # noqa: E402
 

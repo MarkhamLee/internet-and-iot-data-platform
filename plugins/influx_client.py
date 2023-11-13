@@ -2,7 +2,7 @@
 # Pass the key, bucket and token and it will return an object
 # for use in writing to InfluxDB.
 
-class WeatherClients():
+class InfluxClient():
 
     def __init__(self) -> None:
         pass
