@@ -37,8 +37,9 @@ def finnhub_stockprice_dag():
 
         payload = {
             "previous_close": float(data['pc']),
+            "open": float(data['o']),
             "last_price": float(data['l']),
-            "change": float(data['pc'])
+            "change": float(data['dp'])
         }
 
         return payload
@@ -57,9 +58,10 @@ def finnhub_stockprice_dag():
         point = (
             Point("finnhub_quotes")
             .tag("finnhub_API", "stock_prices")
-            .field("previous_close", data['previous_close'])
-            .field("last_price", data['last_price'])
-            .field("change", data['change'])
+            .field("previous_close", data["previous_close"])
+            .field("last_price", data["last_price"])
+            .field("change", data["change"])
+            .field("open", data["open"])
         )
 
         client.write(bucket=BUCKET, org=ORG, record=point)
