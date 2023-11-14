@@ -1,10 +1,17 @@
 # Productivity, Home IoT, Music, Stocks & Weather Dashboard
 
-The primary purrpose of this project is to see if I can improve my productivity by putting information I usually get from my phone, forget to monitor, etc., into one place for easy access. I.e. if I can just glance at a browswer tab (or two) or my iPad to get everything I need, it should reduce the amount of time I spend on my phone. Think: you  look at your phone to check the weather and wind up watching IG reels. Additionally, I want to gather aggregate data from IoT and smart devices into one place, so I can check room temps, monitor air quality inside my home and see how much power is used by the various devices I use for all my tinkering and nerd projects. A second but just as important objective is getting more hands on experience with Airflow, Home Automation & IoT devices, I'm a firm believer in the idea that the best way to learn a technology is to build something you'll actually use. 
+This project has two primary objectives: 
+1) Get more experience with Airflow by building a data aggregation platform that's inclusive of API sources, IoT devices and potentially even some RSS feeds and web scraping. 
+2) Aggregate useful data into one place that I would normally get from my phone or various online sources into one place so as to reduce distractions, and/or so I don't miss out on data I often forget to check or keep with. This includes but is not limited to: inancial data, fitness/health data, weather, to-do lists from Asana, etc. The basic idea is that instead of looking up something on my phone and then getting distracted by LinkedIn or reels, I can glance at a screen or browswer tab and not interrupt my daily workflow. 
+
+A secondary objective is to start experimenting with home automation via gathering data from various IoT sensors, smart devices, DIY air quality monitoring stations, that I was using for other projects or just playing around with into one place. 
+
+*TL/DR: I over-enginered a data aggregation platform for professional development, improved productivity and to not have limitations on what data I can display, how it's managed, et al that you often encounter when using something off the shelf, even if it's customizable.*
+
 
 ## Architecture - Tech Stack
 
-![Architecture](/images/dashboard_architectureMKII.png)  
+![Architecture](/images/dashboard_architecture_MKII.png)  
 
 All logos and trademarks are property of their respective owners and the use in the diagram represents an acceptable based on my understanding of their guidelines. **If that is not the case, please let me now and I'll update the diagram ASAP.** 
 
@@ -12,7 +19,8 @@ All logos and trademarks are property of their respective owners and the use in 
 * **InfluxDB:** for time series data, **PostgreSQL** for everything else 
 * **Grafana:** to display data
 * **Eclipse-Mosquito:** for the MQTT broker that will receive messages from IoT/Smart Devices 
-* **Docker:** to run nearly everything, save a few things I might deploy directly on a device as a Linux service. Used **Portainer** to manage, configure and deploy containers from images stored in my private Docker Repo. 
+* **Docker:** all the big building blocks (e.g. Airflow, InfluxDB, etc.) are deployed via Docker containers and I deployed all the custom code for things like monitoring air quality, managing smart devices and the like via Docker containers as well. 
+* **Portainer:** I manage all the containers on all of the devices via Portainer, but as I move things to my k3s cluster I might use Rancher instead for k3s, but keep using Portainer for managing the containers on my Raspberry Pis that I use for things like monitoring air quality.  
 * **Node-Red:** to manage the incoming MQTT messages, data transformation of MQTT messages and then writing the data to InfluxDB 
 * **Slack:** is used for alerting and monitoring, in particular alerts when any part of a pipeline or scheduled task fails in Airflow, and general alerting and monitoring for IoT/Smart Device related items. E.g., a data write to InfluxDB fails for Weather data or an air quality sensor or smart plug isn't responding. 
 * The **Zigbee2MQTT library** plus a **Sonoff Zigbee USB Dongle** to receive data from Zigbee enabled IoT devices and then send it off as MQTT messages. This allows me to use a wide variety of smart home devices and/or IoT sensors without having to purchase extra hubs or other smart home devices just to use the sensors. Instead, I can instead connect directly to each device and run custom code/solutions to ingest the data. 
