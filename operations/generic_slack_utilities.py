@@ -6,7 +6,7 @@
 # Current plan is to use this for alerting related to IoT devices,
 # monitoring HW and to alert me if an Airflow pipeline fails.
 # This file is basically a baseline Slack client, expect the variants used for
-# Airflow vs say IoT to drift apart over time. 
+# Airflow vs say IoT to drift apart over time.
 
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError

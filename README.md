@@ -4,8 +4,9 @@ The primary purrpose of this project is to see if I can improve my productivity 
 
 ## Architecture - Tech Stack
 
-![Architecture](/images/dashboard_architectureMKI.png)  
+![Architecture](/images/dashboard_architectureMKII.png)  
 
+All logos and trademarks are property of their respective owners and the use in the diagram represents an acceptable based on my understanding of their guidelines. **If that is not the case, please let me now and I'll update the diagram ASAP.** 
 
 * **Airflow:** data ingestion + orchestration from external APIs E.g., OpenWeather API, Spotify. 
 * **InfluxDB:** for time series data, **PostgreSQL** for everything else 
@@ -13,6 +14,7 @@ The primary purrpose of this project is to see if I can improve my productivity 
 * **Eclipse-Mosquito:** for the MQTT broker that will receive messages from IoT/Smart Devices 
 * **Docker:** to run nearly everything, save a few things I might deploy directly on a device as a Linux service. Used **Portainer** to manage, configure and deploy containers from images stored in my private Docker Repo. 
 * **Node-Red:** to manage the incoming MQTT messages, data transformation of MQTT messages and then writing the data to InfluxDB 
+* **Slack:** is used for alerting and monitoring, in particular alerts when any part of a pipeline or scheduled task fails in Airflow, and general alerting and monitoring for IoT/Smart Device related items. E.g., a data write to InfluxDB fails for Weather data or an air quality sensor or smart plug isn't responding. 
 * The **Zigbee2MQTT library** plus a **Sonoff Zigbee USB Dongle** to receive data from Zigbee enabled IoT devices and then send it off as MQTT messages. This allows me to use a wide variety of smart home devices and/or IoT sensors without having to purchase extra hubs or other smart home devices just to use the sensors. Instead, I can instead connect directly to each device and run custom code/solutions to ingest the data. 
 * Where possible using code libraries like **Python-Kasa for TP Link Kasa devices** to connect to IoT and Smart Devices directly.
 * **GPIO and USB** based sensors and smart devices connected to Raspberry Pis single board computers and/or similar devices like Orange Pi or Libre Computer devices. 
@@ -28,7 +30,8 @@ The primary purrpose of this project is to see if I can improve my productivity 
 * **External/Public API sources:** 
     * Asana (where I keep my to do lists) -- *shockingly, the former project manager uses PM software for day to day task management*
     * Air Quality & Weather via the OpenWeather API [DONE]
-    * Finance: tracking the S&P 500, T-Bills and maybe 1-2 other stocks [MOSTLY DONE] - need to find another finance API that allow me to track more items and get more frequent updates. 
+    * Finance: tracking the S&P 500, T-Bills and maybe 1-2 other stocks [DONE] - switched to Finnhub from Alpha Advantage as I can make several requests per second vs 26/day for Alpha Advantage
+    * Tracking hydration - still looking for a good way to do this 
     * Discord - I join servers and then rarely pay attention and often miss announcements related to DIY/Makers, Podcasts I enjoy, Video Game Mods and other hobbies. 
     * eBay? I need to explore the API more but the plan is to track auctions and automate searches for items I'm interested in. 
     * Spotify - alerts for podcast updates 
