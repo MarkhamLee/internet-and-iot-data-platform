@@ -1,3 +1,8 @@
+# Markham Lee (C) 2023
+# productivity-music-stocks-weather-IoT-dashboard
+# https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
+# This script retrieves stock price information from the Finnhub API
+
 from datetime import datetime, timedelta
 from airflow.decorators import dag, task
 from airflow.models import Variable
@@ -18,7 +23,18 @@ URL = Variable.get('influx_url')
 BUCKET = Variable.get('dashboard_bucket')
 
 
-@dag(schedule=timedelta(minutes=15), default_args=default_args, catchup=False)
+def send_alerts(context: dict):
+
+    from plugins.slack_utilities import SlackUtilities
+    slack_utilities = SlackUtilities()
+
+    webhook_url = Variable.get('slack_hook_alerts')
+
+    slack_utilities.send_slack_webhook(webhook_url, context)
+
+
+@dag(schedule=timedelta(minutes=2), default_args=default_args, catchup=False,
+     on_failure_callback=send_alerts)
 def finnhub_stockprice_dag():
 
     @task(retries=0)
@@ -44,7 +60,7 @@ def finnhub_stockprice_dag():
 
         return payload
 
-    @task(retries=2)
+    @task(retries=1)
     def write_data(data: dict):
 
         from plugins.influx_client import InfluxClient  # noqa: E402
@@ -58,10 +74,10 @@ def finnhub_stockprice_dag():
         point = (
             Point("finnhub_quotes")
             .tag("finnhub_API", "stock_prices")
-            .field("previous_close", data["previous_close"])
-            .field("last_price", data["last_price"])
-            .field("change", data["change"])
-            .field("open", data["open"])
+            .field("previous_close", data['previous_close'])
+            .field("last_price", data['last_price'])
+            .field("change", data['change'])
+            .field("open", data['open'])
         )
 
         client.write(bucket=BUCKET, org=ORG, record=point)

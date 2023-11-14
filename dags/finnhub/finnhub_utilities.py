@@ -8,7 +8,6 @@
 
 class FinnHubUtilities():
 
-    # placeholder for now
     def __init__(self) -> None:
         pass
 

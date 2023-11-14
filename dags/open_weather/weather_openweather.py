@@ -1,3 +1,8 @@
+# Markham Lee (C) 2023
+# productivity-music-stocks-weather-IoT-dashboard
+# https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
+# This script retrieves the current weather from the Openweather API
+
 from datetime import datetime, timedelta
 from airflow.decorators import dag, task
 from airflow.models import Variable
@@ -23,7 +28,18 @@ URL = Variable.get('influx_url')
 BUCKET = Variable.get('dashboard_bucket')
 
 
-@dag(schedule=timedelta(minutes=5), default_args=default_args, catchup=False)
+def send_alerts(context: dict):
+
+    from plugins.slack_utilities import SlackUtilities
+    slack_utilities = SlackUtilities()
+
+    webhook_url = Variable.get('slack_hook_alerts')
+
+    slack_utilities.send_slack_webhook(webhook_url, context)
+
+
+@dag(schedule=timedelta(minutes=5), default_args=default_args, catchup=False,
+     on_failure_callback=send_alerts)
 def openweather_current_weather_dag():
 
     @task

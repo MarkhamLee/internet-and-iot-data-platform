@@ -1,3 +1,8 @@
+# Markham Lee (C) 2023
+# productivity-music-stocks-weather-IoT-dashboard
+# https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
+# This script retrieves stock price data from the Alpha Vantage API
+
 from datetime import datetime, timedelta
 from airflow.decorators import dag, task
 from airflow.models import Variable

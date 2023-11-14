@@ -5,7 +5,7 @@ class WeatherUtilities():
     def __init__(self):
 
         # create constants
-        self.units = '&units=imperial'
+        self.units = '&units=metric'
         self.city = 'seattle'
         self.lat = 47.6
         self.long = -122.3321
