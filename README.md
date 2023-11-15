@@ -1,7 +1,7 @@
 # Productivity, Home IoT, Music, Stocks & Weather Dashboard
 
 ![Dashboard Thumbnail](/images/dashboard_snapshot11-15.png)  
-Snapshot of some of the tracked data, have other datapoints ready but want to test those connections and/or devices more.  
+*Snapshot of some of the tracked data* 
 
 This project has two primary objectives: 
 1) Get more experience with Airflow by building a data aggregation platform that's inclusive of API sources, IoT devices and potentially even some RSS feeds and web scraping. 
