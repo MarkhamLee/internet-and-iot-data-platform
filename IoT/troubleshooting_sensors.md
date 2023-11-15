@@ -1,5 +1,3 @@
-
-
 ## Tips & Tricks for Troubleshoting Sensors
  
 
@@ -9,8 +7,9 @@ A few tips and tricks in case you can't get the sensor working, note: these are 
 * Using the Nova PM SDS011 air quality sensor is fairly simple, plug it into a USB port, run the appropriate python script(s) and away you go.
 * If you run into issues where the ttyUSB0 can't be found:
     * If you're running a desktop Linux distribution, run sudo apt remove brltty, it's a package that's for the sight impaired that can cause issues with USB devices.
-    * Check that /dev/ttyUSB0 exists and what permissions are set on it with 'ls -l /dev/ttyUSB0'. You should get something back that includes something like: (/dev/ttyS{0..31}), which belongs to the group dialout. You may have to join that group via this command: ('sudo usermod -a -G dialout your_username_here'). Then login and log back out for it to take effect. 
-    Note: I haven't run into any of these issues while attempting to use the sensor on a headless Linux distribution.
+    * Check that /dev/ttyUSB0 exists and what permissions are set on it with 'ls -l /dev/ttyUSB0'. You should get something back that includes something like: (/dev/ttyS{0..31}), which belongs to the group dialout. 
+    * You may have to join that group via this command: ('sudo usermod -a -G dialout your_username_here'), and login and log back out for it to take effect. 
+    * Note: I haven't run into any of these issues while attempting to use the sensor on a headless Linux distribution.
 * The above steps can be used on must sensor or hub devices you'd plug into USB, like a Zigbee USB hub. Also, if you already have something plugged into one of your USB ports, than the address for the USB port becomes ttyUSB1, if you have two things ttyUSB2, and so on and so forth. 
 
 ##### Troubleshooting GPIO based sensors
