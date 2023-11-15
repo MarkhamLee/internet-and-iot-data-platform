@@ -31,13 +31,13 @@ All logos and trademarks are property of their respective owners and the use in 
 * Where possible using code libraries like **Python-Kasa for TP Link Kasa devices** to connect to IoT and Smart Devices directly.
 * **GPIO and USB** based sensors and smart devices connected to Raspberry Pis single board computers and/or similar devices like Orange Pi or Libre Computer devices. 
 * **Hardware Details:** 
-    * An *Intel NUC like* Beelink Mini S12 running the primary stack for testing/validation 
-    * k3s cluster built on Beelink SER 5 Pros (Ryzen 5 5560U CPUs) for production
+    * An *Intel NUC like* **Beelink Mini S12** running the primary stack for testing/validation 
+    * **k3s cluster** built on **Beelink SER 5 Pros (Ryzen 5 5560U CPUs)** for production
     * Single Board Computers(SBCs)
-        * A Raspberry Pi 4B runs the Zigbee2MQTT container, the Zigbee USB hub and the Nova PM SDS011 air quality sensor in my office. 
-        * An Orange Pi 3B and a Libre LePotato run air quality sensors elsewhere in the house
+        * A **Raspberry Pi 4B** runs the **Zigbee2MQTT container**, the Zigbee USB hub and the Nova PM SDS011 air quality sensor in my office. 
+        * An **Orange Pi 3B** and a **Libre LePotato** run air quality sensors elsewhere in the house
         * Plan is to move at least the Rasperry Pi and the LePotato to PXE boot as they run off of SD cards, the Orange Pi 3B runs off an eMMC so it's a lower priority for PXE. Also, might just replae the Raspbery Pi 4B and LePotato with Orange Pi 3B (or maybe a 5) since those devices have built in eMMC and NVME slots. I.e. remove the SD card weak point. 
-    * I do nearly all my dev work for this project on an Intel NUC 12th gen, but I use either the Orange Pi 3B or my Orange Pi 5+ for building and testing the containers that will be deployed to the ARM devices/Single Board Computers.  
+    * I do nearly all my dev work for this project on an **Intel NUC 12th gen**, but I use either the Orange Pi 3B or my Orange Pi 5+ for building and testing the containers that will be deployed to the ARM devices/Single Board Computers.  
 * **IoT/Smart Devices:** 
     * **Aqara and Sonoff** temperature sensors that connect via the Zigbee protocol
     * **Nova PM SDS011** IoT Air Quality sensors hooked into Libre Computer Le Potato, Orange Pi 3Bs Raspberry Pi 4Bs until I find an air quality device I both like AND uses the Zigbee protocol, and/or is built by a manufacturer that provides an API for interacting with their devices. 
