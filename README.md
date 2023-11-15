@@ -1,5 +1,8 @@
 # Productivity, Home IoT, Music, Stocks & Weather Dashboard
 
+![Dashboard Thumbnail](/images/dashboard_snapshot11-15.png)  
+Snapshot of some of the tracked data, have other datapoints ready but want to test those connections and/or devices more.  
+
 This project has two primary objectives: 
 1) Get more experience with Airflow by building a data aggregation platform that's inclusive of API sources, IoT devices and potentially even some RSS feeds and web scraping. 
 2) Aggregate useful data into one place that I would normally get from my phone or various online sources into one place so as to reduce distractions, and/or so I don't miss out on data I often forget to check or keep with. This includes but is not limited to: inancial data, fitness/health data, weather, to-do lists from Asana, etc. The basic idea is that instead of looking up something on my phone and then getting distracted by LinkedIn or reels, I can glance at a screen or browswer tab and not interrupt my daily workflow. 
@@ -12,6 +15,7 @@ A secondary objective is to start experimenting with home automation via gatheri
 ## Architecture - Tech Stack
 
 ![Architecture](/images/dashboard_architecture_MKII.png)  
+*The TL/DR: is that data from external APIs comes in via Airflow, data from internal sensors and/or smart devices comes in via Zigbee and/or custom code (deployed on Docker containers) to an MQTT broker that is managed/orchestrated via Node-Red. If things go wrong, I get alerts via Slack.* 
 
 All logos and trademarks are property of their respective owners and the use in the diagram represents an acceptable based on my understanding of their guidelines. **If that is not the case, please let me now and I'll update the diagram ASAP.** 
 
@@ -52,4 +56,4 @@ All logos and trademarks are property of their respective owners and the use in 
 The repo contains the the code for the Airflow Dags (written in TaskFlow API format), custom plugins for connecting to things like InfluxDB and the code for ingesting data from the IoT devices. It also has the extended but not quite custom Docker image I used for Airflow (*so it has all of my Python dependencies*). Plan is to continuously add data sources and then update the repo accordingly. 
 
 ### Key References: 
-* [Airflow best practices:](https://airflow.apache.org/docs/apache-airflow/stable/best-practices.html) I made extensive use of this documentation to not only re-write my original DAGs into the Taskflow API format, but to make sure I was following as many best practices as possible. I also used their documentation to structure my Docker container. 
+* [Airflow best practices:](https://airflow.apache.org/docs/apache-airflow/stable/best-practices.html) I made extensive use of this documentation to not only re-write my original DAGs into the Taskflow API format, but to make sure I was following as many best practices as possible. I also used their documentation to structure my Airflow Docker container. 
