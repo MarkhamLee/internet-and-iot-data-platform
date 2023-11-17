@@ -5,7 +5,9 @@ class AlphaUtilities():
 
         # create constants
         self.base_url = 'https://www.alphavantage.co/query?function=GLOBAL_QUOTE'  # noqa: E501
+        self.base_tbill_url = 'https://www.alphavantage.co/query?function=TREASURY_YIELD&interval=monthly'
         self.quote_base = '&symbol='
+        self.bond_base = '&maturity='
         self.api_key_base = '&apikey='
 
     def build_url(self, stock: str, key: str) -> str:
@@ -15,6 +17,15 @@ class AlphaUtilities():
         full_url = f'{self.base_url}{full_symbol}{self.api_key_base}{key}'
 
         return full_url
+    
+    def build_bond_url(self, maturity:str, key: str) -> str:
+
+        full_param = self.bond_base + maturity
+
+        full_url = f'{self.base_url}{full_param}{self.api_key_base}{key}'
+
+        return full_url
+
 
     @staticmethod
     def get_stock_data(url: str) -> dict:
@@ -40,6 +51,19 @@ class AlphaUtilities():
             "price": price,
             "change_per": change_per,
             "change": change
+        }
+
+        return payload
+    
+    @staticmethod
+    def bond_data_parser(response: dict) -> dict: 
+
+        rate = float(response['data'][0]['value'])
+        date = response[['data'][0]['date']]
+
+        payload = {
+            'rate': rate,
+            'month': date
         }
 
         return payload
