@@ -37,7 +37,7 @@ def send_alerts(context: dict):
     slack_utilities.send_slack_webhook(webhook_url, context)
 
 
-@dag(schedule=timedelta(hours=2), default_args=default_args, catchup=False,
+@dag(schedule=timedelta(hours=4), default_args=default_args, catchup=False,
      on_failure_callback=send_alerts)
 def alphavantage_tbill10_price_dag():
 
