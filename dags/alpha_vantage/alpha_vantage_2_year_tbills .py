@@ -9,7 +9,7 @@ from airflow.models import Variable
 
 default_args = {
     "owner": "airflow",
-    "start_date": datetime(2023, 11, 5),
+    "start_date": datetime(2023, 11, 16),
     "retries": 1,
 }
 
@@ -26,6 +26,7 @@ BUCKET = Variable.get('dashboard_bucket')
 from alpha_vantage.alpha_utilities import AlphaUtilities  # noqa: E402
 utilities = AlphaUtilities()
 
+
 def send_alerts(context: dict):
 
     from plugins.slack_utilities import SlackUtilities
@@ -38,13 +39,13 @@ def send_alerts(context: dict):
 
 @dag(schedule=timedelta(hours=2), default_args=default_args, catchup=False,
      on_failure_callback=send_alerts)
-def alphavantage_stock_price_dag():
+def alphavantage_tbill2_price_dag():
 
     @task(retries=1)
     def get_treasury_data():
 
         # create URL
-        url = utilities.build_bond_url('10year', ALPHA_KEY)
+        url = utilities.build_bond_url('2year', ALPHA_KEY)
 
         # get data
         return utilities.get_stock_data(url)
@@ -71,10 +72,10 @@ def alphavantage_stock_price_dag():
 
         # create object for writing to Influx
         point = (
-            Point("T-Bills")
+            Point("2yr-T-Bill")
             .tag("Alpha_Vantage", "bond_data")
             .field("rate", data['rate'])
-            .field("month", data['month'])
+            .field("date", data['date'])
         )
 
         client.write(bucket=BUCKET, org=ORG, record=point)
@@ -83,4 +84,4 @@ def alphavantage_stock_price_dag():
     write_data(parse_data(get_treasury_data()))
 
 
-alphavantage_stock_price_dag()
+alphavantage_tbill2_price_dag()
