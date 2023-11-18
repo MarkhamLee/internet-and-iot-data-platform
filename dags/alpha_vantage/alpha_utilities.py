@@ -1,3 +1,7 @@
+# Markham Lee (C) 2023
+# productivity-music-stocks-weather-IoT-dashboard
+# https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
+# Utility scripts for retrieving data from the Alpha Advantage finance API
 
 class AlphaUtilities():
 
