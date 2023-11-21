@@ -2,8 +2,9 @@
 # Markham Lee (C) 2023
 # Productivity, Home IoT, Music, Stocks & Weather Dashboard
 # https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
-# Primary script for hardware monitoring container for the Orange Pi 3B
-# pulls CPU temps, utilization and clock speed, as well as GPU temp and RAM use
+# Primary script for a hardware monitoring container for a generic Linux x86
+# Device, pulls CPU temps, utilization and clock speed, as well as GPU temp
+# and RAM use
 
 import json
 import time

@@ -1,6 +1,6 @@
 # Markham Lee (C) 2023
 # Class with data retrieval and utility methods to support pulling hardware
-# data from an Orange Pi 3B
+# data from a generic Linux x86 Device
 # https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
 
 
