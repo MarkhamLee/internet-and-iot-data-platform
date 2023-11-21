@@ -45,7 +45,6 @@ class PostgresUtilities():
         buffer = StringIO()
         payload.to_csv(buffer, index_label='id', header=False)
         buffer.seek(0)
-        print(buffer)
 
         cursor = connection.cursor()
 
