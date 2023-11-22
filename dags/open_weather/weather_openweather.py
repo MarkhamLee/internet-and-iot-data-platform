@@ -15,19 +15,6 @@ default_args = {
 }
 
 
-from open_weather.weather_utilities import WeatherUtilities  # noqa: E402
-utilities = WeatherUtilities()
-
-# key for OpenWeather API
-WEATHER_KEY = Variable.get('open_weather')
-
-# influx DB variables
-INFLUX_KEY = Variable.get('dashboard_influx_key')
-ORG = Variable.get('influx_org')
-URL = Variable.get('influx_url')
-BUCKET = Variable.get('dashboard_bucket')
-
-
 def send_alerts(context: dict):
 
     from plugins.slack_utilities import SlackUtilities
@@ -42,9 +29,14 @@ def send_alerts(context: dict):
      on_failure_callback=send_alerts)
 def openweather_current_weather_dag():
 
+    from open_weather.weather_utilities import WeatherUtilities  # noqa: E402
+    utilities = WeatherUtilities()
+
     @task
     def get_weather():
 
+        # key for OpenWeather API
+        WEATHER_KEY = Variable.get('open_weather')
         ENDPOINT = 'weather?'
 
         # create URL
@@ -65,6 +57,12 @@ def openweather_current_weather_dag():
         influx = InfluxClient()
 
         from influxdb_client import Point  # noqa: E402
+
+        # influx DB variables
+        INFLUX_KEY = Variable.get('dashboard_influx_key')
+        ORG = Variable.get('influx_org')
+        URL = Variable.get('influx_url')
+        BUCKET = Variable.get('dashboard_bucket')
 
         # get the client for connecting to InfluxDB
         client = influx.influx_client(INFLUX_KEY, ORG, URL)

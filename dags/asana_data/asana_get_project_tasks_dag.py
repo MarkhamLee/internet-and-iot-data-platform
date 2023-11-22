@@ -1,9 +1,7 @@
 # Markham Lee (C) 2023
 # productivity-music-stocks-weather-IoT-dashboard
 # https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
-# This script retrieves the list of tasks from an Asana Project, an then write
-# them to PostgreSQL. The script will empty the table before writing the tasks,
-# as goal is just to have the latest list of open tasks.
+# This script retrieves ten year T-Bill data from the Alpha Vantage API
 
 from datetime import datetime, timedelta
 from airflow.decorators import dag, task
@@ -14,21 +12,6 @@ default_args = {
     "start_date": datetime(2023, 11, 21),
     "retries": 1,
 }
-
-# Asana Key
-ASANA_KEY = Variable.get('asana_key')
-
-# Postgres DB connection data
-POSTGRES_DB = Variable.get('postgres_db')
-POSTGRES_HOST = Variable.get('sandbox_server')
-POSTGRES_USER = Variable.get('postgres_user')
-POSTGRES_PORT = Variable.get('postgres_port')
-POSTGRES_SECRET = Variable.get('postgres_secret')
-POSTGRES_TABLE = Variable.get('asana_table_simple')
-PROJECT_GID = Variable.get('asana_project_gid_priorities')
-
-from asana_data.asana_utilities import AsanaUtilities  # noqa: E402
-asana_utilities = AsanaUtilities()
 
 
 def send_alerts(context: dict):
@@ -45,17 +28,23 @@ def send_alerts(context: dict):
      on_failure_callback=send_alerts)
 def asana_project_tasks_dag():
 
+    from asana_data.asana_utilities import AsanaUtilities  # noqa: E402
+    asana_utilities = AsanaUtilities()
+
     @task(retries=1)
     def get_project_data():
+
+        # Asana Data
+        ASANA_KEY = Variable.get('asana_key')
+        PROJECT_GID = Variable.get('asana_project_gid_priorities')
 
         # get Asana Client
         asana_client = asana_utilities.get_asana_client(ASANA_KEY)
 
         # get Asana data
-        # pushing the API call + initial data parsing to an external script
-        # enables us to get around the XCom error that is caused by Asana's
-        # returning the data as a pagination object that can't be parsed into
-        # JSON.
+        # pushing the API call + data parsing to an external script allows
+        # us to get around the XCom error that is caused by Asana's returning
+        # the data as a pagination object that can't be parsed into JSON.
         data = asana_utilities.get_asana_data(asana_client, PROJECT_GID)
 
         return data
@@ -63,8 +52,8 @@ def asana_project_tasks_dag():
     @task()
     def parse_data(data: dict) -> object:
 
-        # creating a data frame that can be written to PostgreSQL
-
+        # convert the list of dictionaries from the prior step into a
+        # pandas data frame
         return asana_utilities.transform_asana_data(data)
 
     @task(retries=2)
@@ -72,18 +61,34 @@ def asana_project_tasks_dag():
 
         # import and instantiate Postgres writing class
         from plugins.postgres_client import PostgresUtilities  # noqa: E402
-        postgres = PostgresUtilities()
+        postgres_utilities = PostgresUtilities()
+
+        # Postgres Table
+        POSTGRES_TABLE = Variable.get('asana_table_simple')
 
         connection_params = {
-            "host": POSTGRES_HOST,
-            "database": POSTGRES_DB,
-            "port": POSTGRES_PORT,
-            "user": POSTGRES_USER,
-            "password": POSTGRES_SECRET
+            "host": Variable.get('sandbox_server'),
+            "database": Variable.get('postgres_db'),
+            "port": Variable.get('postgres_port'),
+            "user": Variable.get('postgres_user'),
+            "password": Variable.get('postgres_secret')
         }
 
-        response = postgres.write_df_postgres_clear(data, POSTGRES_TABLE,
-                                                    connection_params)
+        # get Postgres client
+        client = postgres_utilities.postgres_client(connection_params)
+
+        # get dataframe columns for managing data quality
+        columns = list(data.columns)
+
+        # prepare payload
+        buffer = postgres_utilities.prepare_payload(data, columns)
+
+        # clear out the table, as we only want the most recent values
+        response = postgres_utilities.clear_table(client, POSTGRES_TABLE)
+
+        # write the most recent tasks list to Postgres
+        response = postgres_utilities.write_data(client, buffer,
+                                                 POSTGRES_TABLE)
 
         # probably redundant, just to make sure we get the specific error from
         # postgres as opposed to a more general Python error

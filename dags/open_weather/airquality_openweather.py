@@ -13,18 +13,6 @@ default_args = {
     "retries": 1,
 }
 
-# key for OpenWeather API
-WEATHER_KEY = Variable.get('open_weather')
-
-# influx DB variables
-INFLUX_KEY = Variable.get('influx_db_key')
-ORG = Variable.get('influx_org')
-URL = Variable.get('influx_url')
-BUCKET = Variable.get('dashboard_bucket')
-
-from open_weather.weather_utilities import WeatherUtilities  # noqa: E402
-utilities = WeatherUtilities()
-
 
 def send_alerts(context: dict):
 
@@ -39,6 +27,18 @@ def send_alerts(context: dict):
 @dag(schedule=timedelta(minutes=15), default_args=default_args, catchup=False,
      on_failure_callback=send_alerts)
 def openweather_air_quality_dag():
+
+    from open_weather.weather_utilities import WeatherUtilities  # noqa: E402
+    utilities = WeatherUtilities()
+
+    # key for OpenWeather API
+    WEATHER_KEY = Variable.get('open_weather')
+
+    # influx DB variables
+    INFLUX_KEY = Variable.get('influx_db_key')
+    ORG = Variable.get('influx_org')
+    URL = Variable.get('influx_url')
+    BUCKET = Variable.get('dashboard_bucket')
 
     @task(retries=1)
     def get_air_quality_data():

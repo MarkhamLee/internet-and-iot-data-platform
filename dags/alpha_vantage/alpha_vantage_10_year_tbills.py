@@ -13,19 +13,6 @@ default_args = {
     "retries": 1,
 }
 
-# Alpha Vantage Key
-ALPHA_KEY = Variable.get('alpha_vantage_key')
-
-# influx DB variables
-INFLUX_KEY = Variable.get('dashboard_influx_key')
-ORG = Variable.get('influx_org')
-URL = Variable.get('influx_url')
-BUCKET = Variable.get('dashboard_bucket')
-
-
-from alpha_vantage.alpha_utilities import AlphaUtilities  # noqa: E402
-utilities = AlphaUtilities()
-
 
 def send_alerts(context: dict):
 
@@ -40,6 +27,12 @@ def send_alerts(context: dict):
 @dag(schedule=timedelta(hours=4), default_args=default_args, catchup=False,
      on_failure_callback=send_alerts)
 def alphavantage_tbill10_price_dag():
+
+    # Alpha Vantage Key
+    ALPHA_KEY = Variable.get('alpha_vantage_key')
+
+    from alpha_vantage.alpha_utilities import AlphaUtilities  # noqa: E402
+    utilities = AlphaUtilities()
 
     @task(retries=1)
     def get_treasury_data():
@@ -66,6 +59,12 @@ def alphavantage_tbill10_price_dag():
         influx = InfluxClient()
 
         from influxdb_client import Point  # noqa: E402
+
+        # influx DB variables
+        INFLUX_KEY = Variable.get('dashboard_influx_key')
+        ORG = Variable.get('influx_org')
+        URL = Variable.get('influx_url')
+        BUCKET = Variable.get('dashboard_bucket')
 
         # get the client for connecting to InfluxDB
         client = influx.influx_client(INFLUX_KEY, ORG, URL)

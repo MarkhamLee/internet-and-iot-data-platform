@@ -13,15 +13,6 @@ default_args = {
     "retries": 1,
 }
 
-# get Finnhub API key
-FINNHUB_KEY = Variable.get('finnhub_key')
-
-# Influx DB variables
-INFLUX_KEY = Variable.get('dashboard_influx_key')
-ORG = Variable.get('influx_org')
-URL = Variable.get('influx_url')
-BUCKET = Variable.get('dashboard_bucket')
-
 
 def send_alerts(context: dict):
 
@@ -36,6 +27,9 @@ def send_alerts(context: dict):
 @dag(schedule=timedelta(minutes=2), default_args=default_args, catchup=False,
      on_failure_callback=send_alerts)
 def finnhub_30year_Tbill_dag():
+
+    # get Finnhub API key
+    FINNHUB_KEY = Variable.get('finnhub_key')
 
     @task(retries=0)
     def get_prices():
@@ -67,6 +61,12 @@ def finnhub_30year_Tbill_dag():
         influx = InfluxClient()
 
         from influxdb_client import Point  # noqa: E402
+
+        # Influx DB variables
+        INFLUX_KEY = Variable.get('dashboard_influx_key')
+        ORG = Variable.get('influx_org')
+        URL = Variable.get('influx_url')
+        BUCKET = Variable.get('dashboard_bucket')
 
         # get the client for connecting to InfluxDB
         client = influx.influx_client(INFLUX_KEY, ORG, URL)

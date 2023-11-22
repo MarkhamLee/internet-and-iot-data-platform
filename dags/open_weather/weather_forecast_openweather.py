@@ -14,19 +14,6 @@ default_args = {
     "retries": 1,
 }
 
-# key for OpenWeather API
-WEATHER_KEY = Variable.get('open_weather')
-
-# influx DB variables
-INFLUX_KEY = Variable.get('influx_db_key')
-ORG = Variable.get('influx_org')
-URL = Variable.get('influx_url')
-BUCKET = Variable.get('dashboard_bucket')
-
-
-from open_weather.weather_utilities import WeatherUtilities  # noqa: E402
-utilities = WeatherUtilities()
-
 
 def send_alerts(context: dict):
 
@@ -42,10 +29,15 @@ def send_alerts(context: dict):
      on_failure_callback=send_alerts)
 def openweather_weather_forecast_dag():
 
+    from open_weather.weather_utilities import WeatherUtilities  # noqa: E402
+    utilities = WeatherUtilities()
+
     @task
     def get_forecast():
 
         ENDPOINT = 'forecast?'
+        # key for OpenWeather API
+        WEATHER_KEY = Variable.get('open_weather')
 
         # create URL
         url = utilities.build_url_weather(WEATHER_KEY, ENDPOINT)
@@ -73,6 +65,12 @@ def openweather_weather_forecast_dag():
         influx = InfluxClient()
 
         from influxdb_client import Point  # noqa: E402
+
+        # influx DB variables
+        INFLUX_KEY = Variable.get('influx_db_key')
+        ORG = Variable.get('influx_org')
+        URL = Variable.get('influx_url')
+        BUCKET = Variable.get('dashboard_bucket')
 
         # get the client for connecting to InfluxDB
         client = influx.influx_client(INFLUX_KEY, ORG, URL)
