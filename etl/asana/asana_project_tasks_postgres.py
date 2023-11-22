@@ -7,7 +7,13 @@
 import os
 import sys
 from asana_utilities import AsanaUtilities
-from postgres_client import PostgresUtilities
+
+# this allows us to import modules from the parent directory
+parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(parent_dir)
+
+
+from clients.postgres_client import PostgresUtilities  # noqa: E402
 
 # load utilities class
 utilities = AsanaUtilities()
@@ -25,10 +31,10 @@ def parse_asana_data(response: object) -> list:
     return utilities.transform_asana_data(response)
 
 
-# just prints out data for now to verify everything is working
-def write_data(payload: object, TABLE: str):
+# write data to PostgreSQL
+def write_data(data: object):
 
-    TABLE = 'simple_asana'
+    TABLE = os.environ.get('ASANA_TABLE')
 
     param_dict = {
         "host": os.environ.get('SANDBOX_SERVER'),
@@ -39,23 +45,34 @@ def write_data(payload: object, TABLE: str):
 
     }
 
-    data_utilities = PostgresUtilities()
-    response = data_utilities.write_df_postgres_clear(payload, TABLE,
-                                                      param_dict)
+    postgres_utilities = PostgresUtilities()
+
+    # get dataframe columns for managing data quality
+    columns = list(data.columns)
+
+    # get connection client
+    connection = postgres_utilities.postgres_client(param_dict)
+
+    # prepare payload
+    buffer = postgres_utilities.prepare_payload(data, columns)
+
+    # clear table
+    response = postgres_utilities.clear_table(connection, TABLE)
+
+    # write data
+    response = postgres_utilities.write_data(connection, buffer, TABLE)
 
     if response != 0:
         print("write_failed")
 
     else:
-        print(f"copy_from_stringio() done, {payload} written to database")
+        print(f"copy_from_stringio() done, {data} written to database")
 
 
 def main():
 
     # parse command line arguments
     args = sys.argv[1:]
-
-    TABLE = 'simple_asana'
 
     PROJECT_GID = (args[0])
     ASANA_KEY = os.environ.get('ASANA_KEY')
@@ -70,7 +87,7 @@ def main():
     payload = utilities.transform_asana_data(response)
 
     # write data
-    write_data(payload, TABLE)
+    write_data(payload)
 
 
 if __name__ == '__main__':
