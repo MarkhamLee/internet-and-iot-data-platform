@@ -21,7 +21,7 @@ All logos and trademarks are property of their respective owners and the use in 
 
 * **Airflow:** data ingestion + orchestration from external APIs E.g., OpenWeather API, Spotify. 
 * **InfluxDB:** for time series data, **PostgreSQL** for everything else 
-* **Grafana:** to display data
+* **Grafana:** to display data/dashboards 
 * **Eclipse-Mosquito:** for the MQTT broker that will receive messages from IoT/Smart Devices 
 * **Docker:** all the big building blocks (e.g. Airflow, InfluxDB, etc.) are deployed via Docker containers and I deployed all the custom code for things like monitoring air quality, managing smart devices and the like via Docker containers as well. 
 * **Portainer:** I manage all the containers on all of the devices via Portainer, but as I move things to my k3s cluster I might use Rancher instead for k3s, but keep using Portainer for managing the containers on my Raspberry Pis that I use for things like monitoring air quality.  
@@ -49,9 +49,10 @@ All logos and trademarks are property of their respective owners and the use in 
 
 ### Targeted Sources
 * **External/Public API sources:** 
-    * Asana (where I keep my to do lists) -- *shockingly, the former project manager uses PM software for day to day task management*
+    * Asana (where I keep my to do lists) -- *shockingly, the former project manager uses project management software for day to day task management* [DONE]
     * Air Quality & Weather via the OpenWeather API [DONE]
-    * Finance: tracking the S&P 500, T-Bills and maybe 1-2 other stocks [DONE] - switched to Finnhub from Alpha Advantage as I can make several requests per second vs 26/day for Alpha Advantage
+    * Finance: tracking the S&P 500, T-Bills and maybe 1-2 other stocks [DONE]
+        * Using Finhub for Stocks & Alpha Advantage for Treasuries
     * Tracking hydration - still looking for a good way to do this that isn't 1/2 a hack or require me to build an app that is always connected/synching as opposed to being able to just connect periodically. 
     * Discord - I join servers and then rarely pay attention and often miss announcements related to DIY/Makers, Podcasts I enjoy, Video Game Mods and other hobbies. 
     * eBay? I need to explore the API more but the plan is to track auctions and automate searches for items I'm interested in. 
@@ -61,7 +62,7 @@ All logos and trademarks are property of their respective owners and the use in 
     * The [Zigbee2MQTT library](https://www.zigbee2mqtt.io/guide/getting-started/) to receive data from Zigbee enabled devices for room temperature and humidity [DONE]
     * Tracking the Power consumption of my gaming rig, clusters and the devices I used for all my tinkering via TP Link Kasa smart plugs [DONE]
     * Air Quality (PM2.5 and PM10) via Nova PM SDS011 sensors in concert with Raspbery Pis or similar devices [DONE]
-    * Currently researching/looking for stand-alone air quality sensors with Zigee or Z-wave capability, ditto for some sort of UPS back-up 
+    * Currently researching/looking for stand-alone air quality sensors with Zigee or Z-wave capability
 
 The repo contains the the code for the Airflow Dags (written in TaskFlow API format), custom plugins for connecting to things like InfluxDB and the code for ingesting data from the IoT devices. It also has the extended but not quite custom Docker image I used for Airflow (*so it has all of my Python dependencies*). Plan is to continuously add data sources and then update the repo accordingly. 
 
