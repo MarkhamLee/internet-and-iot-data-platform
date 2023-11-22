@@ -52,7 +52,7 @@ All logos and trademarks are property of their respective owners and the use in 
     * Asana (where I keep my to do lists) -- *shockingly, the former project manager uses project management software for day to day task management* [DONE]
     * Air Quality & Weather via the OpenWeather API [DONE]
     * Finance: tracking the S&P 500, T-Bills and maybe 1-2 other stocks [DONE]
-        * Using Finhub for Stocks & Alpha Advantage for Treasuries
+        * Using Alpha Advantage for Treasuries and Finnhub for ETFs and Stocks
     * Tracking hydration - still looking for a good way to do this that isn't 1/2 a hack or require me to build an app that is always connected/synching as opposed to being able to just connect periodically. 
     * Discord - I join servers and then rarely pay attention and often miss announcements related to DIY/Makers, Podcasts I enjoy, Video Game Mods and other hobbies. 
     * eBay? I need to explore the API more but the plan is to track auctions and automate searches for items I'm interested in. 

@@ -26,7 +26,7 @@ def send_alerts(context: dict):
 
 @dag(schedule=timedelta(minutes=2), default_args=default_args, catchup=False,
      on_failure_callback=send_alerts)
-def finnhub_30year_Tbill_dag():
+def finnhub_stockprice_dag():
 
     # get Finnhub API key
     FINNHUB_KEY = Variable.get('finnhub_key')
@@ -85,4 +85,4 @@ def finnhub_30year_Tbill_dag():
     write_data(parse_data(get_prices()))
 
 
-finnhub_30year_Tbill_dag()
+finnhub_stockprice_dag()
