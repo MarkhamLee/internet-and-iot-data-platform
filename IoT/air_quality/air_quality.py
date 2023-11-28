@@ -9,6 +9,7 @@ import serial
 import uuid
 from paho.mqtt import client as mqtt
 import logging
+import os
 
 # setup logging for static methods
 logging.basicConfig(filename='hardwareData.log', level=logging.DEBUG,
@@ -25,7 +26,9 @@ class AirQuality:
 
     def defineVariables(self):
 
-        self.serialConnection = serial.Serial('/dev/ttyUSB1')
+        USB = os.environ['USB_ADDRESS']
+
+        self.serialConnection = serial.Serial(USB)
 
         self.pm2Bytes = 2
         self.pm10Bytes = 4
