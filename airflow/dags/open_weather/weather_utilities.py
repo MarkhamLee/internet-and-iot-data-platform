@@ -14,14 +14,12 @@ class WeatherUtilities():
     @staticmethod
     def parse_air_data(data: dict) -> dict:
 
-        qual_data = data['list'][0]['components']
-
         # influx DB is very strict about types, won't allow integers and
         # floats in the same field. Casting to float to avoid this.
         payload = {
-            "co": float(qual_data['co']),
-            "pm2": float(qual_data['pm2_5']),
-            "pm10": float(qual_data['pm10'])
+            "co": float(data['co']),
+            "pm2": float(data['pm2_5']),
+            "pm10": float(data['pm10'])
         }
 
         return payload

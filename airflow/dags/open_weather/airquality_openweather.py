@@ -45,10 +45,27 @@ def openweather_air_quality_dag():
 
         ENDPOINT = 'air_pollution?'
 
+        SCHEMA = Variable.get(key='openweather_air_quality_schema',
+                              deserialize_json=True)
+
         # create URL
         url = utilities.build_url_air(ENDPOINT, WEATHER_KEY)
 
-        return utilities.get_weather_data(url)
+        # get data
+        data = utilities.get_weather_data(url)
+
+        # validate data - we do this here so that if this fails
+        # we automatically repeat getting the data
+        from jsonschema import validate
+
+        # subset the data - note if this is effectively the first validation
+        # e.g., if the subset doesn't exist, the data is wrong
+        data = data['list'][0]['components']
+
+        # validate the subset
+        validate(instance=data, schema=SCHEMA)
+
+        return data
 
     @task(task_id='parse_air_quality_data', multiple_outputs=True)
     def parse_data(data: dict) -> dict:

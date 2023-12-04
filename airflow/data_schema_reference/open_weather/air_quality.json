@@ -1,0 +1,10 @@
+{
+    "type": "object",
+    "properties": {
+        "co": {"type": "number"},
+        "pm2_5": {"type": "number"},
+        "pm10": {"type": "number"}
+    },
+     
+     "required": ["co", "pm2_5", "pm10"]  
+}
