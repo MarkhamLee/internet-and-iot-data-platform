@@ -15,9 +15,10 @@ class FinnHubUtilities():
     def parse_stock_data(data: dict) -> dict:
 
         payload = {
-            "previous_close": data['pc'],
-            "last_price": data['l'],
-            "change": data['pc']
+            "previous_close": float(data['pc']),
+            "open": float(data['o']),
+            "last_price": float(data['l']),
+            "change": float(data['dp'])
         }
 
         return payload
