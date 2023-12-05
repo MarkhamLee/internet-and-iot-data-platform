@@ -1,0 +1,86 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+      "weather": {
+        "type": "array",
+        "items": [
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "number"
+              },
+              "main": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "icon": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "main",
+              "description",
+              "icon"
+            ]
+          }
+        ]
+      },
+      "main": {
+        "type": "object",
+        "properties": {
+          "temp": {
+            "type": "number"
+          },
+          "feels_like": {
+            "type": "number"
+          },
+          "temp_min": {
+            "type": "number"
+          },
+          "temp_max": {
+            "type": "number"
+          },
+          "pressure": {
+            "type": "integer"
+          },
+          "humidity": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "temp",
+          "feels_like",
+          "temp_min",
+          "temp_max",
+          "pressure",
+          "humidity"
+        ]
+      },
+      "wind": {
+        "type": "object",
+        "properties": {
+          "speed": {
+            "type": "number"
+          },
+          "deg": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "speed",
+          "deg"
+        ]
+      }
+    },
+    "required": [
+      "weather",
+      "main",
+      "wind"
+    ]
+  }
+   
