@@ -32,7 +32,7 @@ def openweather_current_weather_dag():
     from open_weather.weather_utilities import WeatherUtilities  # noqa: E402
     utilities = WeatherUtilities()
 
-    @task
+    @task()
     def get_weather():
 
         # key for OpenWeather API
@@ -43,14 +43,24 @@ def openweather_current_weather_dag():
         url = utilities.build_url_weather(WEATHER_KEY, ENDPOINT)
 
         # get data from API
-        return utilities.get_weather_data(url)
+        data = utilities.get_weather_data(url)
 
-    @task(multiple_outputs=True)
+        # validate data - we do this here so that if this fails
+        # we automatically repeat getting the data
+        from jsonschema import validate  # noqa: E402
+        SCHEMA = Variable.get(key='openweather_current_weather_schema',
+                              deserialize_json=True)
+
+        validate(instance=data, schema=SCHEMA)
+
+        return data
+
+    @task(multiple_outputs=True, retries=0)
     def parse_weather_data(data: dict) -> dict:
 
         return utilities.weather_parser(data)
 
-    @task(retries=1)
+    @task()
     def write_data(data: dict):
 
         from plugins.influx_client import InfluxClient  # noqa: E402
