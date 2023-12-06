@@ -42,15 +42,15 @@ class WeatherUtilities():
 
         payload = {
             "weather": response['weather'][0]['main'],
-            "weather_desc": response['weather'][0]['description'],
+            "description": response['weather'][0]['description'],
             "temp": float(response['main']['temp']),
             "feels_like": float(response['main']['feels_like']),
-            "temp_low": float(response['main']['temp_min']),
-            "temp_high": float(response['main']['temp_max']),
-            "pressure": float(response['main']['pressure']),
+            "low": float(response['main']['temp_min']),
+            "high": float(response['main']['temp_max']),
+            "barometric_pressure": float(response['main']['pressure']),
             "humidity": float(response['main']['humidity']),
-            "wind_speed": float(response['wind']['speed']),
-            "timestamp": response['dt']
+            "wind": float(response['wind']['speed']),
+            "time_stamp": response['dt']
         }
 
         return payload
