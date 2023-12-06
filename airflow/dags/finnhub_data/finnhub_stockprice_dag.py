@@ -83,6 +83,7 @@ def finnhub_stockprice_dag():
             }
         }
 
+        # write data to InfluxDB
         influx.write_influx_data(client, payload, data, BUCKET)
 
     write_data(parse_data(get_prices()))
