@@ -84,11 +84,7 @@ def openweather_current_weather_dag():
             }
         }
 
-        # append the base payload with the weather data
-        payload.update({"fields": data})
-
-        # write data to InfluxDB
-        client.write(bucket=BUCKET, record=payload)
+        influx.write_influx_data(client, payload, data, BUCKET)
 
     # nesting the methods establishes the hiearchy and creates the tasks
     write_data(parse_weather_data(get_weather()))
