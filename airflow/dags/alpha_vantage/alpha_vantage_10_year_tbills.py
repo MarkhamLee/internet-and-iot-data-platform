@@ -58,8 +58,6 @@ def alphavantage_tbill10_price_dag():
         from plugins.influx_client import InfluxClient  # noqa: E402
         influx = InfluxClient()
 
-        from influxdb_client import Point  # noqa: E402
-
         # influx DB variables
         INFLUX_KEY = Variable.get('dashboard_influx_key')
         ORG = Variable.get('influx_org')
@@ -69,15 +67,16 @@ def alphavantage_tbill10_price_dag():
         # get the client for connecting to InfluxDB
         client = influx.influx_client(INFLUX_KEY, ORG, URL)
 
-        # create object for writing to Influx
-        point = (
-            Point("10yr-T-Bill")
-            .tag("Alpha_Vantage", "bond_data")
-            .field("rate", data['rate'])
-            .field("date", data['date'])
-        )
+        # base payload
+        payload = {
+            "measurement": "10yr-T-Bill",
+            "tags": {
+                "Alpha_Advantage": "bond_data",
+            }
+        }
 
-        client.write(bucket=BUCKET, org=ORG, record=point)
+        # write data to InfluxDB
+        influx.write_influx_data(client, payload, data, BUCKET)
 
     # nesting the methods establishes the hiearchy and creates the tasks
     write_data(parse_data(get_treasury_data()))
