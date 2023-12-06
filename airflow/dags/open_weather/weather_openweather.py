@@ -60,13 +60,13 @@ def openweather_current_weather_dag():
 
         return utilities.weather_parser(data)
 
-    @task()
+    @task(retries=1)
     def write_data(data: dict):
 
         from plugins.influx_client import InfluxClient  # noqa: E402
         influx = InfluxClient()
 
-        from influxdb_client import Point  # noqa: E402
+        # from influxdb_client import Point  # noqa: E402
 
         # influx DB variables
         INFLUX_KEY = Variable.get('dashboard_influx_key')
@@ -77,24 +77,18 @@ def openweather_current_weather_dag():
         # get the client for connecting to InfluxDB
         client = influx.influx_client(INFLUX_KEY, ORG, URL)
 
-        # not the most elegant solution, will change later to
-        # write json directly
-        point = (
-            Point("weather_current")
-            .tag("OpenWeatherAPI", "current_weather")
-            .field("temp", data['temp'])
-            .field("feels_like", data['feels_like'])
-            .field("weather", data['weather'])
-            .field("description", data['weather_desc'])
-            .field("low", data['temp_low'])
-            .field("high", data['temp_high'])
-            .field("barometric_pressure", data['pressure'])
-            .field("humidity", data['humidity'])
-            .field("wind", data['wind_speed'])
-            .field("time_stamp", data['timestamp'])
-        )
+        payload = {
+            "measurement": "weather_current",
+            "tags": {
+                "OpenWeatherAPI": "current weather",
+            }
+        }
 
-        client.write(bucket=BUCKET, org=ORG, record=point)
+        # append the base payload with the weather data
+        payload.update({"fields": data})
+
+        # write data to InfluxDB
+        client.write(bucket=BUCKET, record=payload)
 
     # nesting the methods establishes the hiearchy and creates the tasks
     write_data(parse_weather_data(get_weather()))
