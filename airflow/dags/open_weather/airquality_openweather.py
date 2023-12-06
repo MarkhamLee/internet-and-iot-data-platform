@@ -92,11 +92,7 @@ def openweather_air_quality_dag():
             }
         }
 
-        # update the payload with the air quality data
-        payload.update({"fields": data})
-
-        # write data to InfluxDB
-        client.write(bucket=BUCKET, record=payload)
+        influx.write_influx_data(client, payload, data, BUCKET)
 
     # nesting the methods establishes the hiearchy and creates the tasks
     write_data(parse_data(get_air_quality_data()))
