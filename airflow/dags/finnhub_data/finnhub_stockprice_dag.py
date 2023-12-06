@@ -60,13 +60,11 @@ def finnhub_stockprice_dag():
 
         return finn_util.parse_stock_data(data)
 
-    @task()
+    @task(retries=1)
     def write_data(data: dict):
 
         from plugins.influx_client import InfluxClient  # noqa: E402
         influx = InfluxClient()
-
-        from influxdb_client import Point  # noqa: E402
 
         # Influx DB variables
         INFLUX_KEY = Variable.get('dashboard_influx_key')
@@ -77,16 +75,15 @@ def finnhub_stockprice_dag():
         # get the client for connecting to InfluxDB
         client = influx.influx_client(INFLUX_KEY, ORG, URL)
 
-        point = (
-            Point("finnhub_quotes")
-            .tag("finnhub_API", "stock_prices")
-            .field("previous_close", data['previous_close'])
-            .field("last_price", data['last_price'])
-            .field("change", data['change'])
-            .field("open", data['open'])
-        )
+        # base payload
+        payload = {
+            "measurement": "finnhub_quotes",
+            "tags": {
+                "finnhub_API": "stock_prices",
+            }
+        }
 
-        client.write(bucket=BUCKET, org=ORG, record=point)
+        influx.write_influx_data(client, payload, data, BUCKET)
 
     write_data(parse_data(get_prices()))
 
