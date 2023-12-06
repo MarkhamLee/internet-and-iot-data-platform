@@ -18,3 +18,15 @@ class InfluxClient():
         write_api = write_client.write_api(write_options=SYNCHRONOUS)
 
         return write_api
+
+    # Takes an input payload and appends it to a JSON with that payload's
+    # InfluxDB table and tag data, and then writes the combinned data to
+    # InfluxDB
+    @staticmethod
+    def write_influx_data(client: object, base: dict, data: dict, BUCKET: str):
+
+        # update the payload with the finnhub stock price data
+        base.update({"fields": data})
+
+        # write data to InfluxDB
+        client.write(bucket=BUCKET, record=base)
