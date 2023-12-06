@@ -3,28 +3,31 @@
 ![Dashboard Thumbnail](/images/dashboard_screenshot3.png)  
 *Snapshot of some of the tracked data* 
 
-This project has two primary objectives: 
+This project has the following objectives: 
 1) Get more experience with Airflow by building a data aggregation platform that's inclusive of API sources, IoT devices and potentially even some RSS feeds and web scraping. 
-2) Aggregate useful data into one place that I would normally get from my phone or various online sources into one place so as to reduce distractions, and/or so I don't miss out on data I often forget to check or keep with. This includes but is not limited to: inancial data, fitness/health data, weather, to-do lists from Asana, etc. The basic idea is that instead of looking up something on my phone and then getting distracted by LinkedIn or reels, I can glance at a screen or browswer tab and not interrupt my daily workflow. 
+2) Aggregate useful data that I would normally get from my phone or various online sources into one place so as to reduce distractions, and/or so I don't miss out on things I often forget to check or keep with. This includes but is not limited to: Asana tasks, financial data, fitness/health data, weather, etc. The basic idea is that instead of looking up something on my phone and then getting distracted by LinkedIn or reels, I can glance at a screen or browswer tab and not interrupt my daily workflow. 
 
-A secondary objective is to start experimenting with home automation via gathering data from various IoT sensors, smart devices, DIY air quality monitoring stations, that I was using for other projects or just playing around with into one place. 
+A secondary objective is to start experimenting with home automation via gathering data from various IoT sensors, smart devices, DIY air quality monitoring stations and the like. 
 
 *TL/DR: I over-enginered a data aggregation platform for professional development, improved productivity and to not have limitations on what data I can display, how it's managed, et al that you often encounter when using something off the shelf, even if it's customizable.*
+
+The repo contains the the code for the Airflow Dags (written in TaskFlow API format), custom plugins for connecting to things like InfluxDB and the custom code for ingesting data from IoT devices. It also has the extended but not quite custom Docker image I used for Airflow (*so it has all of my Python dependencies*). Plan is to continuously add data sources/features in the coming months. 
 
 
 ## Architecture - Tech Stack
 
 ![Architecture](/images/dashboard_architecture_MKII.png)  
-*The TL/DR: is that data from external APIs comes in via Airflow, data from internal sensors and/or smart devices comes in via Zigbee and/or custom code (deployed on Docker containers) to an MQTT broker that is managed/orchestrated via Node-Red. If things go wrong, I get alerts via Slack.* 
+*The TL/DR: is that data from external APIs comes in via Airflow, data from internal sensors and/or smart devices comes in via Zigbee and/or custom code (deployed on Docker containers) to an MQTT broker that is managed/orchestrated via Node-Red. If things go wrong, I get alerts via Slack.*
 
-All logos and trademarks are property of their respective owners and the use in the diagram represents an acceptable based on my understanding of their guidelines. **If that is not the case, please let me now and I'll update the diagram ASAP.** 
+All logos and trademarks are property of their respective owners and their use in the diagram represents an acceptable use based on my understanding of their guidelines. **If that is not the case, please let me now and I'll update the diagram ASAP.** 
 
-* **Airflow:** data ingestion + orchestration from external APIs E.g., OpenWeather API, Spotify. 
-* **InfluxDB:** for time series data, **PostgreSQL** for everything else 
+* **Airflow:** data ingestion + orchestration from external APIs E.g.,  Asana, Finnhub, OpenWeather API. etc.   
+* **InfluxDB:** for storing time series data, **PostgreSQL** for everything else 
 * **Grafana:** to display data/dashboards 
 * **Eclipse-Mosquito:** for the MQTT broker that will receive messages from IoT/Smart Devices 
 * **Docker:** all the big building blocks (e.g. Airflow, InfluxDB, etc.) are deployed via Docker containers and I deployed all the custom code for things like monitoring air quality, managing smart devices and the like via Docker containers as well. 
-* **Portainer:** I manage all the containers on all of the devices via Portainer, but as I move things to my k3s cluster I might use Rancher instead for k3s, but keep using Portainer for managing the containers on my Raspberry Pis that I use for things like monitoring air quality.  
+* **Portainer:** used to manage all docker containers not deployed to K3s, meaning: the validation/beta enivronment, plus services running on Raspberry Pis or similar devices. I could move these devices to K3s, but given they're all running various GPIO and/or USB devices, they don't exactly fit into a distributed/pod paradigm. 
+* **Rancher:** used to manage the K3s cluster, as far as installing things, updates, managing resources like Longhorn.   
 * **Node-Red:** to manage the incoming MQTT messages, data transformation of MQTT messages and then writing the data to InfluxDB 
 * **Slack:** is used for alerting and monitoring, in particular alerts when any part of a pipeline or scheduled task fails in Airflow, and general alerting and monitoring for IoT/Smart Device related items. E.g., a data write to InfluxDB fails for Weather data or an air quality sensor or smart plug isn't responding. 
 * The **Zigbee2MQTT library** plus a **Sonoff Zigbee USB Dongle** to receive data from Zigbee enabled IoT devices and then send it off as MQTT messages. This allows me to use a wide variety of smart home devices and/or IoT sensors without having to purchase extra hubs or other smart home devices just to use the sensors. Instead, I can instead connect directly to each device and run custom code/solutions to ingest the data. 
@@ -63,8 +66,6 @@ All logos and trademarks are property of their respective owners and the use in 
     * Tracking the Power consumption of my gaming rig, clusters and the devices I used for all my tinkering via TP Link Kasa smart plugs [DONE]
     * Air Quality (PM2.5 and PM10) via Nova PM SDS011 sensors in concert with Raspbery Pis or similar devices [DONE]
     * Currently researching/looking for stand-alone air quality sensors with Zigee or Z-wave capability
-
-The repo contains the the code for the Airflow Dags (written in TaskFlow API format), custom plugins for connecting to things like InfluxDB and the code for ingesting data from the IoT devices. It also has the extended but not quite custom Docker image I used for Airflow (*so it has all of my Python dependencies*). Plan is to continuously add data sources and then update the repo accordingly. 
 
 ### Key References: 
 * [Airflow best practices:](https://airflow.apache.org/docs/apache-airflow/stable/best-practices.html) I made extensive use of this documentation to not only re-write my original DAGs into the Taskflow API format, but to make sure I was following as many best practices as possible. I also used their documentation to structure my Airflow Docker container. 
