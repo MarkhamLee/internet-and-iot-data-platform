@@ -1,0 +1,3 @@
+* This .yaml file will create a deployment with four containers that monitor various Kasa smart-plugs (Amps, Volts, Watts)
+* A Python script uses the un-official Kasa library to poll the sensors, and then sends the data by MQTT via Node-Red to InfluxDB 
+* When I originally wrote this code the containers were running on a Raspberry Pi, so using MQTT to reduce overhead made sense, but now that they're running on K3s I may update them to just write directly to InfluxDB. However, I may add some Raspberry Pis to my cluster and in that case, I'd move these pods off the Beelink and into the Raspberry Pis. We'll see. 
