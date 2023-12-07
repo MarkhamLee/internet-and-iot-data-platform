@@ -10,7 +10,7 @@ A few tips and tricks in case you can't get the sensor working, note: these are 
     * Check that /dev/ttyUSB0 exists and what permissions are set on it with 'ls -l /dev/ttyUSB0'. You should get something back that includes something like: (/dev/ttyS{0..31}), which belongs to the group dialout. 
     * You may have to join that group via this command: ('sudo usermod -a -G dialout your_username_here'), and login and log back out for it to take effect. 
     * Note: I haven't run into any of these issues while attempting to use the sensor on a headless Linux distribution.
-* The above steps can be used on must sensor or hub devices you'd plug into USB, like a Zigbee USB hub. Also, if you already have something plugged into one of your USB ports, than the address for the USB port becomes ttyUSB1, if you have two things ttyUSB2, and so on and so forth. 
+* The above steps can be used on must sensor or hub devices you'd plug into USB, like a Zigbee USB hub. Also, if you already have something plugged into one of your USB ports, than the address for the USB port becomes ttyUSB1, if you have two things ttyUSB2, and so on and so forth. Also be aware that on reboot all of these addresses can change, so it's often best to unplug the devices, reboot and then plug them back in an order matching their addresses. 
 
 ##### Troubleshooting GPIO based sensors
 
