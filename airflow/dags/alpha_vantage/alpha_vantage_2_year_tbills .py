@@ -28,7 +28,7 @@ def send_alerts(context: dict):
      on_failure_callback=send_alerts)
 def alphavantage_tbill2_price_dag():
 
-    from alpha_vantage.alpha_utilities import AlphaUtilities  # noqa: E402
+    from plugins.alpha_utilities import AlphaUtilities  # noqa: E402
     utilities = AlphaUtilities()
 
     # Alpha Vantage Key
