@@ -41,7 +41,7 @@ def alphavantage_tbill30_price_dag():
         url = utilities.build_bond_url('30year', ALPHA_KEY)
 
         # get data
-        return utilities.get_stock_data(url)
+        return utilities.get_financial_data(url)
 
     @task()
     def parse_data(data: dict) -> dict:

@@ -31,11 +31,11 @@ class AlphaUtilities():
         return full_url
 
     @staticmethod
-    def get_stock_data(url: str) -> dict:
+    def get_financial_data(url: str) -> dict:
 
         import requests  # noqa: E402
 
-        # get weather data
+        # get financial data
         response = requests.get(url)
         response = response.json()
 
