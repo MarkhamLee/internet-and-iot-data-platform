@@ -89,3 +89,6 @@ def main():
 
     # parse and transform data
     data = parse_tbill_data(data)
+
+    # write data
+    write_data(data)
