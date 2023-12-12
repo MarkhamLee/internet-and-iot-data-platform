@@ -7,6 +7,7 @@
 import os
 import sys
 from asana_utilities import AsanaUtilities
+import time
 
 # this allows us to import modules from the parent directory
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -73,18 +74,23 @@ def main():
 
     PROJECT_GID = os.environ.get('GID')
     ASANA_KEY = os.environ.get('ASANA_KEY')
+    INTERVAL = int(os.environ['INTERVAL'])
 
     # get Asana Client
     asana_client = utilities.get_asana_client(ASANA_KEY)
 
-    # get project data
-    response = get_asana_data(asana_client, PROJECT_GID)
+    while True:
 
-    # parse data
-    payload = utilities.transform_asana_data(response)
+        # get project data
+        response = get_asana_data(asana_client, PROJECT_GID)
 
-    # write data
-    write_data(payload)
+        # parse data
+        payload = utilities.transform_asana_data(response)
+
+        # write data
+        write_data(payload)
+
+        time.sleep(INTERVAL)
 
 
 if __name__ == '__main__':
