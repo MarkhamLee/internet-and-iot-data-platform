@@ -11,6 +11,7 @@ import asyncio
 import os
 import json
 import logging
+import gc
 from kasa import SmartPlug
 from kasa_utilities import DeviceUtilities
 
@@ -49,6 +50,10 @@ async def get_plug_data(client: object, topic: str,
             print(f'Failed to send {payload} to: {topic}')
             logging.debug(f'data failed to publish to MQTT topic, status code:\
                           {status}')
+
+        # clean up RAM, container metrics show RAM usage creeping up daily
+        del payload, result, status
+        gc.collect()
 
         # wait 30 seconds
         await asyncio.sleep(interval)  # Sleep some time between updates
