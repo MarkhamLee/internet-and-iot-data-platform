@@ -39,7 +39,7 @@ def parse_tbill_data(data: dict) -> object:
 # write data to PostgreSQL
 def write_data(data: object):
 
-    TABLE = os.environ.get('2YR_TBILL_TABLE')
+    TABLE = os.environ.get('TWOYR_TBILL_TABLE')
 
     param_dict = {
         "host": os.environ.get('DB_HOST'),

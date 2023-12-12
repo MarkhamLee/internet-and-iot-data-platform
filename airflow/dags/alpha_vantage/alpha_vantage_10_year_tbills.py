@@ -31,7 +31,7 @@ def alphavantage_tbill10_price_dag():
     # Alpha Vantage Key
     ALPHA_KEY = Variable.get('alpha_vantage_key')
 
-    from alpha_vantage.alpha_utilities import AlphaUtilities  # noqa: E402
+    from alpha_utilities import AlphaUtilities  # noqa: E402
     utilities = AlphaUtilities()
 
     @task(retries=1)
@@ -55,7 +55,7 @@ def alphavantage_tbill10_price_dag():
         # imports into the functions so that airflow isn't constantly wasting
         # cycles importing libraries.
 
-        from plugins.influx_client import InfluxClient  # noqa: E402
+        from influx_client import InfluxClient  # noqa: E402
         influx = InfluxClient()
 
         # influx DB variables
