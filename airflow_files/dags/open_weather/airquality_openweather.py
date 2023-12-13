@@ -32,7 +32,7 @@ def openweather_air_quality_dag():
     utilities = WeatherUtilities()
 
     # key for OpenWeather API
-    WEATHER_KEY = Variable.get('open_weather')
+    WEATHER_KEY = Variable.get('open_weather_secret')
 
     @task(retries=1)
     def get_air_quality_data():
@@ -74,7 +74,7 @@ def openweather_air_quality_dag():
         # cycles importing libraries.
 
         # influx DB variables
-        INFLUX_KEY = Variable.get('influx_db_key')
+        INFLUX_KEY = Variable.get('influx_db_key_secret')
         ORG = Variable.get('influx_org')
         URL = Variable.get('influx_url')
         BUCKET = Variable.get('dashboard_bucket')

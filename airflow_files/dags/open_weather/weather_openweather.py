@@ -36,7 +36,7 @@ def openweather_current_weather_dag():
     def get_weather():
 
         # key for OpenWeather API
-        WEATHER_KEY = Variable.get('open_weather')
+        WEATHER_KEY = Variable.get('open_weather_secret')
         ENDPOINT = 'weather?'
 
         # create URL
@@ -69,7 +69,7 @@ def openweather_current_weather_dag():
         # from influxdb_client import Point  # noqa: E402
 
         # influx DB variables
-        INFLUX_KEY = Variable.get('dashboard_influx_key')
+        INFLUX_KEY = Variable.get('dashboard_influx_key_secret')
         ORG = Variable.get('influx_org')
         URL = Variable.get('influx_url')
         BUCKET = Variable.get('dashboard_bucket')
