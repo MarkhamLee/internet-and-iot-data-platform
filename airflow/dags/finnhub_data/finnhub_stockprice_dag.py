@@ -16,7 +16,7 @@ default_args = {
 
 def send_alerts(context: dict):
 
-    from plugins.slack_utilities import SlackUtilities
+    from slack_utilities import SlackUtilities
     slack_utilities = SlackUtilities()
 
     webhook_url = Variable.get('slack_hook_alerts')
@@ -63,7 +63,7 @@ def finnhub_stockprice_dag():
     @task(retries=1)
     def write_data(data: dict):
 
-        from plugins.influx_client import InfluxClient  # noqa: E402
+        from influx_client import InfluxClient  # noqa: E402
         influx = InfluxClient()
 
         # Influx DB variables
