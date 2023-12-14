@@ -75,9 +75,9 @@ def write_data(data: object):
 def main():
 
     # Alpha Vantage Key
-    ALPHA_KEY = os.environ['KEY']
+    ALPHA_KEY = os.environ.get['KEY']
     # Bond Maturity
-    MATURITY = os.environm('BOND_MATURITY')
+    MATURITY = os.environ.get('BOND_MATURITY')
 
     utilities = AlphaUtilities()
 

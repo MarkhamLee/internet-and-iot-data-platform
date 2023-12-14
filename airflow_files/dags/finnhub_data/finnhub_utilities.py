@@ -14,7 +14,8 @@ class FinnHubUtilities():
         pass
 
     @staticmethod
-    def get_stock_data(symbol: str) -> dict:
+    def get_stock_data(symbol: 
+        str) -> dict:
 
         import finnhub  # noqa: E402
         from jsonschema import validate  # noqa: E402
