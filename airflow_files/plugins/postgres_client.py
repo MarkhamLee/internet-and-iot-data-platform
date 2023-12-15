@@ -38,7 +38,7 @@ class PostgresUtilities():
         # text data with punctuation  without having situations where a comma
         # in a sentence is treated as new column or causes a blank column to be
         # created.
-        payload.to_csv(buffer, index_label='id', sep='\t', columns=columns,
+        payload.to_csv(buffer, index=False, sep='\t', columns=columns,
                        header=False)
         buffer.seek(0)
 
