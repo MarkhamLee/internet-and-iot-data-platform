@@ -32,6 +32,7 @@ def parse_tbill_data(data: dict) -> object:
 
     # rename columns
     rates.rename(columns={"value": "rate"}, inplace=True)
+    print(rates)
 
     return rates
 
@@ -66,7 +67,7 @@ def write_data(data: object):
     response = utilities.write_data(connection, buffer, TABLE)
 
     if response != 0:
-        print("write_failed")
+        print(f'write failed with error {response}')
 
     else:
         print(f"copy_from_stringio() done, {data} written to database")
@@ -75,7 +76,8 @@ def write_data(data: object):
 def main():
 
     # Alpha Vantage Key
-    ALPHA_KEY = os.environ.get['KEY']
+    ALPHA_KEY = os.environ.get('ALPHA_KEY')
+
     # Bond Maturity
     MATURITY = os.environ.get('BOND_MATURITY')
 
@@ -92,3 +94,7 @@ def main():
 
     # write data
     write_data(data)
+
+
+if __name__ == '__main__':
+    main()
