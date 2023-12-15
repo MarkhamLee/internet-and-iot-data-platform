@@ -1,0 +1,5 @@
+### Alpha Vantage T-Bill Data One-time Load Container  
+
+Alpha Vantage's Bond APIs provide T-Bill rate data going back to 1976, this container loads historical T-Bill data going back to 2019 into the PostgresDB in order to be able to plot multi-year, month, week or day trends. This container also validates/cleans the data by dropping rows that don't contain proper dates or rates. E.g., some of the rows only had "." for that day's rate. This is done not just to ensure we have clean data, but to keep the load from failing due to Postgres strict type checking, which will throw an error and stop the loading process if the incorrect data type is encountered. 
+
+Subsequent daily pipelines will check the database vs the most recent data coming back from Alpha Vantage and then only write data that's newer than what's already in the table. 
