@@ -24,15 +24,19 @@ def parse_tbill_data(data: dict) -> object:
 
     # split off just the treasury bill data
     subsection = data['data']
+    print(subsection)
 
-    # TODO: add json schema validation
-
-    # convert to json and keep the 1200 most recent entries
+    # convert json to pandas data frame and keep the first 1200 rows
     rates = pd.DataFrame(subsection).head(1200)
 
     # rename columns
     rates.rename(columns={"value": "rate"}, inplace=True)
-    print(rates)
+
+    # filter out only the rows with a number for rate
+    rates = rates[pd.to_numeric(rates['rate'], errors='coerce').notnull()]
+
+    # filter out only the rows with a valid date
+    rates = rates[pd.to_datetime(rates['date'], errors='coerce').notnull()]
 
     return rates
 
@@ -45,7 +49,7 @@ def write_data(data: object):
     param_dict = {
         "host": os.environ.get('DB_HOST'),
         "database": os.environ.get('DASHBOARD_DB'),
-        "port": int(os.environ.get('PORT')),
+        "port": int(os.environ.get('POSTGRES_PORT')),
         "user": os.environ.get('POSTGRES_USER'),
         "password": os.environ.get('POSTGRES_PASSWORD')
 
