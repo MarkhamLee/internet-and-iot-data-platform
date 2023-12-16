@@ -21,13 +21,15 @@ The repo contains the the code for the Airflow Dags (written in TaskFlow API for
 
 All logos and trademarks are property of their respective owners and their use in the diagram represents an acceptable use based on my understanding of their guidelines. **If that is not the case, please let me now and I'll update the diagram ASAP.** 
 
+* **K3s Distribution of Kubernetes:** all of the third party applications (save Zigbee2MQTT) are deployed on K3s. All of the custom code is running on K3s as well, with the exception of docker containers running on Raspberry Pis (or similar devices) collecting climate data from either GPIO or USB based sensors. 
+    * You can get more details on my K3s cluster in the separate repo I created for it [here](https://github.com/MarkhamLee/kubernetes-k3s-data-platform-IoT).
 * **Airflow:** data ingestion + orchestration from external APIs E.g.,  Asana, Finnhub, OpenWeather API. etc.   
 * **InfluxDB:** for storing time series data, **PostgreSQL** for everything else 
 * **Grafana:** to display data/dashboards 
 * **Eclipse-Mosquito:** for the MQTT broker that will receive messages from IoT/Smart Devices 
-* **Docker:** all the big building blocks (e.g. Airflow, InfluxDB, etc.) are deployed via Docker containers and I deployed all the custom code for things like monitoring air quality, managing smart devices and the like via Docker containers as well. 
-* **Portainer:** used to manage all docker containers not deployed to K3s, meaning: the validation/beta enivronment, plus services running on Raspberry Pis or similar devices. I could move these devices to K3s, but given they're all running various GPIO and/or USB devices, they don't exactly fit into a distributed/pod paradigm. 
-* **Rancher:** used to manage the K3s cluster, as far as installing things, updates, managing resources like Longhorn.   
+* **Docker:** all the big building blocks (e.g. Airflow, InfluxDB, etc.) are deployed via Docker containers in addition to the custom code I wrote for things like monitoring air quality, managing smart devices and doing one time loads of data, e.g. historical bond price data.
+* **Portainer:** used to manage all docker containers not deployed to K3s, meaning: the validation/beta enivronment, plus services running on Raspberry Pis or similar devices. I could move these devices to K3s, but given they're all running various GPIO and/or USB devices, they don't exactly fit into a distributed/pod paradigm. This will likely change in the near future after I experiment with a code library that can expose a USB device connected to one node to the entire cluster. 
+* **Rancher:** used to manage the K3s cluster, as far as installing things, updates, managing resources like Longhorn (for shared storage), etc. AWS S3 is also used to back-up both longhorn and Rancher. 
 * **Node-Red:** to manage the incoming MQTT messages, data transformation of MQTT messages and then writing the data to InfluxDB 
 * **Slack:** is used for alerting and monitoring, in particular alerts when any part of a pipeline or scheduled task fails in Airflow, and general alerting and monitoring for IoT/Smart Device related items. E.g., a data write to InfluxDB fails for Weather data or an air quality sensor or smart plug isn't responding. 
 * The **Zigbee2MQTT library** plus a **Sonoff Zigbee USB Dongle** to receive data from Zigbee enabled IoT devices and then send it off as MQTT messages. This allows me to use a wide variety of smart home devices and/or IoT sensors without having to purchase extra hubs or other smart home devices just to use the sensors. Instead, I can instead connect directly to each device and run custom code/solutions to ingest the data. 
@@ -47,7 +49,7 @@ All logos and trademarks are property of their respective owners and their use i
     * **SONOFF Zigbee 3.0 USB Dongle Plus Gateway:** coupled with the Zigbee2MQTT library, this gives me the ability to receive data from any Zigbee enabled device without having to purchase hubs from each manufacturer to go along with their device. Note: Zigbee2MQTT isn't explicitly required, you could always write your own code for this purpose. 
     * **TP Link Kasa Smart Plugs** transmitting power, voltage and amp consumption data over Wi-Fi via the [Python-Kasa library](https://python-kasa.readthedocs.io/en/latest/index.html) 
 
-* **Operating Systems:** Ubuntu 22.04 distros for nearly everything, save [Armbian](https://www.armbian.com/) open source community distros for the Libre and Orange Pi 3B machines. The Armbian devices are "experiments" to a degree, in terms of seeing how much use I can get out of Raspberry Pi alternatives despite the operating system/software support not being as good. Due to using Docker on all those devices, I haven't run into problems as of yet, aside from GPIO support lagging a bit. 
+* **Operating Systems:** Ubuntu 22.04 distros for nearly everything, save [Armbian](https://www.armbian.com/) open source community distro for the Orange Pi 3B. Armbian is an "experiment" in terms of seeing how much use I can get out of Raspberry Pi alternatives despite the operating system/software support not being as good. Due to using Docker on all those devices, I haven't run into problems as of yet, aside from GPIO support lagging a bit. 
 
 
 ### Targeted Sources
