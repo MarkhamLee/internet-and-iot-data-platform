@@ -14,8 +14,7 @@ class FinnHubUtilities():
         pass
 
     @staticmethod
-    def get_stock_data(symbol: 
-        str) -> dict:
+    def get_stock_data(symbol: str) -> dict:
 
         import finnhub  # noqa: E402
         from jsonschema import validate  # noqa: E402
@@ -23,7 +22,7 @@ class FinnHubUtilities():
         FINNHUB_KEY = Variable.get('finnhub_key_secret')
 
         # import data schema for validation
-        SCHEMA = Variable.get(key='finnhub_schema',
+        SCHEMA = Variable.get(key='finnhub_stock_schema',
                               deserialize_json=True)
 
         # create client
