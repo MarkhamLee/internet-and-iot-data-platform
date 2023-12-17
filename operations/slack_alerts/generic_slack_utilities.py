@@ -37,11 +37,11 @@ class SlackUtilities():
     # us to send messages to any channel within my slack account, while the
     # web hooks are directed towards very specific channels.
     @staticmethod
-    def send_slack_message(self, message: str, channel: str) -> dict:
+    def send_slack_message(client, message: str, channel: str) -> dict:
 
         try:
-            response = self.client.chat_postMessage(channel=channel,
-                                                    text=message)
+            response = client.chat_postMessage(channel=channel,
+                                               text=message)
             logging.debug(f'alert sent successfully, \
                                response code: {response.status_code}')
 
