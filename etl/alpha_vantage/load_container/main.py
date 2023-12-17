@@ -1,9 +1,9 @@
 # Markham Lee (C) 2023
 # productivity-music-stocks-weather-IoT-dashboard
 # https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
-# This script retrieves two year T-Bill data from the Alpha Vantage API
-# This script + container is used to load all the historical data, prior to
-# running a separate script that will just get the data from the prior day
+# This script retrieves several years from T-Bill data from the Alpha Vantage
+# API. This script + container is used to load all the historical data, prior
+# to running a separate script that will just get the data from the prior day
 
 import os
 import requests
@@ -44,7 +44,7 @@ def parse_tbill_data(data: dict) -> object:
 # write data to PostgreSQL
 def write_data(data: object):
 
-    TABLE = os.environ.get('TWOYR_TBILL_TABLE')
+    TABLE = os.environ.get('TBILL_TABLE')
 
     param_dict = {
         "host": os.environ.get('DB_HOST'),
