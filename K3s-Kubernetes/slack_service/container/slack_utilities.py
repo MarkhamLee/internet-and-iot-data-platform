@@ -31,9 +31,8 @@ class SlackUtilities():
         # create client
         self.client = WebClient(self.secret)
 
-    # plan is to only use web hooks for now, but putting this here as it allows
-    # us to send messages to any channel within my slack account, while the
-    # web hooks are directed towards very specific channels.
+    # generic method to send a slack message, to the specified channel
+    @staticmethod
     def send_slack_message(self, message: str, channel: str) -> dict:
 
         try:
@@ -48,9 +47,7 @@ class SlackUtilities():
                 {e} and response code: {e.response.status_code}')
             return e.response.status_code
 
-    # the web hooks only allow posting to one channel, but they're more secure
-    # require less effort to send via SSL and don't require additional
-    # libraries so this will be the preferred method
+    # the web hook only sends to a specific channel
     @staticmethod
     def send_slack_webhook(url: str, message: dict):
 
