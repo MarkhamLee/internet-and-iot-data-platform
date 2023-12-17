@@ -15,7 +15,7 @@ import time
 import gc
 import sys
 import logging
-from utilities.iot_utilities import DeviceUtilities
+from IoT.utilities.mqtt_client import DeviceUtilities
 from airquality import AirQuality
 
 # setup logging for static methods
