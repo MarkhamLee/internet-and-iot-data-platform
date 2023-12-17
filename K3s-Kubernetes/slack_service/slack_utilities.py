@@ -34,7 +34,6 @@ class SlackUtilities():
     # plan is to only use web hooks for now, but putting this here as it allows
     # us to send messages to any channel within my slack account, while the
     # web hooks are directed towards very specific channels.
-    @staticmethod
     def send_slack_message(self, message: str, channel: str) -> dict:
 
         try:
