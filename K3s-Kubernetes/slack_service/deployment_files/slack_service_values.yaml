@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: slack-service
+  namespace: operations
+spec:
+  selector:
+    matchLabels:
+      app: slack-service
+  replicas: 1 
+  template:
+    metadata:
+      labels:
+        app: slack-service
+    spec:
+      containers:
+        - name: slack-service-container
+          image: yourrepo/yourimagename
+          imagePullPolicy: Always
+          ports:
+          - containerPort: 6200 #this would be the port that is exposed in your Dockerfile
+          resources:
+            limits: 
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 100m 
+              memory: 128Mi
+          env:
+            - name: SLACK_SECRET3
+              valueFrom:
+                secretKeyRef:
+                  key: SLACK_SECRET
+                  name: slack-secret
+                  optional: false          
+      imagePullSecrets: 
+        - name: private-docker-repo
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: slack-service
+  namespace: operations
+spec:
+  ports:
+  - port: 80
+    targetPort: 6200
+    name: http
+  selector:
+    app: slack-service
+  type: ClusterIP
