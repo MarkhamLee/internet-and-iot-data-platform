@@ -40,8 +40,7 @@ def send_message():
     # send message
     response = utilities.send_slack_message(alert_text, slack_channel)
 
-    results = {"API Status": response}
-    resultjson = json.dumps(results)
+    resultjson = json.dumps(response)
 
     return flask.Response(response=resultjson, status=200,
                           mimetype='application/json')
@@ -56,7 +55,7 @@ def send_message_webhook():
     # send message
     response = utilities.send_slack_webhook(slack_webhook, alert_text)
 
-    results = {"API Status": response}
+    results = {"Message sent status": response}
     resultjson = json.dumps(results)
 
     return flask.Response(response=resultjson, status=200,
