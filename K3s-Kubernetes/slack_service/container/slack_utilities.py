@@ -32,23 +32,19 @@ class SlackUtilities():
         self.client = WebClient(self.secret)
 
     # generic method to send a slack message, to the specified channel
-    @staticmethod
     def send_slack_message(self, message: str, channel: str) -> dict:
 
         try:
-            response = self.client.chat_postMessage(channel=channel,
-                                                    text=message)
-            logging.debug(f'alert sent successfully, \
-                               response code: {response.status_code}')
-            return response.status_code
+            response = self.client.chat_postMessage(text=message,
+                                                    channel=channel)
+            return {"Message sent status": response.get('ok', False)}
 
         except SlackApiError as e:
-            logging.debug(f'an error occured with error \
-                {e} and response code: {e.response.status_code}')
-            return e.response.status_code
+            logging.debug(f"an error occured with error {e.response['error']}")
+            return {"Message sent status": response.get('ok', False),
+                    "Error Message": e.response['error']}
 
     # the web hook only sends to a specific channel
-    @staticmethod
     def send_slack_webhook(url: str, message: dict):
 
         headers = {
@@ -62,4 +58,4 @@ class SlackUtilities():
             logging.debug(f'publishing of slack alert failed, \
                 status code: {response.status_code}')
 
-        return response
+        return response.status_code
