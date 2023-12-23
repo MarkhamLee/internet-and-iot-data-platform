@@ -4,13 +4,15 @@
 # Utility script for connecting to the Slack API to post messages/alerts to a
 # Slack channel from Airflow DAGs.
 
-from slack_sdk import WebClient
-from slack_sdk.errors import SlackApiError
 import logging
 import requests
+from slack_sdk import WebClient
+from slack_sdk.errors import SlackApiError
+from airflow.models import Variable
 
 
 # setup logging for static methods
+# update this so that it pushing logging to K3s centralized logging
 logging.basicConfig(filename='slack_alerts.log', level=logging.DEBUG,
                     format='%(asctime)s %(levelname)s %(name)s %(threadName)s\
                         : %(message)s')
@@ -43,17 +45,26 @@ class SlackUtilities():
     # us to send messages to any channel within my slack account, while the
     # web hooks are directed towards very specific channels.
     @staticmethod
-    def send_slack_message(self, message: str, channel: str) -> dict:
+    def send_slack_message(context: str, channel: str) -> dict:
+
+        # create payload 
+        message = SlackUtilities.create_alert_payload(context)
+
+        # get slack client 
+        SLACK_KEY = Variable.get('slack_key')
+
+        # create client
+        client = WebClient(SLACK_KEY)
 
         try:
-            response = self.client.chat_postMessage(channel=channel,
-                                                    text=message)
-            logging.debug(f'alert sent successfully, \
-                               response code: {response.status_code}')
+            response = client.chat_postMessage(text=message,
+                                                    channel=channel)
+            return {"Message sent status": response.get('ok', False)}
 
         except SlackApiError as e:
-            logging.debug(f'an error occured with error \
-                {e} and response code: {e.response.status_code}')
+            logging.debug(f"an error occured with error {e.response['error']}")
+            return {"Message sent status": response.get('ok', False),
+                    "Error Message": e.response['error']}
 
     # the web hooks only allow posting to one channel, but they're more secure
     # require less effort to send via SSL and don't require additional
