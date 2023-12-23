@@ -7,8 +7,14 @@
 
 import os
 import requests
+import logging
 import pandas as pd
 from alpha_utilities import AlphaUtilities
+
+# setup logging
+logging.basicConfig(filename='bond_load_logs.log', level=logging.DEBUG,
+                    format='%(asctime)s %(levelname)s %(name)s %(threadName)s\
+                        : %(message)s')
 
 utilities = AlphaUtilities()
 
@@ -71,10 +77,10 @@ def write_data(data: object):
     response = utilities.write_data(connection, buffer, TABLE)
 
     if response != 0:
-        print(f'write failed with error {response}')
+        logging.info(f'write failed with error {response}')
 
     else:
-        print(f"copy_from_stringio() done, {data} written to database")
+        logging.info(f"copy_from_stringio() done, {data} written to database")
 
 
 def main():
