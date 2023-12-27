@@ -13,6 +13,7 @@ Proper config for my device (Sonoff Zigbee 3.0 USB Dongle that registers on USB0
 
 * I added environmental variables for secrets
     * Note: you should configure your MQTT secrets in the Kubernetes space you're deploying 
+* I added a node name for the node that has the USB dongle attached. 
 
 Other than that, if you follow the setup instructions for making sure you have serial dialout setup and use a USB extension cable, you should be fine.
 
