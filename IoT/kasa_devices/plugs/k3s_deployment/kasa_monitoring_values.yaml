@@ -1,0 +1,151 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kasa-plug-monitoring
+  namespace: operations
+spec:
+  selector:
+    matchLabels:
+      app: kasa-plug-monitoring
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: kasa-plug-monitoring
+    spec:
+      containers:
+        - name: lab-plug-one
+          image: <your image repo here>
+          imagePullPolicy: Always
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+          env:
+            - name: MQTT_USER
+              valueFrom:
+                secretKeyRef:
+                  key: MQTT_USER
+                  name: mqtt-prod-secret
+                  optional: false
+            - name: MQTT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  key: MQTT_SECRET
+                  name: mqtt-prod-secret
+                  optional: false
+            - name: MQTT_BROKER
+              value: <your IP address here>
+            - name: MQTT_PORT
+              value: '1883'
+            - name: TOPIC
+              value: /embedded/lab_plug1
+            - name: INTERVAL
+              value: '5'
+            - name: DEVICE_IP
+              value: <your IP address here>
+        - name: lab-plug-two
+          image: <your image repo here>
+          imagePullPolicy: Always
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+          env:
+            - name: MQTT_USER
+              valueFrom:
+                secretKeyRef:
+                  key: MQTT_USER
+                  name: mqtt-prod-secret #store the secrets in the namespace you deploy this via K3s or Rancher 
+                  optional: false
+            - name: MQTT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  key: MQTT_SECRET
+                  name: mqtt-prod-secret
+                  optional: false
+            - name: MQTT_BROKER
+              value: <your IP address here>
+            - name: MQTT_PORT
+              value: '1883'
+            - name: TOPIC
+              value: /embedded/lab_plug2
+            - name: INTERVAL
+              value: '5'
+            - name: DEVICE_IP
+              value: <your IP address here>
+        - name: lab-plug-three
+          image: <your image repo here>
+          imagePullPolicy: Always
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+          env:
+            - name: MQTT_USER
+              valueFrom:
+                secretKeyRef:
+                  key: MQTT_USER
+                  name: mqtt-prod-secret
+                  optional: false
+            - name: MQTT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  key: MQTT_SECRET
+                  name: mqtt-prod-secret
+                  optional: false
+            - name: MQTT_BROKER
+              value: <your IP address here>
+            - name: MQTT_PORT
+              value: '1883'
+            - name: TOPIC
+              value: /embedded/lab_plug3
+            - name: INTERVAL
+              value: '5'
+            - name: DEVICE_IP
+              value: <your IP address here>
+        - name: lab-plug-four
+          image: <your image repo here>
+          imagePullPolicy: Always
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+          env:
+            - name: MQTT_USER
+              valueFrom:
+                secretKeyRef:
+                  key: MQTT_USER
+                  name: mqtt-prod-secret
+                  optional: false
+            - name: MQTT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  key: MQTT_SECRET
+                  name: mqtt-prod-secret
+                  optional: false
+            - name: MQTT_BROKER
+              value: <your IP address here>
+            - name: MQTT_PORT
+              value: '1883'
+            - name: TOPIC
+              value: /embedded/lab_plug4a
+            - name: INTERVAL
+              value: '5'
+            - name: DEVICE_IP
+              value: <your IP address here>
+      imagePullSecrets: 
+        - name: private-docker-repo
+      restartPolicy: Always
