@@ -6,12 +6,16 @@
 This project has the following objectives: 
 1) Get more experience with Airflow by building a data aggregation platform that's inclusive of API sources, IoT devices and potentially even some RSS feeds and web scraping. 
 2) Aggregate useful data that I would normally get from my phone or various online sources into one place so as to reduce distractions, and/or so I don't miss out on things I often forget to check or keep with. This includes but is not limited to: Asana tasks, financial data, fitness/health data, weather, etc. The basic idea is that instead of looking up something on my phone and then getting distracted by LinkedIn or reels, I can glance at a screen or browswer tab and not interrupt my daily workflow. 
-
-A secondary objective is to start experimenting with home automation via gathering data from various IoT sensors, smart devices, DIY air quality monitoring stations and the like. 
+3) Expand my skills with respect to automation, edge and IoT technologies
+4) Get more hands-on experience building and deploying micro-services to Kubernetes clusters. 
 
 *TL/DR: I over-enginered a data aggregation platform for professional development, improved productivity and to not have limitations on what data I can display, how it's managed, et al that you often encounter when using something off the shelf, even if it's customizable.*
 
-The repo contains the the code for the Airflow Dags (written in TaskFlow API format), custom plugins for connecting to things like InfluxDB and the custom code for ingesting data from IoT devices. It also has the extended but not quite custom Docker image I used for Airflow (*so it has all of my Python dependencies*). Plan is to continuously add data sources/features in the coming months. 
+The repo contains the the following:
+    
+    * code for the Airflow Dags (written in TaskFlow API format), and the custom Airflow plugins I wrote for writing data InfluxDB and Postgres, sending alerts via Slack, etc. 
+
+custom Airflow plugins for connecting to things like InfluxDB and the custom code for managing and ingesting data from IoT devices. Plan is to continuously add data sources/features in the coming months. 
 
 
 ## Architecture - Tech Stack
@@ -21,7 +25,15 @@ The repo contains the the code for the Airflow Dags (written in TaskFlow API for
 
 All logos and trademarks are property of their respective owners and their use in the diagram represents an acceptable use based on my understanding of their guidelines. **If that is not the case, please let me now and I'll update the diagram ASAP.** 
 
-* **K3s Distribution of Kubernetes:** all of the third party applications (save Zigbee2MQTT) are deployed on K3s. All of the custom code is running on K3s as well, with the exception of docker containers running on Raspberry Pis (or similar devices) collecting climate data from either GPIO or USB based sensors. 
+* **K3s Distribution of Kubernetes:** all of the third party applications
+
+
+
+ ~~(save Zigbee2MQTT)~~ are deployed on K3s. All of the custom code is running on K3s as well, 
+with the exception of docker containers running on Raspberry Pis (or similar devices) collecting climate data from either GPIO or USB based sensors. 
+
+
+
     * You can get more details on my K3s cluster in the separate repo I created for it [here](https://github.com/MarkhamLee/kubernetes-k3s-data-platform-IoT).
 * **Airflow:** data ingestion + orchestration from external APIs E.g.,  Asana, Finnhub, OpenWeather API. etc.   
 * **InfluxDB:** for storing time series data, **PostgreSQL** for everything else 
@@ -37,9 +49,9 @@ All logos and trademarks are property of their respective owners and their use i
 * **GPIO and USB** based sensors and smart devices connected to Raspberry Pis single board computers and/or similar devices like Orange Pi or Libre Computer devices. 
 * **Hardware Details:** 
     * An *Intel NUC like* **Beelink Mini S12** running the primary stack for testing/validation 
-    * **k3s cluster** built on **Beelink SER 5 Pros (Ryzen 5 5560U CPUs)** for production
+    * **k3s cluster** control/server nodes are running on **Beelink SER 5 Pros (Ryzen 5 5560U CPUs)**, using single board computers (Raspberry Pis and Orange Pis) as agent nodes that are only used for collecting data from USB devices and sensors. 
     * Single Board Computers(SBCs)
-        * A **Raspberry Pi 4B** runs the **Zigbee2MQTT container**, the Zigbee USB hub and the Nova PM SDS011 air quality sensor in my office. 
+        * ~~A **Raspberry Pi 4B** runs the **Zigbee2MQTT container**, the Zigbee USB hub and the Nova PM SDS011 air quality sensor in my office.~~ 
         * An **Orange Pi 3B** and a **Libre LePotato** run air quality sensors elsewhere in the house
         * Plan is to move at least the Rasperry Pi and the LePotato to PXE boot as they run off of SD cards, the Orange Pi 3B runs off an eMMC so it's a lower priority for PXE. Also, might just replae the Raspbery Pi 4B and LePotato with Orange Pi 3B (or maybe a 5) since those devices have built in eMMC and NVME slots. I.e. remove the SD card weak point. 
     * I do nearly all my dev work for this project on an **Intel NUC 12th gen**, but I use either the Orange Pi 3B or my Orange Pi 5+ for building and testing the containers that will be deployed to the ARM devices/Single Board Computers.  
