@@ -10,7 +10,7 @@ This folder contains the YAML files I used to deploy Zigbee2MQTT on my Kubernete
         serial:
             port:
     ~~~
-    becomes:
+    Becomes:
     ~~~
     ZIGBEE2MQTT_CONFIG_SERIAL_PORT
         value: <path/to/your/USB/device>
