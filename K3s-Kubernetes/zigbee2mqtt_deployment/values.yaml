@@ -38,7 +38,7 @@ spec:
             - name: "ZIGBEE2MQTT_DATA"
               value: "/data"
             - name: ZIGBEE2MQTT_CONFIG_MQTT_SERVER # optional - can also be configured in the configuration.yaml in the configmap
-              value: "mqtt://192.168.47.201"
+              value: "mqtt://<your ip address here>"
             - name: ZIGBEE2MQTT_CONFIG_SERIAL_PORT
               value: /dev/ttyUSB0
             - name: ZIGBEE2MQTT_CONFIG_MQTT_USER
