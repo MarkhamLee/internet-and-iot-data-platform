@@ -34,3 +34,6 @@ apache-airflow-providers-apache-kafka
 python-kasa==0.5.4
 finnhub-python
 slack_sdk
+feedparser
+ebaysdk
+asana
