@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: air-quality-bedroom-opi3b
+  namespace: iot-devices
+spec:
+  selector:
+    matchLabels: 
+      app: air-quality-bedroom-op3b
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: air-quality-bedroom-op3b
+    spec:
+      nodeName: orangepi3b
+      containers:
+        - name: bedroom-air-quality-opi3b
+          image: markhamlee/airquality:arm64
+          imagePullPolicy: Always
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+          securityContext:
+            allowPrivilegeEscalation: true
+            privileged: true
+            readOnlyRootFilesystem: false
+            runAsNonRoot: false
+          env:
+            - name: MQTT_USER
+              valueFrom:
+                secretKeyRef:
+                  key: MQTT_USER
+                  name: mqtt-creds
+                  optional: false
+            - name: MQTT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  key: MQTT_SECRET
+                  name: mqtt-creds
+                  optional: false
+            - name: MQTT_BROKER
+              valueFrom:
+                configMapKeyRef:
+                  key: MQTT_BROKER
+                  name: mqtt-data
+                  optional: false
+            - name: MQTT_PORT
+              valueFrom:
+                configMapKeyRef:
+                  key: MQTT_PORT
+                  name: mqtt-data
+                  optional: false
+            - name: TOPIC
+              valueFrom:
+                configMapKeyRef:
+                  key: BEDROOM_AIR_TOPIC
+                  name: mqtt-data
+                  optional: false
+            - name: INTERVAL
+              value: '5'
+            - name: USB_ADDRESS
+              value: /dev/ttyUSB0
+      imagePullSecrets: 
+        - name: docker-creds
+      restartPolicy: Always
