@@ -2,11 +2,10 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  creationTimestamp: null
   labels:
     app: zigbee2mqtt
   name: zigbee2mqtt
-  namespace: iot-devices
+  namespace: zigbee2mqtt
 spec:
   replicas: 1
   selector:
@@ -16,15 +15,14 @@ spec:
     type: Recreate
   template:
     metadata:
-      creationTimestamp: null
       labels:
         app: zigbee2mqtt
     spec:    
-      nodeName: rpinode0
+      nodeName: orangepi3b
       containers:
         - name: zigbee2mqtt
           image: koenkk/zigbee2mqtt:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           resources:
             limits:
               cpu: 300m
@@ -37,21 +35,29 @@ spec:
               value: America/Los_Angeles
             - name: "ZIGBEE2MQTT_DATA"
               value: "/data"
-            - name: ZIGBEE2MQTT_CONFIG_MQTT_SERVER # optional - can also be configured in the configuration.yaml in the configmap
-              value: "mqtt://<your ip address here>"
+            - name: ZIGBEE2MQTT_CONFIG_MQTT_SERVER
+              valueFrom:
+                configMapKeyRef:
+                  key: MQTT_BROKER_ZIGBEE
+                  name: mqtt-data
+                  optional: false
             - name: ZIGBEE2MQTT_CONFIG_SERIAL_PORT
-              value: /dev/ttyUSB0
+              valueFrom:
+                configMapKeyRef:
+                  key: ZIGBEE_ADDRESS
+                  name: mqtt-data
+                  optional: false
             - name: ZIGBEE2MQTT_CONFIG_MQTT_USER
               valueFrom:
                 secretKeyRef:
                   key: MQTT_USER
-                  name: mqtt-prod-secret
+                  name: mqtt-creds
                   optional: false
             - name: ZIGBEE2MQTT_CONFIG_MQTT_PASSWORD
               valueFrom:
                 secretKeyRef:
                   key: MQTT_SECRET
-                  name: mqtt-prod-secret
+                  name: mqtt-creds
                   optional: false
           securityContext:
             privileged: true
@@ -105,13 +111,27 @@ spec:
             name: zigbee2mqtt-config
 ---
 apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    app: zigbee2mqtt
+  name: zigbee2mqtt-data
+  namespace: zigbee2mqtt
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
+status: {}
+---
+apiVersion: v1
 kind: Service
 metadata:
-  creationTimestamp: null
   labels:
     app: zigbee2mqtt
   name: zigbee2mqtt
-  namespace: iot-devices
+  namespace: zigbee2mqtt
 spec:
   ports:
     - name: zigbee2mqtt
@@ -122,19 +142,3 @@ spec:
     app: zigbee2mqtt
   type:
     ClusterIP
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  creationTimestamp: null
-  labels:
-    app: zigbee2mqtt
-  name: zigbee2mqtt-data
-  namespace: iot-devices
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 100Mi
-status: {}
