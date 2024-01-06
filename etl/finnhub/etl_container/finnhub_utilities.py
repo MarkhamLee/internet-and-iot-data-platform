@@ -19,7 +19,7 @@ class FinnHubUtilities():
     @staticmethod
     def get_stock_data(symbol: str) -> dict:
 
-        FINNHUB_KEY = os.environ.get('finnhub_key_secret')
+        FINNHUB_KEY = os.environ.get('FINNHUB_SECRET')
 
         # import data schema for validation
         with open('stock_prices_payload.json') as file:

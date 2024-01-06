@@ -33,10 +33,10 @@ def write_data(data: dict):
     influx = InfluxClient()
 
     # Influx DB variables
-    INFLUX_KEY = os.environ.get('prod_dashboard_influx_key')
-    ORG = os.environ.get('prod_influx_org')
-    URL = os.environ.get('prod_influx_url')
-    BUCKET = os.environ.get('prod_dashboard_bucket')
+    INFLUX_KEY = os.environ.get('PROD_INFLUX_KEY')
+    ORG = os.environ.get('PROD_INFLUX_ORG')
+    URL = os.environ.get('PROD_INFLUX_URL')
+    BUCKET = os.environ.get('PROD_DASHBOARD_BUCKET')
 
     # get the client for connecting to InfluxDB
     client = influx.influx_client(INFLUX_KEY, ORG, URL)
