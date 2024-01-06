@@ -12,7 +12,7 @@ class InfluxClient():
         pass
 
     @staticmethod
-    def influx_client(token, org, url):
+    def create_influx_client(token, org, url):
 
         # create client
         write_client = InfluxDBClient(url=url, token=token, org=org)

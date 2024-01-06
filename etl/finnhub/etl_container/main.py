@@ -1,5 +1,4 @@
 import os
-import time
 import logging
 from finnhub_utilities import FinnHubUtilities
 from influx_client import InfluxClient  # noqa: E402
@@ -33,13 +32,13 @@ def write_data(data: dict):
     influx = InfluxClient()
 
     # Influx DB variables
-    INFLUX_KEY = os.environ.get('PROD_INFLUX_KEY')
-    ORG = os.environ.get('PROD_INFLUX_ORG')
-    URL = os.environ.get('PROD_INFLUX_URL')
-    BUCKET = os.environ.get('PROD_DASHBOARD_BUCKET')
+    INFLUX_KEY = os.environ['INFLUX_KEY']
+    ORG = os.environ['INFLUX_ORG']
+    URL = os.environ['INFLUX_URL']
+    BUCKET = os.environ['BUCKET']
 
     # get the client for connecting to InfluxDB
-    client = influx.influx_client(INFLUX_KEY, ORG, URL)
+    client = influx.create_influx_client(INFLUX_KEY, ORG, URL)
 
     # base payload
     payload = {
@@ -59,18 +58,14 @@ def write_data(data: dict):
 
 def main():
 
-    while True:
+    STOCK_SYMBOL = os.environ['STOCK_SYMBOL']
+    stock_data = get_prices(STOCK_SYMBOL)
 
-        STOCK_SYMBOL = os.environ.get('STOCK_SYMBOL')
-        stock_data = get_prices(STOCK_SYMBOL)
+    # parse data into a json payload
+    stock_payload = parse_data(stock_data)
 
-        # parse data into a json payload
-        stock_payload = parse_data(stock_data)
-
-        # write data to InfluxDB
-        write_data(stock_payload)
-
-        time.sleep(120)
+    # write data to InfluxDB
+    write_data(stock_payload)
 
 
 if __name__ == '__main__':

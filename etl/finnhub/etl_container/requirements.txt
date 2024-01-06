@@ -1,7 +1,7 @@
 jsonschema
 pandas
 numpy
-influx_client
+influxdb-client
 finnhub-python
 slack_sdk
 requests
