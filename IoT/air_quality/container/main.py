@@ -10,7 +10,18 @@ import time
 import gc
 import os
 import logging
+from sys import stdout
 from air_quality import AirQuality
+
+# set up/configure logging with stdout so it can be picked up by K8s
+logger = logging.getLogger('air_quality_logger')
+
+logger.setLevel(logging.DEBUG)
+logFormatter = logging.Formatter("%(asctime)s %(levelname)s %(name)s\
+                                 %(threadName)s: %(message)s")
+consoleHandler = logging.StreamHandler(stdout)
+consoleHandler.setFormatter(logFormatter)
+logger.addHandler(consoleHandler)
 
 
 def air(client: object, quality: object, topic: str, interval: int) -> str:
@@ -19,8 +30,12 @@ def air(client: object, quality: object, topic: str, interval: int) -> str:
 
         # TODO: add exception handling + alerting if a sensor fails
 
-        # get air quality data
-        pm2, pm10 = quality.getAirQuality()
+        try:
+            # get air quality data
+            pm2, pm10 = quality.getAirQuality()
+
+        except Exception as e:
+            logging.debug(f'device read error: {e}')
 
         # round off air quality numbers
         pm2 = round(pm2, 2)
