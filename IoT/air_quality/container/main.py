@@ -14,7 +14,6 @@ from sys import stdout
 from air_quality import AirQuality
 
 # set up/configure logging with stdout so it can be picked up by K8s
-# setup logging
 container_logs = logging.getLogger()
 container_logs.setLevel(logging.DEBUG)
 
