@@ -14,21 +14,20 @@ from sys import stdout
 from air_quality import AirQuality
 
 # set up/configure logging with stdout so it can be picked up by K8s
-logger = logging.getLogger('air_quality_logger')
+# setup logging
+container_logs = logging.getLogger()
+container_logs.setLevel(logging.DEBUG)
 
-logger.setLevel(logging.DEBUG)
-logFormatter = logging.Formatter("%(asctime)s %(levelname)s %(name)s\
-                                 %(threadName)s: %(message)s")
-consoleHandler = logging.StreamHandler(stdout)
-consoleHandler.setFormatter(logFormatter)
-logger.addHandler(consoleHandler)
+handler = logging.StreamHandler(stdout)
+handler.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(filename)s - %(message)s')  # noqa: E501
+handler.setFormatter(formatter)
+container_logs.addHandler(handler)
 
 
 def air(client: object, quality: object, topic: str, interval: int) -> str:
 
     while True:
-
-        # TODO: add exception handling + alerting if a sensor fails
 
         try:
             # get air quality data
@@ -52,7 +51,6 @@ def air(client: object, quality: object, topic: str, interval: int) -> str:
 
         if status != 0:
 
-            print(f'Failed to send {payload} to: {topic}')
             logging.debug(f'data failed to publish to MQTT topic, status code:\
                           {status}')
 

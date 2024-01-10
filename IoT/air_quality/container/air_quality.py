@@ -7,14 +7,20 @@
 
 import serial
 import uuid
-from paho.mqtt import client as mqtt
 import logging
 import os
+from sys import stdout
+from paho.mqtt import client as mqtt
 
-# setup logging for static methods
-logging.basicConfig(filename='hardwareData.log', level=logging.DEBUG,
-                    format='%(asctime)s %(levelname)s %(name)s %(threadName)s\
-                        : %(message)s')
+# setup logging
+container_logs = logging.getLogger()
+container_logs.setLevel(logging.DEBUG)
+
+handler = logging.StreamHandler(stdout)
+handler.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(filename)s - %(message)s')  # noqa: E501
+handler.setFormatter(formatter)
+container_logs.addHandler(handler)
 
 
 class AirQuality:
@@ -28,7 +34,13 @@ class AirQuality:
 
         USB = os.environ['USB_ADDRESS']
 
-        self.serialConnection = serial.Serial(USB)
+        try:
+            self.serialConnection = serial.Serial(USB)
+            logging.info(f'connected to Nova PM SDS011 Air Quality sensor at: {USB}')  # noqa: E501
+
+        except Exception as e:
+            logging.debug(f'connection at: {USB} unsuccessful with error\
+                          message: {e}')
 
         self.pm2Bytes = 2
         self.pm10Bytes = 4
@@ -70,7 +82,7 @@ class AirQuality:
         def connectionStatus(client, userdata, flags, code):
 
             if code == 0:
-                print('connected')
+                logging.info('connected to MQTT broker')
 
             else:
                 print(f'connection error: {code} retrying...')
