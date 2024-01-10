@@ -37,7 +37,7 @@ class DeviceUtilities():
 
             else:
                 print(f'connection error: {code} retrying...')
-                logging.debug(f'connection error occured, return code: {code}')
+                logging.info(f'connection error occured, return code: {code}')
 
         client = mqtt.Client(clientID)
         client.username_pw_set(username=username, password=pwd)

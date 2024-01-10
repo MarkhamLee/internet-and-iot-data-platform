@@ -18,10 +18,10 @@ from kasa_utilities import DeviceUtilities
 
 # set up/configure logging with stdout so it can be picked up by K8s
 container_logs = logging.getLogger()
-container_logs.setLevel(logging.DEBUG)
+container_logs.setLevel(logging.INFO)
 
 handler = logging.StreamHandler(stdout)
-handler.setLevel(logging.DEBUG)
+handler.setLevel(logging.INFO)
 formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(filename)s - %(message)s')  # noqa: E501
 handler.setFormatter(formatter)
 container_logs.addHandler(handler)
@@ -35,7 +35,7 @@ async def get_plug_data(client: object, topic: str,
         logging.info(f'Connected to Kasa smart plug at: {device_ip}')
 
     except Exception as e:
-        logging.debug(f'device connection unsuccessful with error: {e}')
+        logging.info(f'device connection unsuccessful with error: {e}')
 
     while True:
 
@@ -59,8 +59,8 @@ async def get_plug_data(client: object, topic: str,
         result = client.publish(topic, payload)
         status = result[0]
 
-        if status == 0:
-            logging.debug(f'data failed to publish to MQTT topic, status code:\
+        if status != 0:
+            logging.info(f'data failed to publish to MQTT topic, status code:\
                           {status}')
 
         # clean up RAM, container metrics show RAM usage creeping up daily
