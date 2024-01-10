@@ -21,8 +21,9 @@ class DeviceUtilities():
     # the secrets file
     @staticmethod
     def getClientID():
-
+        
         clientID = str(uuid.uuid4())
+        logging.info('Client ID generated')
 
         return clientID
 
