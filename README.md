@@ -5,15 +5,19 @@
 
 This project has the following objectives: 
 1) Get more experience with Airflow by building a data aggregation platform that's inclusive of API sources, IoT devices and potentially even some RSS feeds and web scraping. 
-2) Aggregate useful data that I would normally get from my phone or various online sources into one place so as to reduce distractions, and/or so I don't miss out on things I often forget to check or keep with. This includes but is not limited to: Asana tasks, financial data, fitness/health data, weather, etc. The basic idea is that instead of looking up something on my phone and then getting distracted by LinkedIn or reels, I can glance at a screen or browswer tab and not interrupt my daily workflow. 
-3) Expand my skills with respect to automation, edge and IoT technologies, as home automation and smart devices are a significant part of this project.  
-4) Get more hands-on experience building and deploying micro-services to Kubernetes clusters. 
+2) Get more hands on experience and/or experiment with other tools that can be used to build ETL pipelines like Argo, OpenFaaS, etc. 
+3) Aggregate useful data that I would normally get from my phone or various online sources into one place so as to reduce distractions, and/or so I don't miss out on things I often forget to check or keep with. This includes but is not limited to: Asana tasks, financial data, fitness/health data, weather, etc. The basic idea is that instead of looking up something on my phone and then getting distracted by LinkedIn or reels, I can glance at a screen or browswer tab and not interrupt my daily workflow. 
+4) Expand my skills with respect to automation, edge and IoT technologies, as home automation and smart devices are a significant part of this project.  
+5) Get more hands-on experience building and deploying micro-services to Kubernetes clusters. 
+
+
 
 *TL/DR: I over-enginered a data aggregation platform for professional development, improved productivity and to not have limitations on what data I can display, how it's managed, et al that you often encounter when using something off the shelf, even if it's customizable.*
 
 The repo contains the the code for the Airflow Dags (written in TaskFlow API format), custom Airflow plugins for connecting to things like InfluxDB and the custom code for managing and ingesting data It also has the extended but not quite custom Docker image I used for Airflow (*so it has all of my Python dependencies*). Plan is to continuously add data sources/features in the coming months. 
 
 ### Recent Updates 
+* 01/10: updating logging within the custom code containers for better integration with K8s logging, OpenTelemetry, Loki, et, al. I.e., cleaning up tech debt. 
 * 12/27: Updated the Readme with the latest architecture and technical details
 * 12/26: moved all single board computers (e.g., Raspberry Pis) to the cluster as dedicated agent nodes for receiving data from USB based climate sensors and the Zigbee Hub. Added instructions + the values.yaml files for deploying Zigbee2MQTT on Kubernetes. 
 * 12/18: added container/microservice (flask API wrapper around Slack client) for sending alert messages via Slack, so I don't have to include the Slack SDK, client, etc., in the individual services that send Slack alerts. 
