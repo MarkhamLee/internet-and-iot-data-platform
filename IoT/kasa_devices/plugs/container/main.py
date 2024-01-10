@@ -60,7 +60,6 @@ async def get_plug_data(client: object, topic: str,
         status = result[0]
 
         if status == 0:
-
             logging.debug(f'data failed to publish to MQTT topic, status code:\
                           {status}')
 
@@ -72,6 +71,9 @@ async def get_plug_data(client: object, topic: str,
         await asyncio.sleep(interval)  # Sleep some time between updates
 
 
+# TODO: logging picks up a lot of logs from the library itself, will
+# need to fork and tweak otherwise the logs have so much data for EVERY
+# device ping that it gets messy
 def main():
 
     # instantiate utilities class
