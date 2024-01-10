@@ -9,18 +9,7 @@ import serial
 import uuid
 import logging
 import os
-from sys import stdout
 from paho.mqtt import client as mqtt
-
-# setup logging
-container_logs = logging.getLogger()
-container_logs.setLevel(logging.DEBUG)
-
-handler = logging.StreamHandler(stdout)
-handler.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(filename)s - %(message)s')  # noqa: E501
-handler.setFormatter(formatter)
-container_logs.addHandler(handler)
 
 
 class AirQuality:
