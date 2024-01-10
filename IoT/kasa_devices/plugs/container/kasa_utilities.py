@@ -6,14 +6,8 @@
 
 
 import uuid
-from paho.mqtt import client as mqtt
 import logging
-
-
-# setup logging for static methods
-logging.basicConfig(filename='hardwareData.log', level=logging.DEBUG,
-                    format='%(asctime)s %(levelname)s %(name)s %(threadName)s\
-                        : %(message)s')
+from paho.mqtt import client as mqtt
 
 
 class DeviceUtilities():
@@ -38,11 +32,11 @@ class DeviceUtilities():
         def connectionStatus(client, userdata, flags, code):
 
             if code == 0:
-                print('connected')
+                logging.info('Kasa Plug service Connected to MQTT broker')
 
             else:
                 print(f'connection error: {code} retrying...')
-                logging.DEBUG(f'connection error occured, return code: {code}')
+                logging.debug(f'connection error occured, return code: {code}')
 
         client = mqtt.Client(clientID)
         client.username_pw_set(username=username, password=pwd)

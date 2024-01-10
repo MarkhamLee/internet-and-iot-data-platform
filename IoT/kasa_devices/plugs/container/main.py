@@ -12,25 +12,39 @@ import os
 import json
 import logging
 import gc
+from sys import stdout
 from kasa import SmartPlug
 from kasa_utilities import DeviceUtilities
 
-# setup logging for static methods
-logging.basicConfig(filename='kasa_monitoring.log', level=logging.DEBUG,
-                    format='%(asctime)s %(levelname)s %(name)s %(threadName)s\
-                        : %(message)s')
+# set up/configure logging with stdout so it can be picked up by K8s
+container_logs = logging.getLogger()
+container_logs.setLevel(logging.DEBUG)
+
+handler = logging.StreamHandler(stdout)
+handler.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(filename)s - %(message)s')  # noqa: E501
+handler.setFormatter(formatter)
+container_logs.addHandler(handler)
 
 
 async def get_plug_data(client: object, topic: str,
                         device_ip: str, interval: int):
 
-    # TODO: add exception handling
-    dev = SmartPlug(device_ip)
+    try:
+        dev = SmartPlug(device_ip)
+        logging.info(f'Connected to Kasa smart plug at: {device_ip}')
+
+    except Exception as e:
+        logging.debug(f'device connection unsuccessful with error: {e}')
 
     while True:
 
         # poll device for update
-        await dev.update()
+        try:
+            await dev.update()
+
+        except Exception as e:
+            logging.debug(f'connection error: {e}')
 
         # split out data
 
@@ -47,7 +61,6 @@ async def get_plug_data(client: object, topic: str,
 
         if status == 0:
 
-            print(f'Failed to send {payload} to: {topic}')
             logging.debug(f'data failed to publish to MQTT topic, status code:\
                           {status}')
 
