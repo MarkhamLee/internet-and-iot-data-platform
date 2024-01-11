@@ -2,19 +2,14 @@
 # productivity-music-stocks-weather-IoT-dashboard
 # https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
 # ETL script for retrieving all the tasks from an Asana project
-# CLI: python3 file_name + project ID
+# pass the environmental variable with the project GID to retrieve
+# data from the right project.
 
 import os
-import sys
+from postgres_client import PostgresUtilities
 from asana_utilities import AsanaUtilities
-import time
+from logging_util import logger
 
-# this allows us to import modules from the parent directory
-parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(parent_dir)
-
-
-from postgres_client import PostgresUtilities  # noqa: E402
 
 # load utilities class
 utilities = AsanaUtilities()
@@ -22,9 +17,17 @@ utilities = AsanaUtilities()
 
 def get_asana_data(asana_client: object, gid: str) -> object:
 
-    return asana_client.tasks.get_tasks_for_project(gid,
-                                                    {'completed_since':
-                                                     'now'}, opt_pretty=True)
+    # retrieve data from Asana API
+    try:
+        data = asana_client.tasks.get_tasks_for_project(gid,
+                                                        {'completed_since':
+                                                         'now'},
+                                                        opt_pretty=True)
+        logger.info('Data successfully retrieved from Asana')
+        return data
+
+    except Exception as e:
+        logger.debug(f'Asana data read unsuccessful with error: {e}')
 
 
 def parse_asana_data(response: object) -> list:
@@ -33,7 +36,7 @@ def parse_asana_data(response: object) -> list:
 
 
 # write data to PostgreSQL
-def write_data(data: object):
+def write_data(data: object, rows: int):
 
     TABLE = os.environ.get('ASANA_TABLE')
 
@@ -64,33 +67,29 @@ def write_data(data: object):
     response = postgres_utilities.write_data(connection, buffer, TABLE)
 
     if response != 0:
-        print("write_failed")
+        logger.info('PostgreSQL DB write failed')
 
     else:
-        print(f"copy_from_stringio() done, {data} written to database")
+        logger.debug(f'copy from stringio buffer complete, {rows} rows written to DB')  # noqa: E501
 
 
 def main():
 
     PROJECT_GID = os.environ.get('GID')
     ASANA_KEY = os.environ.get('ASANA_KEY')
-    INTERVAL = int(os.environ['INTERVAL'])
 
-    # get Asana Client
+    # get Asana client
     asana_client = utilities.get_asana_client(ASANA_KEY)
+    logger.info('Asana client created')
 
-    while True:
+    # get project data
+    response = get_asana_data(asana_client, PROJECT_GID)
 
-        # get project data
-        response = get_asana_data(asana_client, PROJECT_GID)
+    # parse data
+    payload, total_rows = utilities.transform_asana_data(response)
 
-        # parse data
-        payload = utilities.transform_asana_data(response)
-
-        # write data
-        write_data(payload)
-
-        time.sleep(INTERVAL)
+    # write data
+    write_data(payload, total_rows)
 
 
 if __name__ == '__main__':

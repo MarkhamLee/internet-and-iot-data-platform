@@ -1,11 +1,7 @@
-beautifulsoup4 
-influxdb-client==1.38.0
 jedi
 lxml
 paho-mqtt==1.6.1
 prometheus-client 
-psutil 
-pyserial==3.5
 python-dateutil 
 pyzmq
 reactivex==4.0.4
@@ -19,14 +15,8 @@ websocket-client
 pandas
 numpy
 SQLAlchemy
-spotipy
-asana
-streamlit
-Flask
-gunicorn
+asana==3.2.2
 joblib
 Werkzeug
-python-kasa==0.5.4
-finnhub-python
 slack_sdk
 psycopg2-binary

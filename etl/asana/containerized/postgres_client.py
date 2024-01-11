@@ -4,6 +4,7 @@
 # utilities for writing data to PostgreSQL
 
 import psycopg2
+from logging_util import logger
 
 
 class PostgresUtilities():
@@ -18,8 +19,10 @@ class PostgresUtilities():
 
         try:
             conn = psycopg2.connect(**params)
+            logger.info('PostgreSQL connection successful')
 
         except (Exception, psycopg2.DatabaseError) as error:
+            logger.debug(f'PostgreSQl connection failed with error: {error}')
             return error
 
         return conn
@@ -55,9 +58,11 @@ class PostgresUtilities():
 
             cursor.execute(delete_string)
             connection.commit()
+            logger.info('database table cleared successfully')
             return 0
 
         except (Exception, psycopg2.DatabaseError) as error:
+            logger.debug(f'table clearing failed with error: {error}')
             return error
 
     @staticmethod
@@ -74,4 +79,5 @@ class PostgresUtilities():
         except (Exception, psycopg2.DatabaseError) as error:
             connection.rollback()
             cursor.close()
+            logger.info(f'Postgres DB write failed with error: {error}')
             return error
