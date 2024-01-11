@@ -1,9 +1,11 @@
 # !/usr/bin/env python
-# Markham Lee (C) 2023
+# Markham 2023 - 2024
+# Productivity, Weather, Personal, et al dashboard:
+# https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
 # Python script for receiving Air Quality data from
-# a Nova PM SDS011 air quality sensor
-# Productivity/Personal Dashboard:
-# https://github.com/MarkhamLee/personal_dashboard
+# a Nova PM SDS011 air quality sensor and sending it to InfluxDB
+# via an MQTT Broker
+
 
 import serial
 import uuid

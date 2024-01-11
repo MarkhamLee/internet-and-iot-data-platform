@@ -1,26 +1,26 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: air-quality-bedroom-opi3b
+  name: air-quality-bedroom
   namespace: iot-devices
 spec:
   selector:
     matchLabels: 
-      app: air-quality-bedroom-op3b
+      app: air-quality
   replicas: 1
   template:
     metadata:
       labels:
-        app: air-quality-bedroom-op3b
+        app: air-quality
     spec:
-      nodeName: orangepi3b
+      nodeName: <put name of node the USB device is attached to>
       containers:
-        - name: bedroom-air-quality-opi3b
+        - name: bedroom-air-quality
           image: markhamlee/airquality:arm64
           imagePullPolicy: Always
           resources:
             limits:
-              cpu: 500m
+              cpu: 400m
               memory: 512Mi
             requests:
               cpu: 100m
@@ -64,7 +64,9 @@ spec:
             - name: INTERVAL
               value: '5'
             - name: USB_ADDRESS
-              value: /dev/ttyUSB0
+              # ideally you'd create a name mapping but with the NovaPM this 
+              # doesn't seem to work like it does on other USB devices 
+              value: /dev/ttyUSB0 
       imagePullSecrets: 
         - name: docker-creds
       restartPolicy: Always
