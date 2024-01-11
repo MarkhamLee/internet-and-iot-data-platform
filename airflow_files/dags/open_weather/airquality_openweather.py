@@ -1,7 +1,8 @@
-# Markham Lee (C) 2023
+# Markham Lee (C) 2023 - 2024
 # productivity-music-stocks-weather-IoT-dashboard
 # https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
-# This script retrieves the next day forecast from the Openweather API
+# This script retrieves the next day forecast from the Openweather API and
+# then writes to InfluxDB
 
 from datetime import datetime, timedelta
 from airflow.decorators import dag, task

@@ -1,4 +1,4 @@
-# Markham Lee (C) 2023
+# Markham Lee (C) 2023 - 2024
 # Productivity, Weather, Personal, et al dashboard:
 # https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
 # This script retrieves air quality data from a Nova PM SDS011

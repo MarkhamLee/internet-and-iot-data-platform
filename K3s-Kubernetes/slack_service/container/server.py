@@ -5,10 +5,23 @@
 # service the entire K3s cluster can use, I don't need to include Slack clients
 # in the other containers
 
-from flask import Flask, request
 import flask
 import json
+import logging
+from flask import Flask, request
+from sys import stdout
 from slack_utilities import SlackUtilities
+
+
+# set up/configure logging with stdout so it can be picked up by K8s
+container_logs = logging.getLogger()
+container_logs.setLevel(logging.INFO)
+
+handler = logging.StreamHandler(stdout)
+handler.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(filename)s - %(message)s')  # noqa: E501
+handler.setFormatter(formatter)
+container_logs.addHandler(handler)
 
 
 utilities = SlackUtilities()
@@ -20,7 +33,9 @@ app = Flask('slack_service')
 @app.route("/ping", methods=['GET'])
 def health():
 
-    app.logger.info('health check request received')
+    # app.logger.info('health check request received')
+
+    app.logging.info('health check request received')
 
     results = {"API Status": 200}
     resultjson = json.dumps(results)

@@ -1,7 +1,0 @@
-jsonschema
-pandas
-numpy
-influxdb-client
-finnhub-python
-slack_sdk
-requests
