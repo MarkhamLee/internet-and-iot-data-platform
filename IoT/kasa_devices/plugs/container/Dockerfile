@@ -1,6 +1,6 @@
 FROM python:3.11-slim as build
 
-COPY requirements.txt main.py kasa_utilities.py /
+COPY requirements.txt main.py logging_util.py kasa_utilities.py /
 
 RUN pip install -r /requirements.txt
 

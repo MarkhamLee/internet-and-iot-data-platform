@@ -10,21 +10,10 @@
 import asyncio
 import os
 import json
-import logging
 import gc
-from sys import stdout
 from kasa import SmartPlug
 from kasa_utilities import DeviceUtilities
-
-# set up/configure logging with stdout so it can be picked up by K8s
-container_logs = logging.getLogger()
-container_logs.setLevel(logging.INFO)
-
-handler = logging.StreamHandler(stdout)
-handler.setLevel(logging.INFO)
-formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(filename)s - %(message)s')  # noqa: E501
-handler.setFormatter(formatter)
-container_logs.addHandler(handler)
+from logging_util import logger
 
 
 async def get_plug_data(client: object, topic: str,
@@ -32,10 +21,10 @@ async def get_plug_data(client: object, topic: str,
 
     try:
         dev = SmartPlug(device_ip)
-        logging.info(f'Connected to Kasa smart plug at: {device_ip}')
+        logger.info(f'Connected to Kasa smart plug at: {device_ip}')
 
     except Exception as e:
-        logging.info(f'device connection unsuccessful with error: {e}')
+        logger.debug(f'device connection unsuccessful with error: {e}')
 
     while True:
 
@@ -44,7 +33,7 @@ async def get_plug_data(client: object, topic: str,
             await dev.update()
 
         except Exception as e:
-            logging.debug(f'connection error: {e}')
+            logger.debug(f'connection error: {e}')
 
         # split out data
 
@@ -60,7 +49,7 @@ async def get_plug_data(client: object, topic: str,
         status = result[0]
 
         if status != 0:
-            logging.info(f'data failed to publish to MQTT topic, status code:\
+            logger.debug(f'data failed to publish to MQTT topic, status code:\
                           {status}')
 
         # clean up RAM, container metrics show RAM usage creeping up daily
@@ -71,9 +60,6 @@ async def get_plug_data(client: object, topic: str,
         await asyncio.sleep(interval)  # Sleep some time between updates
 
 
-# TODO: logging picks up a lot of logs from the library itself, will
-# need to fork and tweak otherwise the logs have so much data for EVERY
-# device ping that it gets messy
 def main():
 
     # instantiate utilities class
