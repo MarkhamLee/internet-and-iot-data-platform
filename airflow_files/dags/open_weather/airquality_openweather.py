@@ -73,14 +73,14 @@ def openweather_air_quality_dag():
         # imports into the functions so that airflow isn't constantly wasting
         # cycles importing libraries.
 
+        from plugins.influx_client import InfluxClient  # noqa: E402
+        influx = InfluxClient()
+
         # influx DB variables
         INFLUX_KEY = Variable.get('influx_db_key_secret')
         ORG = Variable.get('influx_org')
         URL = Variable.get('influx_url')
         BUCKET = Variable.get('dashboard_bucket')
-
-        from plugins.influx_client import InfluxClient  # noqa: E402
-        influx = InfluxClient()
 
         client = influx.influx_client(INFLUX_KEY, ORG, URL)
 
