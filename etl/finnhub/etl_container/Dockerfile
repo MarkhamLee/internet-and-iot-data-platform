@@ -1,6 +1,6 @@
 FROM python:3.11-slim as build
 
-COPY requirements.txt main.py finnhub_utilities.py influx_client.py stock_prices_payload.json /
+COPY files ./
 
 RUN pip install -r /requirements.txt
 
