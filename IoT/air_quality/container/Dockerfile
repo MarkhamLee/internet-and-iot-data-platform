@@ -1,6 +1,6 @@
 FROM python:3.11-slim as build
 
-COPY requirements.txt air_quality.py main.py / 
+COPY requirements.txt logging_util.py air_quality.py main.py / 
 
 RUN pip install -r /requirements.txt
 

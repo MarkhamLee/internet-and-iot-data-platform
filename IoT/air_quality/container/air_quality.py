@@ -7,9 +7,9 @@
 
 import serial
 import uuid
-import logging
 import os
 from paho.mqtt import client as mqtt
+from logging_util import logger
 
 
 class AirQuality:
@@ -25,10 +25,10 @@ class AirQuality:
 
         try:
             self.serialConnection = serial.Serial(USB)
-            logging.info(f'connected to Nova PM SDS011 Air Quality sensor at: {USB}')  # noqa: E501
+            logger.info(f'connected to Nova PM SDS011 Air Quality sensor at: {USB}')  # noqa: E501
 
         except Exception as e:
-            logging.debug(f'connection at: {USB} unsuccessful with error\
+            logger.debug(f'connection at: {USB} unsuccessful with error\
                           message: {e}')
 
         self.pm2Bytes = 2
@@ -71,11 +71,10 @@ class AirQuality:
         def connectionStatus(client, userdata, flags, code):
 
             if code == 0:
-                logging.info('connected to MQTT broker')
+                logger.info('connected to MQTT broker')
 
             else:
-                print(f'connection error: {code} retrying...')
-                logging.DEBUG(f'connection error occured, return code: {code}')
+                logger.debug(f'connection error occured, return code: {code}, retrying...')  # noqa: E501
 
         client = mqtt.Client(clientID)
         client.username_pw_set(username=username, password=pwd)

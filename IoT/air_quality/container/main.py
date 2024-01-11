@@ -9,19 +9,8 @@ import json
 import time
 import gc
 import os
-import logging
-from sys import stdout
 from air_quality import AirQuality
-
-# set up/configure logging with stdout so it can be picked up by K8s
-container_logs = logging.getLogger()
-container_logs.setLevel(logging.DEBUG)
-
-handler = logging.StreamHandler(stdout)
-handler.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(filename)s - %(message)s')  # noqa: E501
-handler.setFormatter(formatter)
-container_logs.addHandler(handler)
+from logging_util import logger
 
 
 def air(client: object, quality: object, topic: str, interval: int) -> str:
@@ -33,7 +22,7 @@ def air(client: object, quality: object, topic: str, interval: int) -> str:
             pm2, pm10 = quality.getAirQuality()
 
         except Exception as e:
-            logging.debug(f'device read error: {e}')
+            logger.debug(f'device read error: {e}')
 
         # round off air quality numbers
         pm2 = round(pm2, 2)
@@ -50,7 +39,7 @@ def air(client: object, quality: object, topic: str, interval: int) -> str:
 
         if status != 0:
 
-            logging.debug(f'data failed to publish to MQTT topic, status code:\
+            logger.debug(f'data failed to publish to MQTT topic, status code:\
                           {status}')
 
         # given that this is a RAM constrained device, let's delete
