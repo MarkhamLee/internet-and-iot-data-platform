@@ -121,7 +121,7 @@ def write_data(data: object):
     row_count = len(data)
 
     # get connection and clear the table
-    postgres_connection = get_postgres_connection(TABLE)
+    postgres_connection = get_postgres_connection()
 
     # clear table
     utilities.clear_table(postgres_connection, TABLE)
