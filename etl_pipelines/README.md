@@ -1,4 +1,7 @@
-#### ETL Containers & Scripts
+## ETL Containers & Scripts
+
+**Note: I'm in the process of re-organizing all the ETL containers into the approach described below, so there will be a few "incongruities", until I update all the containers**
+
 
 Once I decided to start experimenting with different Airflow executors and other tools to build ETL pipelines, I decided to rebuild all of my ETL pipelines (originally as Airflow DAGs) into containers a couple of reasons: 
 1) Most ETL tools are just container orchestrators 
