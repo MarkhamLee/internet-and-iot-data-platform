@@ -7,21 +7,9 @@
 
 import flask
 import json
-import logging
 from flask import Flask, request
-from sys import stdout
 from slack_utilities import SlackUtilities
-
-
-# set up/configure logging with stdout so it can be picked up by K8s
-container_logs = logging.getLogger()
-container_logs.setLevel(logging.INFO)
-
-handler = logging.StreamHandler(stdout)
-handler.setLevel(logging.INFO)
-formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(filename)s - %(message)s')  # noqa: E501
-handler.setFormatter(formatter)
-container_logs.addHandler(handler)
+from logging_util import logger
 
 
 utilities = SlackUtilities()
@@ -33,14 +21,12 @@ app = Flask('slack_service')
 @app.route("/ping", methods=['GET'])
 def health():
 
-    # app.logger.info('health check request received')
-
-    app.logging.info('health check request received')
+    logger.info('health check request received')
 
     results = {"API Status": 200}
     resultjson = json.dumps(results)
 
-    app.logger.info(f'health check response: {resultjson}')
+    logger.info(f'health check response: {resultjson}')
 
     return flask.Response(response=resultjson, status=200,
                           mimetype='application/json')
@@ -51,6 +37,8 @@ def send_message():
 
     alert_text = request.form.get('text')
     slack_channel = request.form.get('slack_channel')
+
+    logger.info('Message at /send_message endpoint received')
 
     # send message
     response = utilities.send_slack_message(alert_text, slack_channel)
@@ -66,6 +54,8 @@ def send_message_webhook():
 
     alert_text = request.form.get('text')
     slack_webhook = request.form.get('url')
+
+    logger.info('Message at /send_webhook endpoint received')
 
     # send message
     response = utilities.send_slack_webhook(slack_webhook, alert_text)

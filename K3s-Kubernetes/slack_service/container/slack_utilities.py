@@ -8,17 +8,10 @@
 # This file is basically a baseline Slack client, expect the variants used for
 # Airflow vs say IoT to drift apart over time.
 
-from slack_sdk import WebClient
-from slack_sdk.errors import SlackApiError
-import logging
 import requests
 import os
-
-
-# setup logging for static methods
-logging.basicConfig(filename='slack_alerts.log', level=logging.DEBUG,
-                    format='%(asctime)s %(levelname)s %(name)s %(threadName)s\
-                        : %(message)s')
+from slack_sdk import WebClient
+from logging_util import logger
 
 
 class SlackUtilities():
@@ -34,18 +27,12 @@ class SlackUtilities():
     # generic method to send a slack message, to the specified channel
     def send_slack_message(self, message: str, channel: str) -> dict:
 
-        try:
-            response = self.client.chat_postMessage(text=message,
-                                                    channel=channel)
-            return {"Message sent status": response.get('ok', False)}
+        response = self.client.chat_postMessage(text=message, channel=channel)
 
-        except SlackApiError as e:
-            logging.debug(f"an error occured with error {e.response['error']}")
-            return {"Message sent status": response.get('ok', False),
-                    "Error Message": e.response['error']}
+        return self.evaluate_response(response.code, 'webhook')
 
     # the web hook only sends to a specific channel
-    def send_slack_webhook(url: str, message: dict):
+    def send_slack_webhook(self, url: str, message: dict):
 
         headers = {
             'Content-type': 'application/json'
@@ -54,8 +41,14 @@ class SlackUtilities():
 
         response = requests.post(url, headers=headers, json=message)
 
-        if response.status_code != 200:
-            logging.debug(f'publishing of slack alert failed, \
-                status code: {response.status_code}')
+        return self.evaluate_response(response.code, 'webhook')
 
-        return response.status_code
+    def evaluate_response(self, code: int, type: str):
+
+        if code == 200:
+            logger.info(f'Publishing of alert to Slack {type} was successful')
+
+        else:
+            logger.debug(f'Publishing of alert to Slack {type} failed, with error code {code}')  # noqa: E501
+
+        return code
