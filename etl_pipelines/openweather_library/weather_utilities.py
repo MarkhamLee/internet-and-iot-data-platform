@@ -40,8 +40,7 @@ class WeatherUtilities():
 
     def build_url_weather(self, key: str, endpoint: str) -> str:
 
-        url = self.base_url + endpoint + 'appid=' + key + "&q=" +\
-            self.city + self.units
+        url = self.base_url + endpoint + 'appid=' + key + "&q=" + self.city + self.units  # noqa: E501
 
         return url
 
@@ -58,7 +57,7 @@ class WeatherUtilities():
             "barometric_pressure": float(response['main']['pressure']),
             "humidity": float(response['main']['humidity']),
             "wind": float(response['wind']['speed']),
-            "time_stamp": response['dt']
+            "time_stamp": int(response['dt'])
         }
 
         return payload
