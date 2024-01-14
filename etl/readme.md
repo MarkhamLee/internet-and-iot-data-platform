@@ -1,3 +1,0 @@
-#### ETL Scripts
-
-These are stand-alone scripts for gathering and transforming data from various sources, which can then be turned into DAGs, the basis of a DAG + scripts outside of Airflow for preparing/transforming data or scripts that are deployed/orchestrated/etc., with a tool or method other than Airflow. Some of these will be able to write directly to InfluxDB, Postgres or another tool as that's how I tested them (I.e., a full ETL pipeline), while others will just connect to a source and print out the result. Either way, figured it was a good idea to consolidate a lot of my initial experiments, EDA, etc., for various sources in one place. 
