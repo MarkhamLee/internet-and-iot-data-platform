@@ -1,8 +1,12 @@
 import os
-from influx_utilities import InfluxClient
-from logging_util import logger
+import sys
 from finnhub_utilities import FinnHubUtilities
 
+parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(parent_dir)
+
+from etl_library.influx_utilities import InfluxClient  # noqa: E402
+from etl_library.logging_util import logger  # noqa: E402
 
 # instantiate utilities class
 finn_util = FinnHubUtilities()
