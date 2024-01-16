@@ -7,16 +7,17 @@ This project has the following objectives:
 1) Get more experience with Airflow by building a data aggregation platform that's inclusive of API sources, IoT devices and potentially even some RSS feeds and web scraping. 
 2) Get more hands on experience and/or experiment with other tools that can be used to build ETL pipelines like Argo, OpenFaaS, etc. 
 3) Aggregate useful data that I would normally get from my phone or various online sources into one place so as to reduce distractions, and/or so I don't miss out on things I often forget to check or keep with. This includes but is not limited to: Asana tasks, financial data, fitness/health data, weather, etc. The basic idea is that instead of looking up something on my phone and then getting distracted by LinkedIn or reels, I can glance at a screen or browswer tab and not interrupt my daily workflow. 
-4) Expand my skills with respect to automation, edge and IoT technologies, as home automation and smart devices are a significant part of this project.  
+4) Expand my skills with respect to IoT automation and edge technologies, as those are items that keep coming up at work AND I'm planning on building some automation projects around my home. 
 5) Get more hands-on experience building and deploying micro-services to Kubernetes clusters. 
-
-
 
 *TL/DR: I over-enginered a data aggregation platform for professional development, improved productivity and to not have limitations on what data I can display, how it's managed, et al that you often encounter when using something off the shelf, even if it's customizable.*
 
-The repo contains the the code for the Airflow Dags (written in TaskFlow API format), custom Airflow plugins for connecting to things like InfluxDB and the custom code for managing and ingesting data It also has the extended but not quite custom Docker image I used for Airflow (*so it has all of my Python dependencies*). Plan is to continuously add data sources/features in the coming months. 
+This repo contains the code for the ETL pipelines for various data sources, YAML files for deploying various micro-services on Kubernetes, containers for interacting with/pulling data from remote sensors/IoT devices and a lot more. Plan is to continuously add data sources/features in the coming months. 
 
 ### Recent Updates 
+* 1/15: shifting all ETL to be ***Docker First*** to simplify local testing, enable deployment with practically any container orchestration soluition and leverage libraries of common files for connecting to DBs, logging, common API files, etc. Meaning:
+    * I can test everything locally without having to deploy to Airflow or any other tool
+    * If I make a change to a script for writing to InfluxDB, logging or similar, all the ETL pipelines will be able to use that file once their image is updated. 
 * 1/11: added a bot that regularly pulls down data from [Raspberry Pi Locator](https://rpilocator.com/) via RSS, checks the age of the updates for Raspberry Pi 5s and if they're younger than 12 hours, sends me an alert via Slack. 
 * 01/10: updating logging within the custom code containers for better integration with K8s logging AKA OpenTelemetry, Loki, et, al. I.e., cleaning up tech debt. 
 * 12/27: Updated the Readme with the latest architecture and technical details
@@ -31,8 +32,10 @@ The repo contains the the code for the Airflow Dags (written in TaskFlow API for
 All logos and trademarks are property of their respective owners and their use in the diagram represents an acceptable use based on my understanding of their guidelines. **If that is not the case, please let me now and I'll update the diagram ASAP.** 
 
 * **K3s Distribution of Kubernetes:** all third party applications and custom code are deployed on Kubernetes-K3s via Docker containers. A couple of additional details:
-   * USB devices like air quality sensors and the Zigbee hub are deployed on small board computers (Raspberry Pis, Orange Pis and the like) that serve as "specialty nodes", in that they're part of the K3s cluster but are only used for receiving data from those devices and not for running general workloads. 
-   * The initial architecture had USB sensors and Zigbee2MQTT running on computers that weren't part of the cluster, this was mostly done because the dependence on a singular piece of hardware precluded HA or redundancy. I recently moved all of those devices and services to the cluster, because once the USB devices are plugged in adding or moving services around is very quick and easy.  
+   *GPIO and USB devices/sensors like air quality sensors and some temperature sensors are deployed on small board computers (Raspberry Pis, Orange Pis and the like) that serve as "specialty nodes", in that they're part of the K3s cluster but are only being used for interfacing with specific hardware and not for general workloads. 
+   * The initial architecture had USB sensors and Zigbee2MQTT running on computers that weren't part of the cluster, this was mostly done because the dependence on a singular piece of hardware precluded HA or redundancy. I recently moved all of those devices and services to the cluster, as pushing updates is easier as sensors between devices for testing purposes is quick and easy as well. I.e., even without HA or redundancy, deploying these services on Kubernetes is a vastly superior experience. 
+   * I also set up device mappings on each of the single board computers so I can reference the device in the form of /dev/zigbee and not have to worry about whether the device was detected as /dev/ttyUSB0 or /dev/ttyUSB1 
+   * Medium term plan is to experiment with devices and libraries that can make USB devices available over the network to the entire cluster, in particular "USB network routers" you can plug USB devices into and then your network can see them. 
    * Moving forward I'll test custom code or new to me 3rd party apps on devices that aren't part of the cluster, but can connect to it via MQTT or an api endpoint prior to deploying that service within the cluster. Kubernetes often presents some additional complexities, so it makes sense to get all the service specific wrinkles ironed out before deploying something on Kubernetes 
    * You can get more details on my K3s cluster in the separate repo I created for it [here](https://github.com/MarkhamLee/kubernetes-k3s-data-platform-IoT).
 * **Airflow:** data ingestion + orchestration from external APIs E.g.,  Asana, Finnhub, OpenWeather API. etc.   
@@ -44,45 +47,62 @@ All logos and trademarks are property of their respective owners and their use i
 * **Rancher:** used to manage the K3s cluster, as far as installing things, updates, managing resources like Longhorn (for shared storage), etc. AWS S3 is also used to back-up both longhorn and Rancher. 
 * **Node-Red:** to manage the incoming MQTT messages, data transformation of MQTT messages and then writing the data to InfluxDB 
 * **Slack:** is used for alerting and monitoring, in particular alerts when any part of a pipeline or scheduled task fails in Airflow, and general alerting and monitoring for IoT/Smart Device related items. E.g., a data write to InfluxDB fails for Weather data or an air quality sensor or smart plug isn't responding. 
-* The **Zigbee2MQTT library** plus a **Sonoff Zigbee USB Dongle** to receive data from Zigbee enabled IoT devices and then send it off as MQTT messages. This makes a lot of smart devices "plug-n-play" as I don't need special apps or hardware to receive data from those devices. 
+* The **Zigbee2MQTT library** plus a **Sonoff Zigbee USB Dongle** to receive data from Zigbee (local wireless mesh network for IoT devices) enabled IoT devices and then send it off as MQTT messages. This makes a lot of smart devices "plug-n-play" as I don't need special apps or hardware to receive data from those devices. 
 * Where possible using code libraries like [Python-Kasa for TP Link Kasa devices](https://github.com/python-kasa/python-kasa) to connect to IoT and Smart Devices directly.
-* **GPIO and USB** based sensors and smart devices connected to Raspberry Pis single board computers and/or similar devices like Orange Pi or Libre Computer devices. 
-* **Hardware Details:** 
-    * An *Intel NUC like* **Beelink Mini S12** running the primary stack for testing/validation 
-    * **k3s cluster** control/server nodes are running on **Beelink SER 5 Pros (Ryzen 5 5560U CPUs)**, using single board computers (Raspberry Pis and Orange Pis) as agent nodes that are only used for collecting data from USB devices and sensors. 
-    * Future plan: add agent nodes that are used for generalized workloads. Will probably use Orange Pi 5+ devices due to their desktop level performance and NPU(6 TOPS), while taking up very little space and power consumption being on par with a tablet.  
-    * Single Board Computers(SBCs) details:
-        * Primarily using the 8GB version of the Raspberry Pi 4Bs as the *"dedicated for USB sensor"* agent nodes. These devices all have a "no-schedule" taint on them, so K3s doesn't schedule general workloads on them. 
-        * Experimenting with an Orange Pi 3B as well because even though it's about 1/2 as fast as a Raspberry Pi 4B per most benchmarks, it's costs about 1/2 as much, while having 8 GB of RAM, an NVME slot and a small NPU that could be useful for ML workloads. Also, while testing it with some computer vision models the inferencing speed was only about 10% slower than the RPI and that's without using the NPU. 
-        * I also use the Raspberry Pis, the Orange Pi 3B and a **Libre LePotato** to test new apps and sensors before adding them to the main solution. 
-        * Plan is to move all the SBCs boot off the network/PXE boot 
-    * I do nearly all my dev work for this project on an **12th Gen Intel NUC**, I use my Orange Pi 3B and 5+ for building and testing the containers that will be deployed to the ARM devices/Single Board Computers.  
-* **IoT/Smart Devices:** 
-    * **Aqara and Sonoff** temperature sensors that connect via the Zigbee protocol
-    * **Nova PM SDS011** IoT Air Quality sensors hooked into Libre Computer Le Potato, Orange Pi 3Bs Raspberry Pi 4Bs until I find an air quality device I both like AND uses the Zigbee protocol, and/or is built by a manufacturer that provides an API for interacting with their devices. 
-    * **SONOFF Zigbee 3.0 USB Dongle Plus Gateway:** coupled with the Zigbee2MQTT library, this gives me the ability to receive data from any Zigbee enabled device without having to purchase hubs from each manufacturer to go along with their device. Note: Zigbee2MQTT isn't explicitly required, you could always write your own code for this purpose. 
-    * **TP Link Kasa Smart Plugs** transmitting power, voltage and amp consumption data over Wi-Fi via the [Python-Kasa library](https://python-kasa.readthedocs.io/en/latest/index.html) 
-    * Experimenting with a variety of small sensors that connect via GPIO for air quality, CO2 detection, temp and the like. Given all the wires involved, I prefer dedicated devices like the Sonoff sensors, but these may still prove useful for certain use cases. 
 
-* **Operating Systems:** Ubuntu 22.04 distros for nearly everything, save [Armbian](https://www.armbian.com/) open source community distro for the Orange Pi 3B. Armbian is an "experiment" in terms of seeing how much use I can get out of Raspberry Pi alternatives despite the operating system/software support not being as good. Due to using Docker on all those devices, I haven't run into problems as of yet, aside from GPIO support lagging a bit. 
+## ETL Pipeline Details
 
+I originally, built all ETL pipelines as Airflow DAGs, but that made testing tricky as the file structure that worked for testing on my local Airflow instance didn't always work on my Airflow instance deployed on Kubernetes due to how files were imported from Github. I have since moved everything to "standard" Python scripts running in Docker containers for a couple of reasons:
 
-### Targeted Sources
+* No longer need to worry about managing dependencies for Airflow as they're all baked into the container
+* I can test locally without having to maintain multiple Airflow instances or testing locally,and then having to change the code so I can test in production 
+* The containers can be used, tested, deployed with practically any container orchestration tool/solution. 
+* By leveraging libraries of common functions/scripts/files (API clients, writing to DBs, logging, etc.), I can not only build new pipelines faster, but updates/improvements to those core files can be used by any of the existing ETL pipelines as soon as their images are updated. 
+
+*i.e., all the advantages of using containers...* 
+
+At the moment I'm experimenting with running the ETL containers with Airflow, Argo, Kubernetes cron jobs and OpenFaaS, and will eventually settle on 1-2 of those solutions on a go-forward basis. To compensate for the level of data you get from Airflow compared to some of the other solutions, I updated the logging within the containers to move things roughly equivalent to what you'd get in Airflow. One of my next tasks is to implement pipeline failure alerts that will run on the containers/be agnostic of the orchestration tool being used.
+
+#### Current and Future Data Sources
 * **External/Public API sources:** 
     * Asana (where I keep my to do lists) -- *shockingly, the former project manager uses project management software for day to day task management* [DONE]
     * Air Quality & Weather via the OpenWeather API [DONE]
     * Finance: tracking the S&P 500, T-Bills and maybe 1-2 other stocks [DONE]
-        * Using Alpha Advantage for Treasuries and Finnhub for ETFs and Stocks
+        * Alpha Vantage for treasuries [DONE]
+        * Finnhub for stocks [DONE]
+    * Raspberry Pi Locator: build a simple bot for consuming the RSS feed and then alerting me via Slack if the stock update is less than 12 hours old [DONE]
     * Tracking hydration - still looking for a good way to do this that isn't 1/2 a hack or require me to build an app that is always connected/synching as opposed to being able to just connect periodically. 
     * Discord - I join servers and then rarely pay attention and often miss announcements related to DIY/Makers, Podcasts I enjoy, Video Game Mods and other hobbies. 
     * eBay? I need to explore the API more but the plan is to track auctions and automate searches for items I'm interested in. 
     * Spotify - alerts for podcast updates 
     * I use Roon Music Server to manage my music catalog and listen to services like Tidal and Qubuz, tentative plan is to explore their API and potentially see if I can add "now playing" or even controls to Grafana and/or maybe create a separate web page that I bring Grafana into. 
-* **Iot/Smart Devices:**
-    * The [Zigbee2MQTT library](https://www.zigbee2mqtt.io/guide/getting-started/) to receive data from Zigbee enabled devices for room temperature and humidity [DONE]
-    * Tracking the Power consumption of my gaming rig, clusters and the devices I used for all my tinkering via TP Link Kasa smart plugs [DONE]
-    * Air Quality (PM2.5 and PM10) via Nova PM SDS011 sensors in concert with Raspbery Pis or similar devices [DONE]
-    * Currently researching/looking for stand-alone air quality sensors with Zigee or Z-wave capability
 
-### Key References: 
+## Kubernetes Cluster (K3s Distro) & Hardware Details 
+
+* Server/control plane nodes arunning on **Beelink SER 5 Pros (Ryzen 5 5560U CPUs)**, think: getting about 70-80% of the performance of an 11th Gen i5, but in an Intel NUC sized chassis and using less than 10% of the power. 
+* Agent nodes are currently Raspberry Pi 4B 8GB devices, I use these as "sensor nodes" only for use with GPIO and/or USB based sensors/devices. These devices have "no schedule" taints on them, so they're only used for interacting with specific sensors and not physical workloads. 
+* **Future State:** add some additional X86 and ARM64 nodes for general workloads, in addition to adding some dedicated storage nodes. 
+    * The ARM64 will likely be an Orange Pi 5+ due its having dual 2.5G ethernet, full speed Gen3 NVME, up to 32GB of RAM and a 6 TOPS NPU despite its small size and low power consumption. I'm currently using one for dev work on this project, and a computer vision project and I've found it to be a legit desktop replacement for general tasks and python development. 
+    * I also want to build a small x86 machine that has a small GPU for ML workloads
+* Additional Notes on single board computers, Raspberry Pis and the like 
+    * I experimented with an Orange Pi 3B with 8GB of RAM, but I removed it as I would get random "out of memory" issue when deploying new pods that appear to be related to Kubernetes' inability to see its RAM utilization. I suspect these issues were occuring due to the device running a "bleeding edge, community" distro of Armbian. Despite these issues the device works great for building and testing ARM64 container images, and the RAM visiblity issues aren't present when using Portainer to manage/deploy the containers. 
+    * Plan is to move all the SBCs boot off the network/use PXE boot
+    * I originally had the Zigbee dongle running on a Raspberry Pi 4B and then an Orange Pi 3B before moving it to one of the server/control nodes, as performance could be spotty on the single board computers and it's trouble free on the x86 device. Medium term I want to experiment with plugging it into a USB network device, that would just make it available to the entire cluster as opposed to a single machine. 
+* I use a Beelink Mini 12s, Raspberry Pi 4Bs, a Libre Le Potato and an Orange Pi 3B for testing/validation of Apps and containerized workloads before deploying them to the K3s cluster. 
+* I do nearly all my dev work for this project on an **12th Gen Intel NUC**, I use my Orange Pi 3B and 5+ for building and testing the containers that will be deployed to the ARM devices/Single Board Computers.  
+* **Operating Systems:** Ubuntu 22.04 distros for nearly everything, save [Armbian](https://www.armbian.com/) open source community distro for the Orange Pi 3B. 
+
+
+## Automation, Edge and IoT Devices
+
+* **SONOFF Zigbee 3.0 USB Dongle Plus Gateway:** coupled with the [Zigbee2MQTT library](https://www.zigbee2mqtt.io/guide/getting-started/), this gives me the ability to receive data from any Zigbee enabled device without having to purchase hubs from each manufacturer to go along with their device. Note: Zigbee2MQTT isn't explicitly required, you could always write your own code for this purpose
+* Zigbee is a mesh network where the battery powered devices only transmit data and the ones powered by mains/AC power also serve as routers. I've deployed Zigbee smart plugs as routers in each room I've deployed Zigbee devices to, as without them the battery powered devices often suffer from unstable connections. 
+* **Aqara and Sonoff** temperature sensors that connect via the Zigbee protocol
+* **Nova PM SDS011** IoT Air Quality sensors connected to the Raspberry Pi 4Bs *"dedicated sensor nodes"* until I find an air quality device I both like AND uses the Zigbee protocol, and/or is built by a manufacturer that provides an API for interacting with their devices. 
+* **TP Link Kasa Smart Plugs** tracking power consumption, voltage and amps data over Wi-Fi via the [Python-Kasa library](https://python-kasa.readthedocs.io/en/latest/index.html) 
+* Currently testing SCD40 and MH-Z19B CO2 sensors, when these are fully deployed they will likely be connected to the Raspberry Pis I already have deployed around the house, but I am considering using a microcontroller like a Raspberry Pi Pico or ESP32 device instead. 
+* I've also tested DHT22 temperature sensors and found them to be more reliable than the Zigbee based devices I tried in terms of how often they send data, stability, etc., the only knock on them is that deploying Zigbee device is just easier/has fewer moving parts and a good 1/3 of the devices I received were duds. That being said, I am using DHT22s + a Raspberry Pi Pico to monitor the temperatures inside of my gaming PC and send that data to the cluster via MQTT. 
+* ~~Currently researching/looking for stand-alone air quality sensors with Zigbee or Z-wave capability~~ I've halted this as the devices I've found aren't especially accurate, so I've shfited gears to looking at DIY options and industrial air quality kits that I can adapt/integrate with this project. 
+
+## Key References: 
 * [Airflow best practices:](https://airflow.apache.org/docs/apache-airflow/stable/best-practices.html) I made extensive use of this documentation to not only re-write my original DAGs into the Taskflow API format, but to make sure I was following as many best practices as possible. I also used their documentation to structure my Airflow Docker container. 
