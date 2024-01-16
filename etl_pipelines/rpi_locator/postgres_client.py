@@ -4,7 +4,13 @@
 # utilities for writing data to PostgreSQL
 
 import psycopg2
-from logging_util import logger
+import os
+import sys
+
+parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(parent_dir)
+
+from etl_library.logging_util import logger  # noqa: E402
 
 
 class PostgresUtilities():

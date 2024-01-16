@@ -1,7 +1,11 @@
 FROM python:3.11-slim as build
 
-COPY files ./
+COPY ./etl_library ./etl_library
 
-RUN pip install -r /requirements.txt
+WORKDIR /etl
 
-CMD python3 main.py
+COPY ./rpi_locator ./
+
+RUN pip install -r /etl/requirements.txt
+
+CMD python3 /etl/main.py

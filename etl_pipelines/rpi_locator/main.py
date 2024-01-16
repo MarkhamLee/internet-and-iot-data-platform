@@ -1,10 +1,15 @@
 import feedparser
 import requests
 import os
+import sys
 import pandas as pd
 from datetime import datetime, timezone
 from postgres_client import PostgresUtilities
-from logging_util import logger
+
+parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(parent_dir)
+
+from etl_library.logging_util import logger  # noqa: E402
 
 # instantiate Postgres writing class
 utilities = PostgresUtilities()
