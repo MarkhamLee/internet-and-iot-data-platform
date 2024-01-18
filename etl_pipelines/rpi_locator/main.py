@@ -3,6 +3,7 @@ import requests
 import os
 import sys
 import pandas as pd
+from io import StringIO  # noqa: E402
 from datetime import datetime, timezone
 from postgres_client import PostgresUtilities
 
@@ -114,6 +115,23 @@ def no_data_cleanup():
     exit()
 
 
+# strict enforcement of what columns are used ensures data quality
+# avoids issues where tab delimiting can create erroneous empty columns
+# in the data frame
+def prepare_payload(payload: object, columns: list) -> object:
+
+    buffer = StringIO()
+
+    # explicit column definitions + tab as the delimiter allow us to ingest
+    # text data with punctuation  without having situations where a comma
+    # in a sentence is treated as new column or causes a blank column to be
+    # created.
+    payload.to_csv(buffer, sep='\t', columns=columns, header=False)
+    buffer.seek(0)
+
+    return buffer
+
+
 # write data to PostgreSQL
 def write_data(data: object):
 
@@ -136,7 +154,6 @@ def write_data(data: object):
 
     # write data
     response = utilities.write_data(postgres_connection, buffer, TABLE)
-    print(response)
 
     if response == 0:
         logger.info(f"PostgreSQL write complete, {row_count} rows written to database")  # noqa: E501
@@ -167,7 +184,7 @@ def send_alert(data: object):
         logger.info(f'Slack alert send attempt failed with error code: {response.status_code}')  # noqa: E501
 
     else:
-        logger.info('Slack alert sent successfully')
+        logger.info(f'Slack alert sent successfully with status code: {response.status_code}')  # noqa: E501
 
     return response
 
@@ -189,8 +206,6 @@ def main():
     updated_data = alert_age(cleaned_data, MIN_AGE)
 
     # write data to Postgres
-    # TODO: extra column being created despite precautions, fixed in Postgres
-    # will need to resolve later.
     write_data(updated_data)
 
     # send Slack alert
