@@ -107,6 +107,8 @@ def write_data(data: object):
     # get dataframe columns for managing data quality
     columns = list(data.columns)
 
+    row_count = len(data)
+
     # prepare payload
     buffer = prepare_payload(data, columns)
 
@@ -123,7 +125,7 @@ def write_data(data: object):
         logger.info(f'write failed with error {response}')
 
     else:
-        logger.debug(f"copy_from_stringio() done, {data} written to database")
+        logger.debug(f"copy_from_stringio() done, {row_count} rows written to database")  # noqa: E501
 
 
 def main():
