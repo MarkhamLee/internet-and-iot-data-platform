@@ -5,12 +5,12 @@ import sys
 import pandas as pd
 from io import StringIO  # noqa: E402
 from datetime import datetime, timezone
-from postgres_client import PostgresUtilities
 
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(parent_dir)
 
 from etl_library.logging_util import logger  # noqa: E402
+from etl_library.postgres_client import PostgresUtilities  # noqa: E402
 
 # instantiate Postgres writing class
 utilities = PostgresUtilities()
@@ -150,7 +150,7 @@ def write_data(data: object):
     utilities.clear_table(postgres_connection, TABLE)
 
     # prepare payload
-    buffer = utilities.prepare_payload(data, columns)
+    buffer = prepare_payload(data, columns)
 
     # write data
     response = utilities.write_data(postgres_connection, buffer, TABLE)
