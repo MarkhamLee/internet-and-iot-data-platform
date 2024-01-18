@@ -32,19 +32,16 @@ This repo contains the code for the ETL pipelines for various data sources, YAML
 All logos and trademarks are property of their respective owners and their use in the diagram represents an acceptable use based on my understanding of their guidelines. **If that is not the case, please let me now and I'll update the diagram ASAP.** 
 
 * **K3s Distribution of Kubernetes:** all third party applications and custom code are deployed on Kubernetes-K3s via Docker containers. A couple of additional details:
-   *GPIO and USB devices/sensors like air quality sensors and some temperature sensors are deployed on small board computers (Raspberry Pis, Orange Pis and the like) that serve as "specialty nodes", in that they're part of the K3s cluster but are only being used for interfacing with specific hardware and not for general workloads. 
-   * The initial architecture had USB sensors and Zigbee2MQTT running on computers that weren't part of the cluster, this was mostly done because the dependence on a singular piece of hardware precluded HA or redundancy. I recently moved all of those devices and services to the cluster, as pushing updates is easier as sensors between devices for testing purposes is quick and easy as well. I.e., even without HA or redundancy, deploying these services on Kubernetes is a vastly superior experience. 
-   * I also set up device mappings on each of the single board computers so I can reference the device in the form of /dev/zigbee and not have to worry about whether the device was detected as /dev/ttyUSB0 or /dev/ttyUSB1 
-   * Medium term plan is to experiment with devices and libraries that can make USB devices available over the network to the entire cluster, in particular "USB network routers" you can plug USB devices into and then your network can see them. 
-   * Moving forward I'll test custom code or new to me 3rd party apps on devices that aren't part of the cluster, but can connect to it via MQTT or an api endpoint prior to deploying that service within the cluster. Kubernetes often presents some additional complexities, so it makes sense to get all the service specific wrinkles ironed out before deploying something on Kubernetes 
+   * I use letsencrypt.org certificates + traekik as an ingress controller to secure/encrypt connections to the services running on the cluster. 
+   * GPIO and USB based sensors are typically running on "sensor" or "specialty nodes" that are only used for interacting with those specific sensors and not for general workloads, this is enforced via a "no-schedule" taint. 
+   * The cluster is managed with **Rancher**, **Longhorn** is used to manage shared storage accross the cluster, and all shared storage + Rancher data is backed up to AWS S3 on an hourly basis. 
    * You can get more details on my K3s cluster in the separate repo I created for it [here](https://github.com/MarkhamLee/kubernetes-k3s-data-platform-IoT).
 * **Airflow:** data ingestion + orchestration from external APIs E.g.,  Asana, Finnhub, OpenWeather API. etc.   
 * **InfluxDB:** for storing time series data, **PostgreSQL** for everything else 
 * **Grafana:** to display data/dashboards 
 * **Eclipse-Mosquito:** for the MQTT broker that will receive messages from IoT/Smart Devices 
 * **Docker:** all the big building blocks (e.g. Airflow, InfluxDB, etc.) are deployed via Docker containers in addition to the custom code I wrote for things like monitoring air quality, managing smart devices and doing one time loads of data, e.g. historical bond price data.
-* **Portainer:** used to manage all docker containers not deployed to K3s, meaning: the validation/beta enivronment, plus new services being tested on Raspberry Pis or similar devices. 
-* **Rancher:** used to manage the K3s cluster, as far as installing things, updates, managing resources like Longhorn (for shared storage), etc. AWS S3 is also used to back-up both longhorn and Rancher. 
+* **Portainer:** used to manage all docker containers not deployed to K3s, meaning: the validation/beta enivronment, plus new services being tested on Raspberry Pis or similar devices.
 * **Node-Red:** to manage the incoming MQTT messages, data transformation of MQTT messages and then writing the data to InfluxDB 
 * **Slack:** is used for alerting and monitoring, in particular alerts when any part of a pipeline or scheduled task fails in Airflow, and general alerting and monitoring for IoT/Smart Device related items. E.g., a data write to InfluxDB fails for Weather data or an air quality sensor or smart plug isn't responding. 
 * The **Zigbee2MQTT library** plus a **Sonoff Zigbee USB Dongle** to receive data from Zigbee (local wireless mesh network for IoT devices) enabled IoT devices and then send it off as MQTT messages. This makes a lot of smart devices "plug-n-play" as I don't need special apps or hardware to receive data from those devices. 
@@ -70,7 +67,7 @@ At the moment I'm experimenting with running the ETL containers with Airflow, Ar
     * Finance: tracking the S&P 500, T-Bills and maybe 1-2 other stocks [DONE]
         * Alpha Vantage for treasuries [DONE]
         * Finnhub for stocks [DONE]
-    * Raspberry Pi Locator: build a simple bot for consuming the RSS feed and then alerting me via Slack if the stock update is less than 12 hours old [DONE]
+    * Raspberry Pi Locator: built a simple bot for consuming the RSS feed and then alerting me via Slack if the stock update is less than 12 hours old [DONE]
     * Tracking hydration - still looking for a good way to do this that isn't 1/2 a hack or require me to build an app that is always connected/synching as opposed to being able to just connect periodically. 
     * Discord - I join servers and then rarely pay attention and often miss announcements related to DIY/Makers, Podcasts I enjoy, Video Game Mods and other hobbies. 
     * eBay? I need to explore the API more but the plan is to track auctions and automate searches for items I'm interested in. 
@@ -79,19 +76,25 @@ At the moment I'm experimenting with running the ETL containers with Airflow, Ar
 
 ## Kubernetes Cluster (K3s Distro) & Hardware Details 
 
-* Server/control plane nodes arunning on **Beelink SER 5 Pros (Ryzen 5 5560U CPUs)**, think: getting about 70-80% of the performance of an 11th Gen i5, but in an Intel NUC sized chassis and using less than 10% of the power. 
-* Agent nodes are currently Raspberry Pi 4B 8GB devices, I use these as "sensor nodes" only for use with GPIO and/or USB based sensors/devices. These devices have "no schedule" taints on them, so they're only used for interacting with specific sensors and not physical workloads. 
-* **Future State:** add some additional X86 and ARM64 nodes for general workloads, in addition to adding some dedicated storage nodes. 
-    * The ARM64 will likely be an Orange Pi 5+ due its having dual 2.5G ethernet, full speed Gen3 NVME, up to 32GB of RAM and a 6 TOPS NPU despite its small size and low power consumption. I'm currently using one for dev work on this project, and a computer vision project and I've found it to be a legit desktop replacement for general tasks and python development. 
-    * I also want to build a small x86 machine that has a small GPU for ML workloads
-* Additional Notes on single board computers, Raspberry Pis and the like 
-    * I experimented with an Orange Pi 3B with 8GB of RAM, but I removed it as I would get random "out of memory" issue when deploying new pods that appear to be related to Kubernetes' inability to see its RAM utilization. I suspect these issues were occuring due to the device running a "bleeding edge, community" distro of Armbian. Despite these issues the device works great for building and testing ARM64 container images, and the RAM visiblity issues aren't present when using Portainer to manage/deploy the containers. 
+* High availability configuration via three Server/control plane + general workload nodes arunning on three **Beelink SER 5 Pros (Ryzen 5 5560U CPUs)**. These high performance but power efficient devices can deliver about70-80% of the performance of an 11th Gen i5, but in an Intel NUC sized chassis and using less than 10% of the power.
+* The server nodes are all equipped with 2TB NVME drives and 64GB of RAM. 
+* Raspberry 4B 8 GB devices as "sensor nodes" that are only used for receiving data with GPIO and/or USB based sensors/devices. These devices have "no schedule" taints on them, so that general workloads aren't scheduled on them. 
+* **Future State:** make the cluster more "atomic" by doing the following:
+    * Add dedicated storage nodes  
+    * Add 2-3 more worker nodes so that Beelink devices are control plane/server nodes only and aren't being used for general workloads. This will probably be a mixture of x86 and ARM64 devices. 
+    * The ARM64 will likely be an Orange Pi 5+ due its having dual 2.5G ethernet, full speed Gen3 NVME, up to 32GB of RAM and a 6 TOPS NPU despite its small size and low power consumption. I've been using one the past few ones on this and other projects and it's proven to be capable desktop replacement for general tasks and lightweight python development. 
+        * For a point of reference it's NVME speeds are just as fast as the Beelink devices and the Beelink devices only have 1G ethernet. 
+    * I also want to build/add a small x86 machine that has a small GPU for ML workloads
+* **Additional Notes on single board computers (SBCs), Raspberry Pis and the like:** 
+    * The initial architecture had USB sensors and Zigbee2MQTT running on computers that weren't part of the cluster, this was mostly done because the dependence on a singular sneosr or piece of hardware precluded HA or redundancy. I recently moved all of those devices and services to the cluster, as even without *"true cluster benefits"*, Kubernetes makes edge device management very easy.
+    * I use device mappings on each SBC so that USB devices can be referenced in the form of /dev/device-name instead of /dev/usb0, /dev/usb1, etc., this removes the need to know what port the device is plugged into AND makes it easier to share deployment configurations between devices. 
+    * I experimented with an Orange Pi 3B with 8GB of RAM as a sensor node, but I removed it as I would get random "out of memory" issue when deploying new pods that appear to be related to Kubernetes' inability to see its RAM utilization. I suspect these issues were occuring due to the device running a "bleeding edge, community" distro of Armbian. Despite these issues the device works great for building and testing ARM64 container images, and the RAM visiblity issues aren't present when using Portainer to manage/deploy the containers. 
     * Plan is to move all the SBCs boot off the network/use PXE boot
-    * I originally had the Zigbee dongle running on a Raspberry Pi 4B and then an Orange Pi 3B before moving it to one of the server/control nodes, as performance could be spotty on the single board computers and it's trouble free on the x86 device. Medium term I want to experiment with plugging it into a USB network device, that would just make it available to the entire cluster as opposed to a single machine. 
+    * I originally had the Zigbee dongle running on a Raspberry Pi 4B and then an Orange Pi 3B before moving it to one of the server/control nodes, as performance could be spotty on the single board computers and it's trouble free on the x86 device. 
+   * Medium term plan is to experiment with devices and libraries that can make USB devices available over the network to the entire cluster, in particular "USB network routers" you can plug USB devices into and then expose them to your network.
 * I use a Beelink Mini 12s, Raspberry Pi 4Bs, a Libre Le Potato and an Orange Pi 3B for testing/validation of Apps and containerized workloads before deploying them to the K3s cluster. 
 * I do nearly all my dev work for this project on an **12th Gen Intel NUC**, I use my Orange Pi 3B and 5+ for building and testing the containers that will be deployed to the ARM devices/Single Board Computers.  
-* **Operating Systems:** Ubuntu 22.04 distros for nearly everything, save [Armbian](https://www.armbian.com/) open source community distro for the Orange Pi 3B. 
-
+* **Operating Systems:** Ubuntu 22.04 distros for the Beelinks and the Raspberry Pis, and I don't have any intentions of bringing in other operating systems at this time. 
 
 ## Automation, Edge and IoT Devices
 
