@@ -5,6 +5,7 @@
 
 import asana
 import pandas as pd
+from etl_library.logging_util import logger
 
 
 class AsanaUtilities():
@@ -16,28 +17,49 @@ class AsanaUtilities():
     @staticmethod
     def get_asana_client(key: str) -> object:
 
-        client = asana.Client.access_token(key)
+        try:
+            client = asana.Client.access_token(key)
+            logger.info('Asana client created')
+            return client
 
-        return client
+        except Exception as e:
+            logger.debug(f'Asana client creation failed with error: {e}')
+            exit()
 
     @staticmethod
     def transform_asana_data(data: object) -> object:
 
-        # comes back as pagination object, breakdown into a
-        # list of dictionaries
-        parsed_data = [x for x in data]
+        try:
 
-        # parse out task names
-        task_names = [x.get('name') for x in parsed_data]
+            # this serves as a data validation step - the parsing will fail if
+            # the pagination object isn't in the expected format, have the
+            # right fields, etc.
 
-        # parse out task gids
-        gids = [x.get('gid') for x in parsed_data]
+            # comes back as pagination object, breakdown into a
+            # list of dictionaries
+            parsed_data = [x for x in data]
 
-        # create blank data frame
-        df = pd.DataFrame(columns=['taskName', 'gid'])
+            # parse out task names
+            task_names = [x.get('name') for x in parsed_data]
 
-        # write task names & gids to data frame
-        df['gid'] = gids
-        df['taskName'] = task_names
+            # parse out task gids
+            gids = [x.get('gid') for x in parsed_data]
 
-        return df
+            logger.info('data parsing/extraction successful')
+
+            # create blank data frame
+            df = pd.DataFrame(columns=['taskName', 'gid'])
+
+            # write task names & gids to data frame
+            df['gid'] = gids
+            df['taskName'] = task_names
+
+            total_rows = len(df)
+
+            logger.info('Asana data parsed/extracted successfully')
+
+            return df, total_rows
+
+        except Exception as e:
+            logger.info(f'Asana data extraction failed with error: {e}')
+            exit()
