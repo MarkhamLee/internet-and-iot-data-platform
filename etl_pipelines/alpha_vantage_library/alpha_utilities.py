@@ -28,8 +28,8 @@ class AlphaUtilities():
         date = response['data'][0]['date']
 
         payload = {
-            'rate': rate,
-            'date': date
+            'date': date,
+            'rate': rate
         }
 
         return payload
