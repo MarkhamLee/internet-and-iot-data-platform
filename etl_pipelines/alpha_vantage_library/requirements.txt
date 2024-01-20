@@ -17,3 +17,4 @@ SQLAlchemy
 joblib
 Werkzeug
 psycopg2-binary
+pyarrow==14.0.2
