@@ -1,6 +1,6 @@
 #### Short Overview
 
-This folder contains the deployment files for various microservices I built to support the day to day running of this project, E.g. the Slack service was built specifically to be deployed on a K3s cluster to forward messages to Slack only from other services running on the same cluster. 
+This folder contains the deployment files for the various microservices I built to support the day to day running of this project. E.g. the Slack service was built specifically to receive messages/alerts from ETL pipelines and other items I built for this project, like the Raspberry Pi 5 locator.  
 
 The folders for each custom micro-service are organized as follows:
 * container - contains the Docker file and associated files to build the docker image for the container. 

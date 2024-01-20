@@ -1,0 +1,35 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: slack-service-ingress
+  namespace: operations
+spec:
+  rules:
+    - host: slackservice.local.example.com
+      http:
+        paths: # note creating a path for each of your container's endpoints
+          - backend:
+              service:
+                name: slack-service
+                port:
+                  number: 80
+            path: /ping
+            pathType: Prefix
+          - backend:
+              service:
+                name: slack-service
+                port:
+                  number: 80
+            path: /send_message
+            pathType: Prefix
+          - backend:
+              service:
+                name: slack-service
+                port:
+                  number: 80
+            path: /send_message_webhook
+            pathType: Prefix
+  tls:
+  - hosts:
+    - local.example.com 
+    secretName: your-secret-name-tls
