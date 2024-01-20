@@ -136,13 +136,10 @@ def main():
     # Bond Maturity
     MATURITY = os.environ.get('BOND_MATURITY')
 
-    utilities = AlphaUtilities()
-
     # Build URL
     url = utilities.build_bond_url(MATURITY, ALPHA_KEY)
 
     # get bond data
-
     data = get_tbill_data(url)
 
     # parse and transform data
