@@ -72,8 +72,8 @@ def check_dates(connection: object, table: str, data: object) -> int:
     df = pd.DataFrame(query_result, columns=columns)
 
     # convert date column to date-time format
-    df['date'] = pd.to_datetime(df['date'])
-    data['date'] = pd.to_datetime(data['date'])
+    df['date'] = pd.to_datetime(df['date']).dt.date
+    data['date'] = pd.to_datetime(data['date']).dt.date
 
     # compare
 
