@@ -28,7 +28,7 @@ def get_air_quality_data():
 
     # get data
     data = utilities.get_weather_data(url)
-    logger.info(f'weather data received: {data}')
+    logger.info('Air quality data received')
 
     # subset the data - note if this is effectively the first validation step
     # e.g., if the subset doesn't exist, the data is wrong
