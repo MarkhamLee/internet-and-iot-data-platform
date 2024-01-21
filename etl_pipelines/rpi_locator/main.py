@@ -99,8 +99,8 @@ def get_postgres_connection() -> object:
     return connection
 
 
-# when there aren't any alerts, we clear out the table so that ther aren't
-# any alerts showing up in the dashboard
+# clearing out the table when no fresh alerts are available so that
+# the dashboard only shows data for when there are new alerts
 def no_data_cleanup():
 
     # load table name
@@ -191,9 +191,7 @@ def send_alert(data: object):
 
 def main():
 
-    # URL = os.environ.get('locator_url')
-
-    URL = 'https://rpilocator.com/feed/?country=US&cat=PI5'
+    URL = os.environ.get('LOCATOR_URL')
     MIN_AGE = int(os.environ.get('MIN_AGE'))
 
     # get raw feed data
