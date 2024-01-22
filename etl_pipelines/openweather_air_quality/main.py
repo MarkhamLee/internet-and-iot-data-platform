@@ -25,6 +25,7 @@ def get_air_quality_data():
 
     # create URL
     url = utilities.build_url_air(ENDPOINT, WEATHER_KEY)
+    logger.info('retrieving air quality data....')
 
     # get data
     data = utilities.get_weather_data(url)
