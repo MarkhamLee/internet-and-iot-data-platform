@@ -26,39 +26,54 @@ This repo contains the code for the ETL pipelines for various data sources, YAML
 
 ## Architecture - Tech Stack
 
-![Architecture](/images/dashboard_architecture_MKIV.png)  
+![Architecture](/images/dashboard_architecture_MKV.png)  
 *The TL/DR: is that data from external APIs comes in via Airflow, data from internal sensors and/or smart devices comes in via Zigbee and/or custom code (deployed on Docker containers) to an MQTT broker that is managed/orchestrated via Node-Red. If things go wrong, I get alerts via Slack.*
 
 All logos and trademarks are property of their respective owners and their use in the diagram represents an acceptable use based on my understanding of their guidelines. **If that is not the case, please let me now and I'll update the diagram ASAP.** 
 
-* **K3s Distribution of Kubernetes:** all third party applications and custom code are deployed on Kubernetes-K3s via Docker containers. A couple of additional details:
-   * I use letsencrypt.org certificates + traekik as an ingress controller to secure/encrypt connections to the services running on the cluster. 
-   * GPIO and USB based sensors are typically running on "sensor" or "specialty nodes" that are only used for interacting with those specific sensors and not for general workloads, this is enforced via a "no-schedule" taint. 
-   * The cluster is managed with **Rancher**, **Longhorn** is used to manage shared storage accross the cluster, and all shared storage + Rancher data is backed up to AWS S3 on an hourly basis. 
-   * You can get more details on my K3s cluster in the separate repo I created for it [here](https://github.com/MarkhamLee/kubernetes-k3s-data-platform-IoT).
-* **Airflow:** data ingestion + orchestration from external APIs E.g.,  Asana, Finnhub, OpenWeather API. etc.   
+### Tech Stack
+
+* **Evaluating various tools for ETL from external APIs (Asana, Finnhub, OpenWeather and the like), in addition to general container orchestration. 
+    * **Airflow:** for ETL/data ingestion only
+    * **Argo Workflows:** ETL and general container orchestration, capable of more complex logic than Airflow or just deploying containers directly on Kubernetes. 
+    * **Kubernetes Cron Jobs:** not as elegant as some of the other options, but often the simplest to implement, currently the default for general orchestration or microservices. 
+    * **Open FaaS:** ETL, microservices and containerization. 
 * **InfluxDB:** for storing time series data, **PostgreSQL** for everything else 
 * **Grafana:** to display data/dashboards 
+* **Grafana-Loki Stack:** for log aggregation, Prometheus for general monitoring
 * **Eclipse-Mosquito:** for the MQTT broker that will receive messages from IoT/Smart Devices 
-* **Docker:** all the big building blocks (e.g. Airflow, InfluxDB, etc.) are deployed via Docker containers in addition to the custom code I wrote for things like monitoring air quality, managing smart devices and doing one time loads of data, e.g. historical bond price data.
+* **Docker:** practically everything is deployed as a containerized workload on Kubernetes or on an orchestration tool that runs on Kubernetes. 
 * **Portainer:** used to manage all docker containers not deployed to K3s, meaning: the validation/beta enivronment, plus new services being tested on Raspberry Pis or similar devices.
 * **Node-Red:** to manage the incoming MQTT messages, data transformation of MQTT messages and then writing the data to InfluxDB 
 * **Slack:** is used for alerting and monitoring, in particular alerts when any part of a pipeline or scheduled task fails in Airflow, and general alerting and monitoring for IoT/Smart Device related items. E.g., a data write to InfluxDB fails for Weather data or an air quality sensor or smart plug isn't responding. 
 * The **Zigbee2MQTT library** plus a **Sonoff Zigbee USB Dongle** to receive data from Zigbee (local wireless mesh network for IoT devices) enabled IoT devices and then send it off as MQTT messages. This makes a lot of smart devices "plug-n-play" as I don't need special apps or hardware to receive data from those devices. 
 * Where possible using code libraries like [Python-Kasa for TP Link Kasa devices](https://github.com/python-kasa/python-kasa) to connect to IoT and Smart Devices directly.
 
+#### **K3s Distribution of Kubernetes:** 
+* All third party applications and custom code are deployed on Kubernetes-K3s via Docker containers. A couple of additional details:
+* High availability configuration via three Server/control plane + general workload nodes arunning on three **Beelink SER 5 Pros (Ryzen 5 5560U CPUs)**. These high performance but power efficient devices can deliver about 70-80% of the performance of an 11th Gen i5, but in an Intel NUC sized chassis and using less than 10% of the power. The server nodes are all equipped with 2TB NVME drives and 64GB of RAM. 
+* GPIO and USB based sensors are running on **Raspberry Pi 4B 8GB** devices as "sensor nodes", "node_type=sensor_node:NoSchedule" taints and tolerations are used so that key K8s components for monitoring, storage and logging are scheduled on these nodes but general workloads (e.g. ETL containers, apps like Argo or Node-Red) are excluded.  
+* Hardware wise future plans include adding dedicated storage nodes, general purpose worker nodes and nodes equipped with hardware for AI/ML acceleration, E.g., NVIDIA GPUs, RockChip NPUs, etc. 
+* I use letsencrypt.org certificates + traekik as an ingress controller to secure/encrypt connections to the services running on the cluster. 
+* The cluster is managed with **Rancher**, **Longhorn** is used to manage shared storage accross the cluster, and all shared storage + Rancher data is backed up to AWS S3 on an hourly basis. 
+* Prometheus is used for monitoring the nodes and the **Grafana-Loki Stack** is used for aggregating/collecting logs. 
+* **Operating Systems:** Only Ubuntu 22.04 distros for the moment, currently testing Armbian on an Orange Pi 3Bs on a separate test cluster. 
+* You can get more details on my K3s cluster in the separate repo I created for it [here](https://github.com/MarkhamLee/kubernetes-k3s-data-platform-IoT).
+
+
 ## ETL Pipeline Details
 
 I originally, built all ETL pipelines as Airflow DAGs, but that made testing tricky as the file structure that worked for testing on my local Airflow instance didn't always work on my Airflow instance deployed on Kubernetes due to how files were imported from Github. I have since moved everything to "standard" Python scripts running in Docker containers for a couple of reasons:
 
+* By making the pipelines more agnostic, it's much easier to experiment with, test, get experience with other ETL and orchestration tools. 
 * No longer need to worry about managing dependencies for Airflow as they're all baked into the container
-* I can test locally without having to maintain multiple Airflow instances or testing locally,and then having to change the code so I can test in production 
+* I can test locally without having to maintain multiple Airflow instances, or do things like test a standard python ETL script and then test it again as a DAG.  
 * The containers can be used, tested, deployed with practically any container orchestration tool/solution. 
-* By leveraging libraries of common functions/scripts/files (API clients, writing to DBs, logging, etc.), I can not only build new pipelines faster, but updates/improvements to those core files can be used by any of the existing ETL pipelines as soon as their images are updated. 
+* By leveraging libraries of common functions/scripts/files (API clients, writing to DBs, logging, etc.), I can not only build new pipelines faster, but updates/improvements to those core files can be used by any of the existing ETL pipelines as soon as their images are updated.
 
 *i.e., all the advantages of using containers...* 
 
-At the moment I'm experimenting with running the ETL containers with Airflow, Argo, Kubernetes cron jobs and OpenFaaS, and will eventually settle on 1-2 of those solutions on a go-forward basis. To compensate for the level of data you get from Airflow compared to some of the other solutions, I updated the logging within the containers to move things roughly equivalent to what you'd get in Airflow. One of my next tasks is to implement pipeline failure alerts that will run on the containers/be agnostic of the orchestration tool being used.
+At the moment I'm experimenting with running the ETL containers with Airflow, Argo, Kubernetes cron jobs and OpenFaaS, and will eventually settle on 1-2 of those solutions on a go-forward basis. To compensate for the level of data you get from Airflow compared to some of the other solutions, I updated the logging within the containers to make things roughly equivalent to what you'd get with Airflow. One of my next tasks is to implement pipeline failure alerts that will run on the containers/be agnostic of the orchestration tool being used.
 
 #### Current and Future Data Sources
 * **External/Public API sources:** 
@@ -74,28 +89,6 @@ At the moment I'm experimenting with running the ETL containers with Airflow, Ar
     * Spotify - alerts for podcast updates 
     * I use Roon Music Server to manage my music catalog and listen to services like Tidal and Qubuz, tentative plan is to explore their API and potentially see if I can add "now playing" or even controls to Grafana and/or maybe create a separate web page that I bring Grafana into. 
 
-## Kubernetes Cluster (K3s Distro) & Hardware Details 
-
-* High availability configuration via three Server/control plane + general workload nodes arunning on three **Beelink SER 5 Pros (Ryzen 5 5560U CPUs)**. These high performance but power efficient devices can deliver about70-80% of the performance of an 11th Gen i5, but in an Intel NUC sized chassis and using less than 10% of the power.
-* The server nodes are all equipped with 2TB NVME drives and 64GB of RAM. 
-* Raspberry 4B 8 GB devices as "sensor nodes" that are only used for receiving data with GPIO and/or USB based sensors/devices. These devices have "no schedule" taints on them, so that general workloads aren't scheduled on them. 
-* **Future State:** make the cluster more "atomic" by doing the following:
-    * Add dedicated storage nodes  
-    * Add 2-3 more worker nodes so that Beelink devices are control plane/server nodes only and aren't being used for general workloads. This will probably be a mixture of x86 and ARM64 devices. 
-    * The ARM64 will likely be an Orange Pi 5+ due its having dual 2.5G ethernet, full speed Gen3 NVME, up to 32GB of RAM and a 6 TOPS NPU despite its small size and low power consumption. I've been using one the past few ones on this and other projects and it's proven to be capable desktop replacement for general tasks and lightweight python development. 
-        * For a point of reference it's NVME speeds are just as fast as the Beelink devices and the Beelink devices only have 1G ethernet. 
-    * I also want to build/add a small x86 machine that has a small GPU for ML workloads
-* **Additional Notes on single board computers (SBCs), Raspberry Pis and the like:** 
-    * The initial architecture had USB sensors and Zigbee2MQTT running on computers that weren't part of the cluster, this was mostly done because the dependence on a singular sneosr or piece of hardware precluded HA or redundancy. I recently moved all of those devices and services to the cluster, as even without *"true cluster benefits"*, Kubernetes makes edge device management very easy.
-    * I use device mappings on each SBC so that USB devices can be referenced in the form of /dev/device-name instead of /dev/usb0, /dev/usb1, etc., this removes the need to know what port the device is plugged into AND makes it easier to share deployment configurations between devices. 
-    * I experimented with an Orange Pi 3B with 8GB of RAM as a sensor node, but I removed it as I would get random "out of memory" issue when deploying new pods that appear to be related to Kubernetes' inability to see its RAM utilization. I suspect these issues were occuring due to the device running a "bleeding edge, community" distro of Armbian. Despite these issues the device works great for building and testing ARM64 container images, and the RAM visiblity issues aren't present when using Portainer to manage/deploy the containers. 
-    * Plan is to move all the SBCs boot off the network/use PXE boot
-    * I originally had the Zigbee dongle running on a Raspberry Pi 4B and then an Orange Pi 3B before moving it to one of the server/control nodes, as performance could be spotty on the single board computers and it's trouble free on the x86 device. 
-   * Medium term plan is to experiment with devices and libraries that can make USB devices available over the network to the entire cluster, in particular "USB network routers" you can plug USB devices into and then expose them to your network.
-* I use a Beelink Mini 12s, Raspberry Pi 4Bs, a Libre Le Potato and an Orange Pi 3B for testing/validation of Apps and containerized workloads before deploying them to the K3s cluster. 
-* I do nearly all my dev work for this project on an **12th Gen Intel NUC**, I use my Orange Pi 3B and 5+ for building and testing the containers that will be deployed to the ARM devices/Single Board Computers.  
-* **Operating Systems:** Ubuntu 22.04 distros for the Beelinks and the Raspberry Pis, and I don't have any intentions of bringing in other operating systems at this time. 
-
 ## Automation, Edge and IoT Devices
 
 * **SONOFF Zigbee 3.0 USB Dongle Plus Gateway:** coupled with the [Zigbee2MQTT library](https://www.zigbee2mqtt.io/guide/getting-started/), this gives me the ability to receive data from any Zigbee enabled device without having to purchase hubs from each manufacturer to go along with their device. Note: Zigbee2MQTT isn't explicitly required, you could always write your own code for this purpose
@@ -106,6 +99,7 @@ At the moment I'm experimenting with running the ETL containers with Airflow, Ar
 * Currently testing SCD40 and MH-Z19B CO2 sensors, when these are fully deployed they will likely be connected to the Raspberry Pis I already have deployed around the house, but I am considering using a microcontroller like a Raspberry Pi Pico or ESP32 device instead. 
 * I've also tested DHT22 temperature sensors and found them to be more reliable than the Zigbee based devices I tried in terms of how often they send data, stability, etc., the only knock on them is that deploying Zigbee device is just easier/has fewer moving parts and a good 1/3 of the devices I received were duds. That being said, I am using DHT22s + a Raspberry Pi Pico to monitor the temperatures inside of my gaming PC and send that data to the cluster via MQTT. 
 * ~~Currently researching/looking for stand-alone air quality sensors with Zigbee or Z-wave capability~~ I've halted this as the devices I've found aren't especially accurate, so I've shfited gears to looking at DIY options and industrial air quality kits that I can adapt/integrate with this project. 
+* Currently testing GPIO based sensors for temperature, air quality and soil moisture 
 
 ## Key References: 
 * [Airflow best practices:](https://airflow.apache.org/docs/apache-airflow/stable/best-practices.html) I made extensive use of this documentation to not only re-write my original DAGs into the Taskflow API format, but to make sure I was following as many best practices as possible. I also used their documentation to structure my Airflow Docker container. 
