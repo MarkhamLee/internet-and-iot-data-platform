@@ -47,10 +47,10 @@ class SlackUtilities():
     @staticmethod
     def send_slack_message(context: str, channel: str) -> dict:
 
-        # create payload 
+        # create payload
         message = SlackUtilities.create_alert_payload(context)
 
-        # get slack client 
+        # get slack client
         SLACK_KEY = Variable.get('slack_key')
 
         # create client
