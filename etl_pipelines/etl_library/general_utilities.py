@@ -1,35 +1,63 @@
-# Markham Lee (C) 2023
+# Markham Lee (C) 2023 - 2024
 # productivity-music-stocks-weather-IoT-dashboard
 # https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
-# Utility script for retrieving data from Asana
+# general utilities to aid ETL pipelines
+
 import requests
-from logging_util import logger
+import os
+from etl_library.logging_util import logger  # noqa: E402
+
+# load Slack Webhook URL for sending pipeline failure alerts
+WEBHOOK_URL = os.environ.get('ALERT_WEBHOOK')
 
 
-class ETLUtilities():
+class EtlUtilities():
 
     def __init__(self):
 
         pass
 
     @staticmethod
-    def send_slack_webhook(payload: str, webhook: str):
+    def send_slack_webhook(url: str, message: str):
 
         headers = {
             'Content-type': 'application/json'
+
         }
 
         payload = {
-            "text": payload
-               
+            "text": message
         }
 
-        response = requests.post(webhook, headers=headers, json=payload)
+        response = requests.post(url, headers=headers, json=payload)
 
-        if response.status_code != 200:
-            logger.info(f'Slack alert send attempt failed with error code: {response.status_code}')  # noqa: E501
+        return EtlUtilities.evaluate_slack_response(response.status_code,
+                                                    'webhook')
+
+    @staticmethod
+    def evaluate_slack_response(code: int, type: str):
+
+        if code == 200:
+            logger.info(f'Publishing of alert to Slack {type} was successful')
 
         else:
-            logger.info(f'Slack alert sent successfully with status code: {response.status_code}')  # noqa: E501
+            logger.debug(f'Publishing of alert to Slack {type} failed, with error code {code}')  # noqa: E501
 
-        return response
+        return code
+
+    @staticmethod
+    def generic_post_request(payload: dict, url: str):
+
+        headers = {}
+        files = []
+
+        try:
+
+            response = requests.request("POST", url, headers=headers,
+                                        data=payload, files=files)
+            logger.info(f'post request sent successfully with response: {response.txt}')  # noqa: E501
+
+        except Exception as e:
+            message = (f'post request failed with error: {e}')
+            logger.debug(message)
+            # EtlUtilities.send_slack_webhook(WEBHOOK_URL, message)
