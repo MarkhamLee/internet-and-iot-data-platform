@@ -15,9 +15,16 @@ sys.path.append(parent_dir)
 
 from etl_library.postgres_client import PostgresUtilities  # noqa: E402
 from etl_library.logging_util import logger  # noqa: E402
+from etl_library.general_utilities import EtlUtilities  # noqa: E402
 
-# load utilities class
+# Load Asana utilities class
 utilities = AsanaUtilities()
+
+# Load general utilities
+etl_utilities = EtlUtilities()
+
+# load Slack Webhook URL for sending pipeline failure alerts
+WEBHOOK_URL = os.environ.get('ALERT_WEBHOOK')
 
 
 def get_asana_data(asana_client: object, gid: str) -> object:
@@ -32,7 +39,10 @@ def get_asana_data(asana_client: object, gid: str) -> object:
         return data
 
     except Exception as e:
-        logger.debug(f'Asana data read unsuccessful with error: {e}')
+        message = (f'Pipeline failure: Asana data read unsuccessful with error: {e}')  # noqa: E501
+        logger.debug(message)
+        response = etl_utilities.send_slack_webhook(WEBHOOK_URL, message)
+        logger.debug(f'Slack pipeline failure alert sent with code: {response}')  # noqa: E501
 
 
 def parse_asana_data(response: object) -> list:
@@ -90,7 +100,10 @@ def write_data(data: object, rows: int):
     response = postgres_utilities.write_data(connection, buffer, TABLE)
 
     if response != 0:
-        logger.info('PostgreSQL DB write failed')
+        message = 'Pipeline Failure: PostgreSQL DB write failed'
+        logger.info(message)
+        response = etl_utilities.send_slack_webhook(message)
+        logger.debug(f'Slack pipeline alert sent with code: {response}')
 
     else:
         logger.debug(f'copy from stringio buffer complete, {rows} rows written to DB')  # noqa: E501

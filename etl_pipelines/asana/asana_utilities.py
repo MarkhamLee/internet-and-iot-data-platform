@@ -12,6 +12,10 @@ parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(parent_dir)
 
 from etl_library.logging_util import logger  # noqa: E402
+from etl_library.general_utilities import EtlUtilities  # noqa: E402
+
+etl_utilities = EtlUtilities()
+WEBHOOK_URL = os.environ.get('ALERT_WEBHOOK')
 
 
 class AsanaUtilities():
@@ -29,8 +33,10 @@ class AsanaUtilities():
             return client
 
         except Exception as e:
-            logger.debug(f'Asana client creation failed with error: {e}')
-            exit()
+            message = (f'Pipeline failure: Asana client creation failed with error: {e}')  # noqa: E501
+            logger.debug(message)
+            response = etl_utilities.send_slack_webhook(WEBHOOK_URL, message)
+            logger.debug(f'Slack alert sent with code: {response}')
 
     @staticmethod
     def transform_asana_data(data: object) -> object:
@@ -67,5 +73,7 @@ class AsanaUtilities():
             return df, total_rows
 
         except Exception as e:
-            logger.info(f'Asana data extraction failed with error: {e}')
-            exit()
+            message = (f'Pipeline failure: Asana data extraction failed with error: {e}')  # noqa: E501
+            logger.info(message)
+            response = etl_utilities.send_slack_webhook(WEBHOOK_URL, message)
+            logger.info(f'Slack alert published successfully with code: {response}')  # noqa: E501
