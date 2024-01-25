@@ -17,10 +17,14 @@ sys.path.append(parent_dir)
 from alpha_vantage_library.alpha_utilities import AlphaUtilities  # noqa: E402
 from etl_library.logging_util import logger  # noqa: E402
 from etl_library.postgres_client import PostgresUtilities  # noqa: E402
+from etl_library.general_utilities import EtlUtilities  # noqa: E402
 
 
 utilities = AlphaUtilities()
 postgres_utilities = PostgresUtilities()
+etl_utilities = EtlUtilities()
+
+WEBHOOK_URL = os.environ.get('ALERT_WEBHOOK')
 
 
 def get_tbill_data(url: str) -> dict:
@@ -34,8 +38,9 @@ def get_tbill_data(url: str) -> dict:
     # check the error message, rather than retrying and using up the day's
     # attempts
     except Exception as e:
-        logger.info(f'Bond data retrieval attempt failed with error: {e}')
-        exit()
+        message = (f'Pipeline failure Alert: Bond data retrieval attempt failed with error: {e}')  # noqa: E501
+        logger.info(message)
+        etl_utilities.send_slack_webhook(WEBHOOK_URL, message)
 
 
 def parse_tbill_data(data: dict) -> object:
@@ -50,8 +55,9 @@ def parse_tbill_data(data: dict) -> object:
     # we exit once the error is logged after encountering any major
     # exception so as to not run afoul of API limits
     except Exception as e:
-        logger.debug(f'Data parsing failed due to error: {e}')
-        exit()
+        message = (f'Pipeline failure alert: data parsing failed due to error: {e}')  # noqa: E501
+        logger.debug(message)
+        etl_utilities.send_slack_webhook(WEBHOOK_URL, message)
 
     return data
 
@@ -120,7 +126,9 @@ def write_data(data: object, connection: object, table: str):
     response = postgres_utilities.write_data(connection, buffer, table)
 
     if response != 0:
-        logger.info(f'write failed with error {response}')
+        message = (f'write failed with error: {response}')
+        logger.debug(message)
+        etl_utilities.send_slack_webhook(WEBHOOK_URL, message)
 
     else:
         logger.debug(f"copy_from_stringio() done, {row_count} rows written to database")  # noqa: E501
