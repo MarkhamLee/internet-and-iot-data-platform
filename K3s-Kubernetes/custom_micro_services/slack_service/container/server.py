@@ -37,31 +37,15 @@ def health():
 @app.route("/send_message", methods=['POST'])
 def send_message():
 
-    alert_text = request.form.get('text')
-    slack_channel = request.form.get('slack_channel')
+    data = request.json
 
-    logger.info('Message at /send_message endpoint received')
+    alert_text = data.get('text')
+    slack_channel = data.get('slack_channel')
+
+    logger.info(f'alert received at /send_message endpoint received for channel: {slack_channel}')  # noqa: E501
 
     # send message
     response = utilities.send_slack_message(alert_text, slack_channel)
-
-    results = {"Message sent status": response}
-    resultjson = json.dumps(results)
-
-    return flask.Response(response=resultjson, status=response,
-                          mimetype='application/json')
-
-
-@app.route("/send_webhook", methods=['POST'])
-def send_message_webhook():
-
-    alert_text = request.get('text')
-    slack_webhook = request.get('url')
-
-    logger.info('Message at /send_webhook endpoint received')
-
-    # send message
-    response = utilities.send_slack_webhook(slack_webhook, alert_text)
 
     results = {"Message sent status": response}
     resultjson = json.dumps(results)
