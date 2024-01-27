@@ -55,8 +55,8 @@ def send_message():
 @app.route("/send_webhook", methods=['POST'])
 def send_message_webhook():
 
-    alert_text = request.form.get('text')
-    slack_webhook = request.form.get('url')
+    alert_text = request.get('text')
+    slack_webhook = request.get('url')
 
     logger.info('Message at /send_webhook endpoint received')
 
