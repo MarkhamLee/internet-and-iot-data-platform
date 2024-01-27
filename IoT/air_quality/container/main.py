@@ -9,20 +9,32 @@ import json
 import time
 import gc
 import os
+import requests
 from air_quality import AirQuality
 from logging_util import logger
 
 
 def air(client: object, quality: object, topic: str, interval: int) -> str:
 
+    error_count = 0
+    ALERT_THRESHOLD = os.environ.get['ALERT_THRESHOLD']
+    DEVICE_FAILURE_CHANNEL = os.environ['DEVICE_FAILURE_CHANNEL']
+    NODE_DEVICE_ID = os.environ['DEVICE_ID_DATA']
+
     while True:
 
         try:
             # get air quality data
             pm2, pm10 = quality.getAirQuality()
+            error_count = 0
 
         except Exception as e:
+            error_count += 1
             logger.debug(f'device read error: {e}')
+            if error_count == ALERT_THRESHOLD:
+                message = (f'potential device failure on: {NODE_DEVICE_ID}, air quality sensor unreadable for {ALERT_THRESHOLD} consecutive attempts')  # noqa: E501
+                logger.debug(message)
+                send_slack_alert(message, DEVICE_FAILURE_CHANNEL)
 
         # round off air quality numbers
         pm2 = round(pm2, 2)
@@ -38,9 +50,7 @@ def air(client: object, quality: object, topic: str, interval: int) -> str:
         status = result[0]
 
         if status != 0:
-
-            logger.debug(f'data failed to publish to MQTT topic, status code:\
-                          {status}')
+            logger.debug(f'data failed to publish to MQTT topic, status code: {status}')  # noqa: E501
 
         # given that this is a RAM constrained device, let's delete
         # everything and do some garbage collection, watching things
@@ -49,6 +59,21 @@ def air(client: object, quality: object, topic: str, interval: int) -> str:
         gc.collect()
 
         time.sleep(interval)
+
+
+# method for sending
+def send_slack_alert(message: str, device_failure_channel):
+
+    ALERT_ENDPOINT = os.environ['ALERT_ENDPOINT']
+    payload = {
+        "text": message,
+        "slack_channel": device_failure_channel
+    }
+
+    headers = {'Content-type': 'application/json'}
+
+    response = requests.post(ALERT_ENDPOINT, json=payload, headers=headers)
+    logger.info(f'Device failure alert sent with code: {response.text}')
 
 
 def main():
