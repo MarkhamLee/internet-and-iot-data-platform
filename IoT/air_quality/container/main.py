@@ -17,7 +17,7 @@ from logging_util import logger
 def air(client: object, quality: object, topic: str, interval: int) -> str:
 
     error_count = 0
-    ALERT_THRESHOLD = os.environ.get['ALERT_THRESHOLD']
+    ALERT_THRESHOLD = os.environ['ALERT_THRESHOLD']
     DEVICE_FAILURE_CHANNEL = os.environ['DEVICE_FAILURE_CHANNEL']
     NODE_DEVICE_ID = os.environ['DEVICE_ID_DATA']
 
