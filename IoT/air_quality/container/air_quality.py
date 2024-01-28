@@ -5,13 +5,10 @@
 # Python script for receiving Air Quality data from
 # a Nova PM SDS011 air quality sensor and sending it to InfluxDB
 # via an MQTT Broker
-
-
 import serial
-import uuid
 import os
-from paho.mqtt import client as mqtt
 from logging_util import logger
+from communications_utilities import IoTCommunications
 
 
 class AirQuality:
@@ -20,8 +17,20 @@ class AirQuality:
 
         # create variables
         self.defineVariables()
+        self.connect_to_sensor()
 
     def defineVariables(self):
+
+        self.pm2Bytes = 2
+        self.pm10Bytes = 4
+        self.deviceID = 6
+        self.error_count = 0
+        self.NODE_DEVICE_ID = os.environ['DEVICE_ID_DATA']
+        self.DEVICE_FAILURE_CHANNEL = os.environ['DEVICE_FAILURE_CHANNEL']
+
+        self.com_utilities = IoTCommunications()
+
+    def connect_to_sensor(self):
 
         USB = os.environ['USB_ADDRESS']
 
@@ -30,12 +39,10 @@ class AirQuality:
             logger.info(f'connected to Nova PM SDS011 Air Quality sensor at: {USB}')  # noqa: E501
 
         except Exception as e:
-            logger.debug(f'connection at: {USB} unsuccessful with error\
-                          message: {e}')
-
-        self.pm2Bytes = 2
-        self.pm10Bytes = 4
-        self.deviceID = 6
+            message = (f'USB device connection failure for {self.NODE_DEVICE_ID} on {USB} with error message: {e}')  # noqa: E501
+            logger.debug(message)
+            self.com_utilities.send_slack_alert(message,
+                                                self.DEVICE_FAILURE_CHANNEL)
 
     def getAirQuality(self):
 
@@ -44,7 +51,6 @@ class AirQuality:
         # outputs have to be scaled by 0.1 to properly capture the
         # sensor's precision as it returns integers that are actually
         # decimals I.e. 15 is really 1.5
-
         pm2 = round((self.parse_value(message, self.pm2Bytes) * 0.1), 4)
         pm10 = round((self.parse_value(message, self.pm10Bytes) * 0.1), 4)
 
@@ -59,34 +65,3 @@ class AirQuality:
         value = value * scale if scale else value
 
         return value
-
-    @staticmethod
-    def getClientID():
-
-        clientID = str(uuid.uuid4())
-
-        return clientID
-
-    @staticmethod
-    def mqttClient(clientID, username, pwd, host, port):
-
-        def connectionStatus(client, userdata, flags, code):
-
-            if code == 0:
-                logger.info('connected to MQTT broker')
-
-            else:
-                logger.debug(f'connection error occured, return code: {code}, retrying...')  # noqa: E501
-
-        client = mqtt.Client(clientID)
-        client.username_pw_set(username=username, password=pwd)
-        client.on_connect = connectionStatus
-
-        code = client.connect(host, port)
-
-        # this is so that the client will attempt to reconnect automatically/
-        # no need to add reconnect
-        # logic.
-        client.loop_start()
-
-        return client, code

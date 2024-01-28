@@ -9,9 +9,12 @@ import json
 import time
 import gc
 import os
-import requests
+import sys
 from air_quality import AirQuality
 from logging_util import logger
+from communications_utilities import IoTCommunications
+
+com_utilities = IoTCommunications()
 
 
 def air(client: object, quality: object, topic: str, interval: int) -> str:
@@ -34,7 +37,8 @@ def air(client: object, quality: object, topic: str, interval: int) -> str:
             if error_count == ALERT_THRESHOLD:
                 message = (f'potential device failure on: {NODE_DEVICE_ID}, air quality sensor unreadable for {ALERT_THRESHOLD} consecutive attempts')  # noqa: E501
                 logger.debug(message)
-                send_slack_alert(message, DEVICE_FAILURE_CHANNEL)
+                com_utilities.send_slack_alert(message, DEVICE_FAILURE_CHANNEL)
+                sys.exit()
 
         # round off air quality numbers
         pm2 = round(pm2, 2)
@@ -61,25 +65,18 @@ def air(client: object, quality: object, topic: str, interval: int) -> str:
         time.sleep(interval)
 
 
-# method for sending
-def send_slack_alert(message: str, device_failure_channel):
-
-    ALERT_ENDPOINT = os.environ['ALERT_ENDPOINT']
-    payload = {
-        "text": message,
-        "slack_channel": device_failure_channel
-    }
-
-    headers = {'Content-type': 'application/json'}
-
-    response = requests.post(ALERT_ENDPOINT, json=payload, headers=headers)
-    logger.info(f'Device failure alert sent with code: {response.text}')
-
-
 def main():
 
     # instantiate air quality class
-    quality = AirQuality()
+    try:
+        quality = AirQuality()
+        logger.info('Connected to NOVA PM SDS011 Air Quality Sensor')
+
+    except Exception as e:
+        logger.debug(f'Air quality class failed to instantiate with error: {e}, exiting...')  # noqa: E501
+        # exit to prevent constant container restarts when the device has
+        # failed or is disconnected.
+        sys.exit()
 
     # Load parameters
     INTERVAL = int(os.environ['INTERVAL'])
