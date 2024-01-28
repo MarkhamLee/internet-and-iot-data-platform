@@ -19,30 +19,9 @@ com_utilities = IoTCommunications()
 
 def air(client: object, quality: object, topic: str, interval: int) -> str:
 
-    error_count = 0
-    ALERT_THRESHOLD = os.environ['ALERT_THRESHOLD']
-    DEVICE_FAILURE_CHANNEL = os.environ['DEVICE_FAILURE_CHANNEL']
-    NODE_DEVICE_ID = os.environ['DEVICE_ID_DATA']
-
     while True:
 
-        try:
-            # get air quality data
-            pm2, pm10 = quality.getAirQuality()
-            error_count = 0
-
-        except Exception as e:
-            error_count += 1
-            logger.debug(f'device read error: {e}')
-            if error_count == ALERT_THRESHOLD:
-                message = (f'potential device failure on: {NODE_DEVICE_ID}, air quality sensor unreadable for {ALERT_THRESHOLD} consecutive attempts')  # noqa: E501
-                logger.debug(message)
-                com_utilities.send_slack_alert(message, DEVICE_FAILURE_CHANNEL)
-                sys.exit()
-
-        # round off air quality numbers
-        pm2 = round(pm2, 2)
-        pm10 = round(pm10, 2)
+        pm2, pm10 = quality.getAirQuality()
 
         payload = {
             "pm2": pm2,
@@ -89,11 +68,11 @@ def main():
     MQTT_PORT = int(os.environ['MQTT_PORT'])
 
     # get unique client ID
-    clientID = quality.getClientID()
+    clientID = com_utilities.getClientID()
 
     # get mqtt client
-    client, code = quality.mqttClient(clientID, MQTT_USER, MQTT_SECRET,
-                                      MQTT_BROKER, MQTT_PORT)
+    client, code = com_utilities.mqttClient(clientID, MQTT_USER, MQTT_SECRET,
+                                            MQTT_BROKER, MQTT_PORT)
 
     # start data monitoring
     try:

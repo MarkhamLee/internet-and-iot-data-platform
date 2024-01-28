@@ -7,6 +7,7 @@
 # via an MQTT Broker
 import serial
 import os
+import sys
 from logging_util import logger
 from communications_utilities import IoTCommunications
 
@@ -46,15 +47,26 @@ class AirQuality:
 
     def getAirQuality(self):
 
-        message = self.serialConnection.read(10)
+        try:
 
-        # outputs have to be scaled by 0.1 to properly capture the
-        # sensor's precision as it returns integers that are actually
-        # decimals I.e. 15 is really 1.5
-        pm2 = round((self.parse_value(message, self.pm2Bytes) * 0.1), 4)
-        pm10 = round((self.parse_value(message, self.pm10Bytes) * 0.1), 4)
+            message = self.serialConnection.read(10)
 
-        return pm2, pm10
+            # outputs have to be scaled by 0.1 to properly capture the
+            # sensor's precision as it returns integers that are actually
+            # decimals I.e. 15 is really 1.5
+
+            pm2 = round((self.parse_value(message, self.pm2Bytes) * 0.1), 4)
+            pm10 = round((self.parse_value(message, self.pm10Bytes) * 0.1), 4)
+            return pm2, pm10
+
+        except Exception as e:
+            message = (f'Potential Nova PM SDS011 device error/failure on: {self.NODE_DEVICE_ID}, with error {e}, exiting....')  # noqa: E501
+            self.com_utilities.send_slack_alert(message,
+                                                self.DEVICE_FAILURE_CHANNEL)
+            logger.debug(message)
+            # just shutdown if the device isn't reachable, as the fix probably
+            # requires physical intervention.
+            sys.exit()
 
     def parse_value(self, message, start_byte, num_bytes=2,
                     byte_order='little', scale=None):
