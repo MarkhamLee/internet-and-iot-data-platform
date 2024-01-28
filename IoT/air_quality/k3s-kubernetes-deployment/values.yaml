@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: air-quality-bedroom
+  name: air-quality-office-mkiii
   namespace: iot-devices
 spec:
   selector:
     matchLabels: 
-      app: air-quality
+      app: air-quality-office-mkiii
   replicas: 1
   template:
     metadata:
       labels:
-        app: air-quality
+        app: air-quality-office-mkiii
     spec:
-      nodeName: <put name of node the USB device is attached to>
+      nodeName: rpinode0
       containers:
-        - name: bedroom-air-quality
+        - name: air-quality-office-mkiii
           image: markhamlee/airquality:arm64
           imagePullPolicy: Always
           resources:
@@ -58,14 +58,26 @@ spec:
             - name: TOPIC
               valueFrom:
                 configMapKeyRef:
-                  key: BEDROOM_AIR_TOPIC
+                  key: OFFICE_AIR_TOPIC
                   name: mqtt-data
                   optional: false
+            - name: ALERT_ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                  key: SLACK_ALERT_ENDPOINT
+                  name: slack-service-endpoint
+                  optional: false
+            - name: DEVICE_FAILURE_CHANNEL
+              value: '#iot_device_failures'
             - name: INTERVAL
               value: '5'
+            - name: DEVICE_ID_DATA
+              value: rpi_node2_airquality_novapm
+            - name: ALERT_THRESHOLD
+              value: '25'
             - name: USB_ADDRESS
               # ideally you'd create a name mapping but with the NovaPM this 
-              # doesn't seem to work like it does on other USB devices 
+              # doesn't seem to work like it does with other USB devices 
               value: /dev/ttyUSB0 
       imagePullSecrets: 
         - name: docker-creds
