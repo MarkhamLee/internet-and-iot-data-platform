@@ -9,8 +9,15 @@ sys.path.append(parent_dir)
 from etl_library.logging_util import logger  # noqa: 402
 from etl_library.influx_utilities import InfluxClient  # noqa: E402
 from openweather_library.weather_utilities import WeatherUtilities # noqa: 402
+from etl_library.general_utilities import EtlUtilities  # noqa: E402
 
 utilities = WeatherUtilities()
+
+# Load general utilities
+etl_utilities = EtlUtilities()
+
+# load Slack Webhook URL variable for sending pipeline failure alerts
+WEBHOOK_URL = os.environ.get('ALERT_WEBHOOK')
 
 
 def get_air_quality_data():
@@ -40,7 +47,10 @@ def get_air_quality_data():
         validate(instance=data, schema=SCHEMA)
 
     except Exception as e:
-        logger.debug(f'data validation failed, with error: {e}')
+        message = (f'data validation failed, with error: {e}')
+        logger.debug(message)
+        response = etl_utilities.send_slack_webhook(WEBHOOK_URL, message)
+        logger.debug(f'Slack pipeline failure alert sent with code: {response}')  # noqa: E501
 
     return data
 
@@ -52,9 +62,7 @@ def parse_data(data: dict) -> dict:
 
 def write_data(data: dict):
 
-    # Airflow will parse these files every 30s (default) so we move these
-    # imports into the functions so that airflow isn't constantly wasting
-    # cycles importing libraries.
+    MEASUREMENT = os.environ['AIR_QUALITY_MEASUREMENT']
 
     influx = InfluxClient()
 
@@ -68,7 +76,7 @@ def write_data(data: dict):
 
     # base payload
     payload = {
-        "measurement": "airq",
+        "measurement": MEASUREMENT,
         "tags": {
             "OpenWeatherAPI": "Air Quality",
         }
@@ -79,7 +87,10 @@ def write_data(data: dict):
         logger.info('Weather data written to InfluxDB')
 
     except Exception as e:
-        logger.debug(f'InfluxDB write failed with error: {e}')
+        message = (f'InfluxDB write failed with error: {e}')
+        logger.debug(message)
+        response = etl_utilities.send_slack_webhook(WEBHOOK_URL, message)
+        logger.debug(f'Slack pipeline failure alert sent with code: {response}')  # noqa: E501
 
 
 def main():

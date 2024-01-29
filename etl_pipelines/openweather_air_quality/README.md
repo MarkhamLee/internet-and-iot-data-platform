@@ -30,7 +30,7 @@ In the IoT section of this repo you can find the code that supports/pulls data f
 
 To run the container you will need to populate the following environmental variables, 
 
-* Influx_KEY: API key for InfluxDB 
+* INFLUX_KEY: API key for InfluxDB 
 * OPENWEATHER_KEY: API key for the Open Weather API
 * INFLUX_ORG: org name for your InfluxDB instance 
 * INFLUX_URL: ip address or URL for your InfluxDB instance 
