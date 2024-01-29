@@ -1,16 +1,27 @@
 ## ETL Containers & Scripts
 
-**Note: I'm in the process of re-organizing all the ETL containers into the approach described below, so there will be a few "incongruities", until I update all the containers**
+Once I decided to start experimenting with different Airflow executors and other tools to build ETL pipelines, I decided to rebuild all of my ETL pipelines (originally as Airflow DAGs) into containers for a couple of reasons: 
+
+1) While I really like Airflow its DAG format isn't very portable and they can be difficult to test locally, by moving to containers not only are my pipelines easier to test but they're now portable and can be used with a variety of different tools. 
+
+2) Continuing from point #1... most ETL tools are really just orchestrators and schedulers, good engineering practice (especiallty for data engineering) is to ensure that things are as portable and shareable as possible. I.e. once you have a working container, deploying it on Airflow vs Argo Worflow vs OpenFaaS vs Kubernetes Cron Jobs is relatively easy, as you just need to edit what's usually no more than 1-2 dozen lines of a config or deployment file. 
+
+This folder holds fully operational ETL containers, however, you'll need to acquire the API keys, setup the appropriate databases, populate environmental variables and configure a Slack webhook to receive pipeline failure alerts in order to use them. 
+
+### Deployment Notes
+
+* The folder for each pipeline/data source will have a readme file that will list all the environmental variables you'll need to run the container. Meaning: API keys for data sources, secrets for databases, and other pieces of data you'll need for the pipeline to work.
+
+* For the Slack alerts you'll need to sign-up for the [Slack API](https://api.slack.com/), create a channel for receiving pipeline alerts and a web hook to send alerts to that channel.
+
+* I use the Loki Stack for aggregating/consuming logs, and configured all the containers to write logs to stdout so they can be picked up by Loki via Promtail 
+
+* I stored all secrets in Kubernetes and stored all other env variables in Kubernetes config maps 
 
 
-Once I decided to start experimenting with different Airflow executors and other tools to build ETL pipelines, I decided to rebuild all of my ETL pipelines (originally as Airflow DAGs) into containers a couple of reasons: 
-1) Most ETL tools are just container orchestrators 
-2) Once you have things defined as a container, you have stand-alone scripts you can deploy for ETL purposes as well
-3) I really like Airflow, but the DAG format is not very portable outside of Airflow, so moving to containers and avoiding it as much as possible is just a good idea. 
+### Docker Build Notes
 
-This folder holds fully operational ETL containers that are pretty much ready to go, aside from needing the end user to setup credentials for the respective APIs, have a database setup (InfluxDB or Postgres) to store the data, etc. I.e. build the image, add the right environmental variables for databases, APIs and the like, deploy the container and you're good to go. 
-
-A lot of these ETL processes use a lot of common code for writing to DBs, logging, pinging different endpoints from the same API provider, etc., so I've written the Dockerfiles to pull those scripts from common folders (see: "etl_library" and "openweather_library"). My plan is to use this approach as the basis for a CI/CD pipelines that can build images and deploy containers into any orchestration tool, without my having to make too many changes on my end. 
+A lot of these ETL processes use a lot of common code for writing to DBs, logging, pinging different endpoints from the same API provider, etc., so I've written the Dockerfiles to pull those scripts from common folders (see: "etl_library" and "openweather_library"). My plan is to use this approach as the basis for CI/CD pipelines that can build images and deploy containers, without a lot of manual steps. 
 
 Keep in mind that building Docker images from different folders like this (namely from the parent folder the Docker file is in), is slightly tricky because when using the standard Docker build command, the Dockerfile can't copy files from the parent folder for security reasons. SO, to build the images you'll need to run a command like the following from the etl_pipelines folder so the parent folder is the "Docker build context": 
 
@@ -20,9 +31,10 @@ docker build -t openweather_airquality:latest -f openweather_air_quality/Dockerf
 
 This command will set the parent folder with the common libraries as the "Docker build context", which will allow you to copy all the required files into your image. 
 
-Note on testing, the testing process was:
-* Just running the python scripts locally
-* Building the images and then via K8s cron jobs and/or via Portainer
+### Testing 
+* The testing process was:
+    * Just running the python scripts locally
+    * Building the images and then running them as K8s cron jobs and/or via Portainer
 
 Once the above was fine, I would then deploy them with one or more orchestration tools. 
 
