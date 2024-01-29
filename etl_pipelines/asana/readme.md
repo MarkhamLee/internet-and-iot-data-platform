@@ -13,4 +13,10 @@ Container for connecting to Asana, retrieving data for a particular project and 
 * POSTGRES_PASSWORD: password for Postgres
 * ALERT_WEBHOOK: Slack web hook for sending messages to my pipeline failure channel
 
+You will also need to sign-up for [Slack API access](https://api.slack.com/), create a channel for receiving pipeline failures and then generate a web hook for receiving to send those alerts to. Alternatively, if you're just experimenting, you can just comment out the Slack Alert code. 
+
 Additionally, there are several utility files for writing to Postgres, generating container logs and sending pipeline failure alerts via Slack that are pulled in when the container is built from the "etl_library" folder that are in this folder's parent. I.e. to build the container properly you would have to either pull in those files manually and re-write the Dockerfile OR make sure the folder structure is the same. Building Docker containers in this fashion is slightly tricky, and you'll have to run a slightly different Docker build command than usual, please refer to the README.md in the parent "etl_pipeline" folder for details on how to properly build these containers. 
+
+### Notes on Data Quality
+
+* This ETL doesn't have an explicit data validation step, instead three different Python list comprehensions are used to parse data from the pagination object returned by the Asana API. Meaning: if the data isn't in the right format the data will fail, so the data parsing step also serves as the data validation step. 
