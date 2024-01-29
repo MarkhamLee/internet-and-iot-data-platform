@@ -4,8 +4,8 @@
 # the script gathers data from a DHT22 temperature sensor and then
 # publishes that data to a MQTT topic.
 
-import adafruit_dht
-import board
+import adafruit_dht  
+import board  
 import json
 import time
 import gc
@@ -50,7 +50,7 @@ def getTemps(client: object, topic: str, interval: int, error_topic: str):
             temp = temp_device.temperature
             humidity = temp_device.humidity
 
-        except RuntimeError as error:
+        except RuntimeError as error:  # noqa: F841
             # logging.debug(f'Device runtime error {error}')
             continue
 
