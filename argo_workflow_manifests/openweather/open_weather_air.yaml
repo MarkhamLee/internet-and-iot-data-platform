@@ -1,0 +1,55 @@
+# Workflow for pulling in Air Quality data from the Open Weather API 
+apiVersion: argoproj.io/v1alpha1
+kind: cronWorkflow
+metadata:
+  name: openweather-air-quality
+  namespace: etl-pipelines
+spec:
+  schedule: "*/15 * * * *"
+  timezone: "America/Los_Angeles"
+  startingDeadlineSeconds: 0
+  concurrencyPolicy: Replace
+  failedJobsHistoryLimit: 3
+  successfulJobsHistoryLimit: 5
+  suspend: false
+  workflowSpec:
+    entrypoint: load-air-quality-data
+    imagePullSecrets:
+    - name: docker-creds
+    templates:
+    - name: load-air-quality-data
+      container:
+        name: argo-open-weather-air-quality
+        image: markhamlee/openweather_airquality:latest
+        command: ["python3"]
+        args: ["/etl/main.py", "Open Weather. Scheduled on: {{workflow.scheduledTime}}"]
+        resources: 
+          limits:
+            memory: 256Mi
+            cpu: 200m
+        env:
+        - name: INFLUX_KEY
+          valueFrom:
+            secretKeyRef:
+              key: PROD_INFLUX_KEY
+              name: influxdb-secret
+        - name: OPENWEATHER_KEY
+          valueFrom:
+            secretKeyRef:
+              key: OPEN_WEATHER_SECRET
+              name: openweather-secret
+        - name: INFLUX_ORG
+          valueFrom:
+            configMapKeyRef:
+              key: PROD_INFLUX_ORG
+              name: key-etl-variables
+        - name: INFLUX_URL
+          valueFrom:
+            configMapKeyRef:
+              key: PROD_INFLUX_URL
+              name: key-etl-variables
+        - name: BUCKET
+          valueFrom:
+            configMapKeyRef:
+              key: PROD_DASHBOARD_BUCKET
+              name: key-etl-variables
