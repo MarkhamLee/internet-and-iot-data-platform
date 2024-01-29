@@ -1,12 +1,16 @@
-### Asana ETL scripts
+### Asana ETL Container
 
 
 #### Contained in this folder 
-* Basic ETL script for retrieving all the tasks for a given project from Asana, cli command is:
-```
-python <script_name> <Asana Project GID>
-```
-* ETL script that can write to Postgres replete with script for Postgres Client, was used for
-testing writing data to Postgres before converting the ETL script into a DAG 
-* All the utility scripts, classes, etc., needed for everything to work 
+Container for connecting to Asana, retrieving data for a particular project and then writing that data to Postgres. The container is built to only track current tasks, so it will erase all the data in the Postgres table before writing new data to it. To run the container you will need to populate the following environmental variables:
 
+* ASANA_TABLE: Postgres table the data will be written to 
+* PORT: port for Postgres connection
+* DB_HOST: ip address/url for Postgres DB Instance
+* GID: Unique ID for the project being tracked 
+* ASANA_KEY: Asana secret/connection key 
+* POSTGRES_USER: user name for Postgres connection
+* POSTGRES_PASSWORD: password for Postgres
+* ALERT_WEBHOOK: Slack web hook for sending messages to my pipeline failure channel
+
+Additionally, there are several utility files for writing to Postgres, generating container logs and sending pipeline failure alerts via Slack that are pulled in when the container is built from the "etl_library" folder that are in this folder's parent. I.e. to build the container properly you would have to either pull in those files manually and re-write the Dockerfile OR make sure the folder structure is the same. Building Docker containers in this fashion is slightly tricky, and you'll have to run a slightly different Docker build command than usual, please refer to the README.md in the parent "etl_pipeline" folder for details on how to properly build these containers. 

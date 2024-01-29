@@ -23,7 +23,7 @@ utilities = AsanaUtilities()
 # Load general utilities
 etl_utilities = EtlUtilities()
 
-# load Slack Webhook URL for sending pipeline failure alerts
+# load Slack Webhook URL variable for sending pipeline failure alerts
 WEBHOOK_URL = os.environ.get('ALERT_WEBHOOK')
 
 
@@ -45,6 +45,7 @@ def get_asana_data(asana_client: object, gid: str) -> object:
         logger.debug(f'Slack pipeline failure alert sent with code: {response}')  # noqa: E501
 
 
+# extracting data from the returned object + data validation
 def parse_asana_data(response: object) -> list:
 
     return utilities.transform_asana_data(response)
