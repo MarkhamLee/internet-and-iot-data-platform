@@ -15,7 +15,7 @@ This project has the following objectives:
 This repo contains the code for the ETL pipelines for various data sources, YAML files for deploying various micro-services on Kubernetes, containers for interacting with/pulling data from remote sensors/IoT devices and a lot more. Plan is to continuously add data sources/features in the coming months. 
 
 ### Recent Updates 
-* 1/28: adding Slack alerts for IoT device failures, manifests for ETL pipelines running on Argo Workflow
+* 1/28: adding Slack alerts for IoT device failures, manifests for deploying ETL pipelines on Argo Workflow
 * 1/22: updated architecture diagram, Slack alerts for ETL pipeline failures
 * 1/15: shifting all ETL to be ***Docker First*** to simplify local testing, enable deployment with practically any container orchestration soluition and leverage libraries of common files for connecting to DBs, logging, common API files, etc. Meaning:
     * I can test everything locally without having to deploy to Airflow or any other tool
