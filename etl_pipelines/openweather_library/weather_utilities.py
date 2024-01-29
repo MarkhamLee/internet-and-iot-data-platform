@@ -6,18 +6,25 @@ parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(parent_dir)
 
 from etl_library.logging_util import logger  # noqa: E402
+from etl_library.general_utilities import EtlUtilities  # noqa: E402
 
 
 class WeatherUtilities():
 
     def __init__(self):
 
-        # create constants
+        self.get_variables()
+
+    def get_variables(self):
+
+        self.etl_utilities = EtlUtilities()
         self.units = '&units=metric'
-        self.city = 'seattle'
-        self.lat = 47.6
-        self.long = -122.3321
         self.base_url = 'http://api.openweathermap.org/data/2.5/'
+
+        # load environmental variables
+        self.city = os.environ['CITY']
+        self.lat = float(os.environ['LAT'])
+        self.long = float(os.environ['LONG'])
 
     @staticmethod
     def parse_air_data(data: dict) -> dict:
@@ -62,8 +69,7 @@ class WeatherUtilities():
 
         return payload
 
-    @staticmethod
-    def get_weather_data(url: str) -> dict:
+    def get_weather_data(self, url: str) -> dict:
 
         try:
             # get weather data
@@ -73,5 +79,8 @@ class WeatherUtilities():
             return response
 
         except Exception as e:
-            logger.debug(f'weather data retrieval failed with error: {e}')
+            WEBHOOK_URL = os.environ['ALERT_WEBHOOK']
+            message = (f'weather data retrieval failed with error: {e}')
+            logger.debug(message)
+            self.etl_utilities.send_slack_webhook(WEBHOOK_URL, message)
             return e
