@@ -1,3 +1,10 @@
+# Markham Lee (C) 2023 - 2024
+# productivity-music-stocks-weather-IoT-dashboard
+# https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
+# ETL bot for monitoring the Raspberry Pi Locator: https://rpilocator.com/
+# RSS feed and sending out alerts when selected items are available for
+# purchase.
+
 import feedparser
 import requests
 import os
