@@ -7,9 +7,16 @@ sys.path.append(parent_dir)
 
 from etl_library.influx_utilities import InfluxClient  # noqa: E402
 from etl_library.logging_util import logger  # noqa: E402
+from etl_library.general_utilities import EtlUtilities  # noqa: E402
 
 # instantiate utilities class
 finn_util = FinnHubUtilities()
+
+# Load general utilities
+etl_utilities = EtlUtilities()
+
+# load Slack Webhook URL variable for sending pipeline failure alerts
+WEBHOOK_URL = os.environ.get('ALERT_WEBHOOK')
 
 
 def get_prices(symbol: str):
@@ -20,7 +27,10 @@ def get_prices(symbol: str):
         return data
 
     except Exception as e:
-        logger.debug(f'stock price data retrieval error: {e}')
+        message = (f'stock price data retrieval error: {e}')
+        logger.debug(message)
+        response = etl_utilities.send_slack_webhook(WEBHOOK_URL, message)
+        logger.debug(f'Slack pipeline failure alert sent with code: {response}')  # noqa: E501
 
 
 def parse_data(data: dict) -> dict:
@@ -31,6 +41,8 @@ def parse_data(data: dict) -> dict:
 def write_data(data: dict):
 
     influx = InfluxClient()
+
+    MEASUREMENT = os.environ['FINNHUB_MEASUREMENT_SPY']
 
     # Influx DB variables
     INFLUX_KEY = os.environ['INFLUX_KEY']
@@ -43,7 +55,7 @@ def write_data(data: dict):
 
     # base payload
     payload = {
-        "measurement": "finnhub_quotes",
+        "measurement": MEASUREMENT,
         "tags": {
                 "finnhub_API": "stock_prices",
         }
@@ -55,13 +67,25 @@ def write_data(data: dict):
         logger.info('stock data successfuly written to InfluxDB')
 
     except Exception as e:
-        logger.info(f'influx write error: {e}')
+        message = (f'influx write error: {e}')
+        logger.debug(message)
+        response = etl_utilities.send_slack_webhook(WEBHOOK_URL, message)
+        logger.debug(f'Slack pipeline failure alert sent with code: {response}')  # noqa: E501
 
 
 def main():
 
     STOCK_SYMBOL = os.environ['STOCK_SYMBOL']
-    stock_data = get_prices(STOCK_SYMBOL)
+
+    try:
+        stock_data = get_prices(STOCK_SYMBOL)
+        logger.info('Stock price data retrieved successfully')
+
+    except Exception as e:
+        message = (f'Pipeline failure with error message: {e}')
+        logger.debug(message)
+        response = etl_utilities.send_slack_webhook(WEBHOOK_URL, message)
+        logger.debug(f'Slack pipeline failure alert sent with code: {response}')  # noqa: E501
 
     # parse data into a json payload
     stock_payload = parse_data(stock_data)
