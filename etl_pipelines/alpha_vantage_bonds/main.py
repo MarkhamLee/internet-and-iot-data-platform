@@ -41,6 +41,7 @@ def get_tbill_data(url: str) -> dict:
         message = (f'Pipeline failure Alert: Bond data retrieval attempt failed with error: {e}')  # noqa: E501
         logger.info(message)
         etl_utilities.send_slack_webhook(WEBHOOK_URL, message)
+        sys.exit()
 
 
 def parse_tbill_data(data: dict) -> object:
