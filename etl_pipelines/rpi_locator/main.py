@@ -50,7 +50,7 @@ def data_transformation(data: object) -> object:
 
 
 # update the data frame to show age of individual entries/product updates
-def alert_age(data: object, MIN_AGE: int):
+def alert_age(data: object, MAX_AGE: int):
 
     # set time zone, get current time and set format
     current_time = datetime.now(timezone.utc)
@@ -68,7 +68,7 @@ def alert_age(data: object, MIN_AGE: int):
 
     # filter out entries younger than a minimum threshold
     # i.e. older entries are probably already sold out.
-    data = data[data['alert_age'] < MIN_AGE]
+    data = data[data['alert_age'] < MAX_AGE]
 
     # subset the data to just the alerts and the alert's age
     data = data[['product_alert', 'alert_age']]
@@ -192,7 +192,7 @@ def send_alert(data: object):
 def main():
 
     URL = os.environ.get('LOCATOR_URL')
-    MIN_AGE = int(os.environ.get('MIN_AGE'))
+    MAX_AGE = int(os.environ.get('MAX_AGE'))
 
     # get raw feed data
     data = read_rss_convert(URL)
@@ -201,7 +201,7 @@ def main():
     cleaned_data = data_transformation(data)
 
     # update data frame to show age of each entry & filter out newest
-    updated_data = alert_age(cleaned_data, MIN_AGE)
+    updated_data = alert_age(cleaned_data, MAX_AGE)
 
     # write data to Postgres
     write_data(updated_data)
