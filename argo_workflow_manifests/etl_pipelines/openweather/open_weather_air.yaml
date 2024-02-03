@@ -33,6 +33,11 @@ spec:
             secretKeyRef:
               key: PROD_INFLUX_KEY
               name: influxdb-secret
+        - name: ALERT_WEBHOOK
+          valueFrom:
+            secretKeyRef:
+              key: WEBHOOK_ETL_ALERTS
+              name: slack-webhook-pipeline-failures
         - name: OPENWEATHER_KEY
           valueFrom:
             secretKeyRef:
