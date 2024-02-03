@@ -52,3 +52,11 @@ spec:
               configMapKeyRef:
                 key: PROD_DASHBOARD_BUCKET
                 name: key-etl-variables
+          - name: CITY
+            value: seattle
+          - name: LAT
+            value: '47.6'
+          - name: LONG 
+            value: '-122.3321'
+          - name: WEATHER_MEASUREMENT
+            value: weather
