@@ -1,0 +1,66 @@
+# Workflow for pulling in data from the Raspberry Pi locator RSS feed
+apiVersion: argoproj.io/v1alpha1
+kind: cronWorkflow
+metadata:
+  name: raspberry-p-locator-data
+  namespace: etl-pipelines
+spec:
+  schedule: "0 * * * *"
+  timezone: "America/Los_Angeles"
+  startingDeadlineSeconds: 0
+  concurrencyPolicy: Replace
+  failedJobsHistoryLimit: 3
+  successfulJobsHistoryLimit: 5
+  suspend: false
+  workflowSpec:
+    entrypoint: load-rpi-locator-data
+    imagePullSecrets:
+    - name: docker-creds
+    templates:
+      - name: load-rpi-locator-data
+        container:
+          image: markhamlee/rpi5_stock:latest
+          command: ["python3"]
+          args: ["/etl/main.py", "Raspberry Pi locator bot. Scheduled on: {{workflow.scheduledTime}}"]
+          resources: 
+            limits:
+              memory: 256Mi
+              cpu: 200m
+          env:
+          - name: POSTGRES_USER
+            valueFrom:
+              secretKeyRef:
+                key: POSTGRES_USER
+                name: postgres-secrets
+          - name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: POSTGRES_PASSWORD
+                name: postgres-secrets
+          - name: WEBHOOK
+            valueFrom:
+              secretKeyRef:
+                key: SLACK_WEBHOOK_RPI5
+                name: slack-web-hook-rpi5-alerts
+          - name: DASHBOARD_DB
+            valueFrom:
+              configMapKeyRef:
+                key: POSTGRES_DASHBOARD_DB
+                name: asana-etl-variables
+          - name: DB_HOST
+            valueFrom:
+              configMapKeyRef:
+                key: POSTGRES_DB_HOST
+                name: asana-etl-variables
+          - name: POSTGRES_PORT
+            valueFrom:
+              configMapKeyRef:
+                key: POSTGRES_PORT
+                name: asana-etl-variables
+          - name: RPI5_TABLE
+            value: rpi_alert_data
+          - name: LOCATOR_URL
+            value: https://rpilocator.com/feed/?country=US&cat=PI5
+          - name: MAX_AGE
+            value: '24'
+     
