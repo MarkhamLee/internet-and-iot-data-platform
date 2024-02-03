@@ -1,0 +1,74 @@
+# Workflow for pulling in task data from Asana
+apiVersion: argoproj.io/v1alpha1
+kind: cronWorkflow
+metadata:
+  name: asana-task-data-etl
+  namespace: etl-pipelines
+spec:
+  schedule: "0 * * * *"
+  timezone: "America/Los_Angeles"
+  startingDeadlineSeconds: 0
+  concurrencyPolicy: Replace
+  failedJobsHistoryLimit: 3
+  successfulJobsHistoryLimit: 5
+  suspend: false
+  workflowSpec:
+    entrypoint: load-asana-task-data
+    imagePullSecrets:
+    - name: docker-creds
+    templates:
+      - name: load-asana-task-data
+        container:
+          image: markhamlee/asanadata:latest
+          command: ["python3"]
+          args: ["/etl/main.py", "Asana task data ETL. Scheduled on: {{workflow.scheduledTime}}"]
+          resources: 
+            limits:
+              memory: 256Mi
+              cpu: 200m
+          env:
+          - name: POSTGRES_USER
+            valueFrom:
+              secretKeyRef:
+                key: POSTGRES_USER
+                name: postgres-secrets
+          - name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: POSTGRES_PASSWORD
+                name: postgres-secrets
+          - name: ALERT_WEBHOOK
+            valueFrom:
+              secretKeyRef:
+                key: WEBHOOK_ETL_ALERTS
+                name: slack-webhook-pipeline-failures
+          - name: ASANA_KEY
+            valueFrom:
+              secretKeyRef:
+                key: ASANA_KEY
+                name: asana-secret
+          - name: DASHBOARD_DB
+            valueFrom:
+              configMapKeyRef:
+                key: POSTGRES_DASHBOARD_DB
+                name: asana-etl-variables
+          - name: DB_HOST
+            valueFrom:
+              configMapKeyRef:
+                key: POSTGRES_DB_HOST
+                name: asana-etl-variables
+          - name: PORT
+            valueFrom:
+              configMapKeyRef:
+                key: POSTGRES_PORT
+                name: asana-etl-variables
+          - name: ASANA_TABLE
+            valueFrom:
+              configMapKeyRef:
+                key: ASANA_TABLE
+                name: asana-etl-variables
+          - name: GID
+            valueFrom:
+              configMapKeyRef:
+                key: PROJECT_GID
+                name: asana-etl-variables
