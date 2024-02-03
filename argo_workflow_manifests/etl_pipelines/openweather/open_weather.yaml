@@ -8,7 +8,7 @@ spec:
   schedule: "*/15 * * * *"
   timezone: "America/Los_Angeles"
   startingDeadlineSeconds: 0
-  concurrencyPolicy: replace
+  concurrencyPolicy: Replace
   failedJobsHistoryLimit: 3
   successfulJobsHistoryLimit: 5
   suspend: false
