@@ -1,0 +1,68 @@
+# Workflow for pulling in TBill Data from the Alpha Vantage API
+apiVersion: argoproj.io/v1alpha1
+kind: cronWorkflow
+metadata:
+  name: alpha-vantage-2yr-tbill
+  namespace: etl-pipelines
+spec:
+  schedule: "*/15 * * * *"
+  timezone: "America/Los_Angeles"
+  startingDeadlineSeconds: 0
+  concurrencyPolicy: Replace
+  failedJobsHistoryLimit: 3
+  successfulJobsHistoryLimit: 5
+  suspend: false
+  workflowSpec:
+    entrypoint: load-bond-data
+    imagePullSecrets:
+    - name: docker-creds
+    templates:
+      - name: load-bond-data
+        container:
+          image: markhamlee/alphavantagebondetl:latest
+          command: ["python3"]
+          args: ["/etl/main.py", "Alpha Vantage 2 Year TBill. Scheduled on: {{workflow.scheduledTime}}"]
+          resources: 
+            limits:
+              memory: 256Mi
+              cpu: 200m
+          env:
+          - name: POSTGRES_USER
+            valueFrom:
+              secretKeyRef:
+                key: POSTGRES_USER
+                name: postgres-secrets
+          - name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: POSTGRES_PASSWORD
+                name: postgres-secrets
+          - name: ALERT_WEBHOOK
+            valueFrom:
+              secretKeyRef:
+                key: WEBHOOK_ETL_ALERTS
+                name: slack-webhook-pipeline-failures
+          - name: ALPHA_KEY
+            valueFrom:
+              secretKeyRef:
+                key: ALPHA_VANTAGE_SECRET
+                name: alpha-advantage-secret
+          - name: DASHBOARD_DB
+            valueFrom:
+              configMapKeyRef:
+                key: POSTGRES_DASHBOARD_DB
+                name: asana-etl-variables
+          - name: DB_HOST
+            valueFrom:
+              configMapKeyRef:
+                key: POSTGRES_DB_HOST
+                name: asana-etl-variables
+          - name: POSTGRES_PORT
+            valueFrom:
+              configMapKeyRef:
+                key: POSTGRES_PORT
+                name: asana-etl-variables
+          - name: BOND_MATURITY
+            value: 2year
+          - name: TBILL_TABLE
+            value: two_year_tbill
