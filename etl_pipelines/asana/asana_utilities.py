@@ -45,33 +45,25 @@ class AsanaUtilities():
 
         try:
 
-            # Asana data comes back as pagination object, breakdown into a
-            # list of dictionaries
-            parsed_data = [x for x in data]
+            # Asana data comes back as pagination object, the list
+            # comprehension breaks it down into a list of dictionaries
+            # that we can treat as json and convert to a pandas data frame
+            # in one go
 
-            # parse out task names
-            task_names = [x.get('name') for x in parsed_data]
+            df = pd.json_normalize([x for x in data])
 
-            # parse out task gids
-            gids = [x.get('gid') for x in parsed_data]
-
-            logger.info('data parsing/extraction successful')
-
-            # create blank data frame
-            df = pd.DataFrame(columns=['taskName', 'gid'])
-
-            # write task names & gids to data frame
-            df['gid'] = gids
-            df['taskName'] = task_names
+            # drop the 'gid' field and re-order the columns
+            df = df[['name', 'created_at', 'modified_at']]
+            df.columns = ['name', 'created_on', 'last_modified']
 
             total_rows = len(df)
 
-            logger.info('Asana data parsed/extracted successfully')
+            logger.info('Asana data parsed successfully')
 
             return df, total_rows
 
         except Exception as e:
-            message = (f'Pipeline failure: Asana data extraction failed with error: {e}')  # noqa: E501
+            message = (f'Pipeline failure: Asana data extraction failed with error, likely data corruption: {e}')  # noqa: E501
             logger.debug(message)
             response = etl_utilities.send_slack_webhook(WEBHOOK_URL, message)
             logger.info(f'Slack alert published successfully with code: {response}')  # noqa: E501

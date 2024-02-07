@@ -7,7 +7,9 @@
 
 import os
 import sys
+import pandas as pd
 from io import StringIO
+from datetime import datetime, timezone
 from asana_utilities import AsanaUtilities
 
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -33,7 +35,7 @@ def get_asana_data(asana_client: object, gid: str) -> object:
     try:
         data = asana_client.tasks.get_tasks_for_project(gid,
                                                         {'completed_since':
-                                                         'now'},
+                                                         'now', "opt_fields": "name, modified_at, created_at"},  # noqa: E501
                                                         opt_pretty=True)
         logger.info('Data successfully retrieved from Asana')
         return data
@@ -51,6 +53,28 @@ def parse_asana_data(response: object) -> list:
     return utilities.transform_asana_data(response)
 
 
+def calculate_task_age(df: object) -> object:
+
+    # set field names to date-time format
+    df[['created_on', 'last_modified']] =\
+       df[['created_on', 'last_modified']].apply([pd.to_datetime])
+
+    # Calculate the age of each task
+
+    # set time zone, get current time and set format
+    current_time = datetime.now(timezone.utc)
+
+    # calculate the age of the alert in days
+    df['task_age'] = (current_time - df['created_on']) /\
+        pd.Timedelta(days=1)
+
+    # calculate duration since last update in days
+    df['task_idle'] = (current_time - df['last_modified']) /\
+        pd.Timedelta(days=1)
+
+    return df
+
+
 @staticmethod
 def prepare_payload(payload: object, columns: list) -> object:
 
@@ -60,7 +84,7 @@ def prepare_payload(payload: object, columns: list) -> object:
     # text data with punctuation  without having situations where a comma
     # in a sentence is treated as new column or causes a blank column to be
     # created.
-    payload.to_csv(buffer, index_label='id', sep='\t', columns=columns,
+    payload.to_csv(buffer, index=False, sep='\t', columns=columns,
                    header=False)
     buffer.seek(0)
 
@@ -123,6 +147,10 @@ def main():
 
     # parse data
     payload, total_rows = utilities.transform_asana_data(response)
+
+    # calculate age of tasks
+
+    payload = calculate_task_age(payload)
 
     # write data
     write_data(payload, total_rows)
