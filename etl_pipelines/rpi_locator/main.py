@@ -61,17 +61,13 @@ def alert_age(data: object, MAX_AGE: int):
 
     # set time zone, get current time and set format
     current_time = datetime.now(timezone.utc)
-    current_date_time = current_time.strftime("%Y-%m-%d %H:%M:%S")
 
     # add current time to data frame
-    data['current time'] = current_date_time
-
-    # convert the date string to date time format
-    data['current time'] = pd.to_datetime(data['current time'])
+    data['current time'] = current_time
 
     # calculate the age of the alert in hours
-    data['alert_age'] = (data['current time'] - data['published'])\
-        / pd.Timedelta(hours=1)
+    data['alert_age'] = (current_time - data['published']) /\
+        pd.Timedelta(hours=1)
 
     # filter out entries younger than a minimum threshold
     # i.e. older entries are probably already sold out.
@@ -133,7 +129,8 @@ def prepare_payload(payload: object, columns: list) -> object:
     # text data with punctuation  without having situations where a comma
     # in a sentence is treated as new column or causes a blank column to be
     # created.
-    payload.to_csv(buffer, sep='\t', columns=columns, header=False)
+    payload.to_csv(buffer, index=False, sep='\t', columns=columns,
+                   header=False)
     buffer.seek(0)
 
     return buffer
