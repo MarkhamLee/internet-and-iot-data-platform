@@ -9,15 +9,19 @@ import json
 import time
 import gc
 import os
-import sys
+import signal
 from air_quality import AirQuality
 from logging_util import logger
 from communications_utilities import IoTCommunications
 
 com_utilities = IoTCommunications()
+DEVICE_FAILURE_CHANNEL = os.environ['DEVICE_FAILURE_CHANNEL']
+pid = 1
 
 
 def air(client: object, quality: object, topic: str, interval: int) -> str:
+
+    mqtt_error_count = 0
 
     while True:
 
@@ -33,7 +37,15 @@ def air(client: object, quality: object, topic: str, interval: int) -> str:
         status = result[0]
 
         if status != 0:
-            logger.debug(f'data failed to publish to MQTT topic, status code: {status}')  # noqa: E501
+            message = (f'data failed to publish to MQTT topic, status code: {status}')  # noqa: E501
+            logger.debug(message)  # noqa: E501
+            com_utilities.send_slack_alert(message, DEVICE_FAILURE_CHANNEL)
+            mqtt_error_count += 1
+
+            if mqtt_error_count == 20:
+                # shut down due to a number of MQTT errors/broker is likely
+                # down
+                os.kill(pid, signal.SIGTERM)
 
         # given that this is a RAM constrained device, let's delete
         # everything and do some garbage collection, watching things
@@ -47,15 +59,15 @@ def air(client: object, quality: object, topic: str, interval: int) -> str:
 def main():
 
     # instantiate air quality class
+
     try:
         quality = AirQuality()
-        logger.info('Connected to NOVA PM SDS011 Air Quality Sensor')
+        logger.info('Air quality class instantiated successfully')
 
     except Exception as e:
-        logger.debug(f'Air quality class failed to instantiate with error: {e}, exiting...')  # noqa: E501
-        # exit to prevent constant container restarts when the device has
-        # failed or is disconnected.
-        sys.exit()
+        message = (f'Air Quality Class failed to instantiate, with error {e} shutting down...')  # noqa: E501
+        logger.debug(message)
+        com_utilities.send_slack_alert(message, DEVICE_FAILURE_CHANNEL)
 
     # Load parameters
     INTERVAL = int(os.environ['INTERVAL'])

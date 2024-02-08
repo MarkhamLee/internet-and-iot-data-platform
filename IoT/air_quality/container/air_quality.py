@@ -7,7 +7,7 @@
 # via an MQTT Broker
 import serial
 import os
-import sys
+import signal
 from logging_util import logger
 from communications_utilities import IoTCommunications
 
@@ -22,6 +22,7 @@ class AirQuality:
 
     def defineVariables(self):
 
+        self.pid = 1
         self.pm2Bytes = 2
         self.pm10Bytes = 4
         self.deviceID = 6
@@ -44,6 +45,9 @@ class AirQuality:
             logger.debug(message)
             self.com_utilities.send_slack_alert(message,
                                                 self.DEVICE_FAILURE_CHANNEL)
+            # shut down the container - if the USB device isn't connecting it\
+            # will likely require physical intervention
+            os.kill(self.pid, signal.SIGTERM)
 
     def getAirQuality(self):
 
@@ -66,7 +70,7 @@ class AirQuality:
             logger.debug(message)
             # just shutdown if the device isn't reachable, as the fix probably
             # requires physical intervention.
-            sys.exit()
+            os.kill(self.pid, signal.SIGTERM)
 
     def parse_value(self, message, start_byte, num_bytes=2,
                     byte_order='little', scale=None):
