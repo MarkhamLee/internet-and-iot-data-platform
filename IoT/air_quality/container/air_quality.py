@@ -7,7 +7,7 @@
 # via an MQTT Broker
 import serial
 import os
-import signal
+from time import sleep
 from logging_util import logger
 from communications_utilities import IoTCommunications
 
@@ -41,13 +41,15 @@ class AirQuality:
             logger.info(f'connected to Nova PM SDS011 Air Quality sensor at: {USB}')  # noqa: E501
 
         except Exception as e:
-            message = (f'USB device connection failure for {self.NODE_DEVICE_ID} on {USB} with error message: {e}')  # noqa: E501
+            message = (f'USB device connection failure on node: {self.NODE_DEVICE_ID}, with device: {USB} with error message: {e}, going to sleep...')  # noqa: E501
             logger.debug(message)
             self.com_utilities.send_slack_alert(message,
                                                 self.DEVICE_FAILURE_CHANNEL)
-            # shut down the container - if the USB device isn't connecting it\
-            # will likely require physical intervention
-            os.kill(self.pid, signal.SIGTERM)
+            # back-off limits/pod restart patterns are hard-coded into K8s,
+            # SO... we put the container to sleep for an hour to provide
+            # enough time to fix the physical issue w/o being spammed with
+            # restart and container back-off alerts
+            sleep(3600)
 
     def getAirQuality(self):
 
@@ -64,13 +66,13 @@ class AirQuality:
             return pm2, pm10
 
         except Exception as e:
-            message = (f'Potential Nova PM SDS011 device error/failure on: {self.NODE_DEVICE_ID}, with error {e}, exiting....')  # noqa: E501
+            message = (f'Potential Nova PM SDS011 device error/failure on: {self.NODE_DEVICE_ID}, with error: {e}, going to sleep....')  # noqa: E501
+            logger.debug(message)
             self.com_utilities.send_slack_alert(message,
                                                 self.DEVICE_FAILURE_CHANNEL)
-            logger.debug(message)
-            # just shutdown if the device isn't reachable, as the fix probably
-            # requires physical intervention.
-            os.kill(self.pid, signal.SIGTERM)
+            # put container to sleep for an hour to delay the continuous
+            # back off cycle/alerts
+            sleep(3600)
 
     def parse_value(self, message, start_byte, num_bytes=2,
                     byte_order='little', scale=None):

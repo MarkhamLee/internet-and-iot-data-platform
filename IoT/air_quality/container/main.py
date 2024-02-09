@@ -6,22 +6,21 @@
 # to a MQTT broker
 
 import json
-import time
 import gc
 import os
-import signal
+from time import sleep
 from air_quality import AirQuality
 from logging_util import logger
 from communications_utilities import IoTCommunications
 
 com_utilities = IoTCommunications()
 DEVICE_FAILURE_CHANNEL = os.environ['DEVICE_FAILURE_CHANNEL']
-pid = 1
 
 
 def air(client: object, quality: object, topic: str, interval: int) -> str:
 
     mqtt_error_count = 0
+    base_sleep = 900
 
     while True:
 
@@ -35,6 +34,7 @@ def air(client: object, quality: object, topic: str, interval: int) -> str:
         payload = json.dumps(payload)
         result = client.publish(topic, payload)
         status = result[0]
+        base_sleep = 300
 
         if status != 0:
             message = (f'data failed to publish to MQTT topic, status code: {status}')  # noqa: E501
@@ -43,9 +43,10 @@ def air(client: object, quality: object, topic: str, interval: int) -> str:
             mqtt_error_count += 1
 
             if mqtt_error_count == 20:
-                # shut down due to a number of MQTT errors/broker is likely
-                # down
-                os.kill(pid, signal.SIGTERM)
+                # put container to sleep if broker is down
+                # calculate sleep duration
+                message = (f'20 consecutive MQTT broker failures, going to sleep for {base_sleep/60} minutes')  # noqa: E501
+                sleep(base_sleep)
 
         # given that this is a RAM constrained device, let's delete
         # everything and do some garbage collection, watching things
@@ -53,7 +54,7 @@ def air(client: object, quality: object, topic: str, interval: int) -> str:
         del payload, result, status, pm2, pm10
         gc.collect()
 
-        time.sleep(interval)
+        sleep(interval)
 
 
 def main():
@@ -65,9 +66,10 @@ def main():
         logger.info('Air quality class instantiated successfully')
 
     except Exception as e:
-        message = (f'Air Quality Class failed to instantiate, with error {e} shutting down...')  # noqa: E501
+        message = (f'Air Quality Class failed to instantiate, with error {e}, going to sleep....')  # noqa: E501
         logger.debug(message)
         com_utilities.send_slack_alert(message, DEVICE_FAILURE_CHANNEL)
+        sleep(900)
 
     # Load parameters
     INTERVAL = int(os.environ['INTERVAL'])

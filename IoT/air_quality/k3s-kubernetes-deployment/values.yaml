@@ -20,8 +20,8 @@ spec:
           imagePullPolicy: Always
           resources:
             limits:
-              cpu: 400m
-              memory: 512Mi
+              cpu: 200m
+              memory: 256Mi
             requests:
               cpu: 100m
               memory: 128Mi
@@ -81,4 +81,4 @@ spec:
               value: /dev/ttyUSB0 
       imagePullSecrets: 
         - name: docker-creds
-      restartPolicy: Always
+    restartPolicy: Always
