@@ -6,16 +6,23 @@
 
 import psutil
 import uuid
-from paho.mqtt import client as mqtt
 import logging
-
-# setup logging for static methods
-logging.basicConfig(filename='hardwareData.log', level=logging.DEBUG,
-                    format='%(asctime)s %(levelname)s %(name)s %(threadName)s\
-                        : %(message)s')
+from paho.mqtt import client as mqtt
+from sys import stdout
 
 
-class MiniS12Data():
+# set up/configure logging with stdout so it can be picked up by K8s
+logger = logging.getLogger('intel_x86_telemetry_logger')
+logger.setLevel(logging.DEBUG)
+
+handler = logging.StreamHandler(stdout)
+handler.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(filename)s - %(message)s')  # noqa: E501
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+
+
+class Intelx86():
 
     def __init__(self):
 
@@ -73,7 +80,7 @@ class MiniS12Data():
 
             else:
                 print(f'connection error: {code} retrying...')
-                logging.DEBUG(f'connection error occured, return code: {code}')
+                logger.DEBUG(f'connection error occured, return code: {code}')
 
         client = mqtt.Client(clientID)
         client.username_pw_set(username=username, password=pwd)

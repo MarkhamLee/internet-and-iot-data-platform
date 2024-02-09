@@ -11,13 +11,18 @@ import time
 import gc
 import os
 import logging
-from minis12_data import MiniS12Data
+from sys import stdout
+from intel_x86 import Intelx86
 
+# set up/configure logging with stdout so it can be picked up by K8s
+logger = logging.getLogger('intel_x86_telemetry_logger')
+logger.setLevel(logging.DEBUG)
 
-# create logger for logging errors, exceptions and the like
-logging.basicConfig(filename='hardwareDataRockChip.log', level=logging.DEBUG,
-                    format='%(asctime)s %(levelname)s %(name)s %(threadName)s\
-                        : %(message)s')
+handler = logging.StreamHandler(stdout)
+handler.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(filename)s - %(message)s')  # noqa: E501
+handler.setFormatter(formatter)
+logger.addHandler(handler)
 
 
 def monitor(client: object, getData: object, topic: str):
@@ -52,7 +57,7 @@ def monitor(client: object, getData: object, topic: str):
         if status != 0:
 
             print(f'Failed to send {payload} to: {topic}')
-            logging.debug(f'MQTT publishing failure, return code: {status}')
+            logger.debug(f'MQTT publishing failure, return code: {status}')
 
         del payload, cpu_util, ram_use, cpu_freq, cpu_temp, \
             status, result
@@ -62,7 +67,7 @@ def monitor(client: object, getData: object, topic: str):
 def main():
 
     # instantiate data and utilities class
-    mini12_data = MiniS12Data()
+    intel_x86_data = Intelx86()
 
     # get MQTT topic
     TOPIC = os.environ['TOPIC']
@@ -74,16 +79,16 @@ def main():
     MQTT_PORT = int(os.environ['MQTT_PORT'])
 
     # get unique client ID
-    clientID = mini12_data.getClientID()
+    clientID = intel_x86_data.getClientID()
 
     # get mqtt client
-    client, code = mini12_data.mqttClient(clientID, MQTT_USER,
-                                          MQTT_SECRET, MQTT_BROKER,
-                                          MQTT_PORT)
+    client, code = intel_x86_data.mqttClient(clientID, MQTT_USER,
+                                             MQTT_SECRET, MQTT_BROKER,
+                                             MQTT_PORT)
 
     # start monitoring
     try:
-        monitor(client, mini12_data, TOPIC)
+        monitor(client, intel_x86_data, TOPIC)
 
     finally:
         client.loop_stop()
