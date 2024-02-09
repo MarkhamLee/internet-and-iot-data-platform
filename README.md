@@ -14,6 +14,14 @@ This project has the following objectives:
 
 This repo contains the code for the ETL pipelines for various data sources, YAML files for deploying various micro-services on Kubernetes, containers for interacting with/pulling data from remote sensors/IoT devices and a lot more. Plan is to continuously add data sources/features in the coming months. 
 
+## Architecture - Tech Stack
+
+![Architecture](/images/new_architecture.png)  
+*The TL/DR: is that data from external APIs comes in via Airflow or Argo, data from internal sensors and/or smart devices comes in via Zigbee and/or custom code (deployed on Docker containers) to an MQTT broker that is managed/orchestrated via Node-Red and infra data comes from a combination of open source libraries, and data feeds from the firewall and UPS device. 
+If things go wrong, I get alerts via Slack.*
+
+All logos and trademarks are property of their respective owners and their use in the diagram represents an acceptable use based on my understanding of their guidelines. **If that is not the case, please let me now and I'll update the diagram ASAP.** 
+
 ### Recent Updates 
 * 1/28: adding Slack alerts for IoT device failures, manifests for deploying ETL pipelines on Argo Workflow
 * 1/22: updated architecture diagram, Slack alerts for ETL pipeline failures
@@ -25,14 +33,6 @@ This repo contains the code for the ETL pipelines for various data sources, YAML
 * 12/27: Updated the Readme with the latest architecture and technical details
 * 12/26: moved all single board computers (e.g., Raspberry Pis) to the cluster as dedicated agent nodes for receiving data from USB based climate sensors and the Zigbee Hub. Added instructions + the values.yaml files for deploying Zigbee2MQTT on Kubernetes. 
 * 12/18: added container/microservice (flask API wrapper around Slack client) for sending alert messages via Slack, so I don't have to include the Slack SDK, client, etc., in the individual services that send Slack alerts. 
-
-## Architecture - Tech Stack
-
-![Architecture](/images/new_architecture.png)  
-*The TL/DR: is that data from external APIs comes in via Airflow or Argo, data from internal sensors and/or smart devices comes in via Zigbee and/or custom code (deployed on Docker containers) to an MQTT broker that is managed/orchestrated via Node-Red and infra data comes from a combination of open source libraries, and data feeds from the firewall and UPS device. 
-If things go wrong, I get alerts via Slack.*
-
-All logos and trademarks are property of their respective owners and their use in the diagram represents an acceptable use based on my understanding of their guidelines. **If that is not the case, please let me now and I'll update the diagram ASAP.** 
 
 ### Tech Stack
 
