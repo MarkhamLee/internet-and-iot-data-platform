@@ -64,7 +64,7 @@ async def get_plug_data(client: object, device_ip: str,
             logger.debug(message)
 
         # clean up RAM, container metrics show RAM usage creeping up daily
-        del payload, result, status
+        del payload
         gc.collect()
 
         # wait 30 seconds

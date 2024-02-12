@@ -20,7 +20,7 @@ spec:
           resources:
             limits:
               cpu: 200m
-              memory: 256
+              memory: 256Mi
             requests:
               cpu: 100m
               memory: 128Mi
@@ -90,7 +90,7 @@ spec:
             - name: SMART_PLUG_TABLE
               valueFrom:
                 configMapKeyRef:
-                  key: labplug1
+                  key: labplug2
                   name: key-ops-variables
             - name: INTERVAL
               value: '5'
@@ -131,7 +131,7 @@ spec:
             - name: SMART_PLUG_TABLE
               valueFrom:
                 configMapKeyRef:
-                  key: labplug1
+                  key: labplug3
                   name: key-ops-variables
             - name: INTERVAL
               value: '5'
@@ -172,7 +172,7 @@ spec:
             - name: SMART_PLUG_TABLE
               valueFrom:
                 configMapKeyRef:
-                  key: labplug1
+                  key: labplug4
                   name: key-ops-variables
             - name: INTERVAL
               value: '5'
