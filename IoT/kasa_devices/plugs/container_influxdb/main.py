@@ -2,19 +2,23 @@
 # Productivity, Weather, Personal, et al dashboard:
 # https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
 # Python script for receiving energy data from a TP Link
-# Kasa TP25P4 smart plug and writing the data to InfluxDB.
+# Kasa TP25P4 smart plug. Note: this data could just as easily be written
+# directly to InfluxDB via its REST API, using MQTT because I may
+# (at some point) want to send instructions back to the device,
+# monitor if a device is connected, etc.
 
 import asyncio
 import os
-import json
 import gc
 from kasa import SmartPlug
-from kasa_utilities import DeviceUtilities
+from influx_client import InfluxClient
 from logging_util import logger
 
+influxdb_write = InfluxClient()
 
-async def get_plug_data(client: object, topic: str,
-                        device_ip: str, interval: int):
+
+async def get_plug_data(client: object, device_ip: str,
+                        interval: int, bucket: str, table: str):
 
     try:
         dev = SmartPlug(device_ip)
@@ -22,6 +26,14 @@ async def get_plug_data(client: object, topic: str,
 
     except Exception as e:
         logger.debug(f'device connection unsuccessful with error: {e}')
+
+    # base payload
+    base_payload = {
+        "measurement": table,
+        "tags": {
+                "k3s_prod": "hardware_telemetry",
+        }
+    }
 
     while True:
 
@@ -41,13 +53,15 @@ async def get_plug_data(client: object, topic: str,
             "device_id": dev.device_id
         }
 
-        payload = json.dumps(payload)
-        result = client.publish(topic, payload)
-        status = result[0]
+        try:
 
-        if status != 0:
-            logger.debug(f'data failed to publish to MQTT topic, status code:\
-                          {status}')
+            # write data to InfluxDB
+            influxdb_write.write_influx_data(client, base_payload,
+                                             payload, bucket)
+
+        except Exception as e:
+            message = (f'InfluxDB write failed with error: {e}')
+            logger.debug(message)
 
         # clean up RAM, container metrics show RAM usage creeping up daily
         del payload, result, status
@@ -59,34 +73,22 @@ async def get_plug_data(client: object, topic: str,
 
 def main():
 
-    # instantiate utilities class
-    deviceUtilities = DeviceUtilities()
-
     # Load operating parameters
     INTERVAL = int(os.environ['INTERVAL'])
     DEVICE_IP = os.environ['DEVICE_IP']
-    TOPIC = os.environ['TOPIC']
 
-    # Load connection variables
-    MQTT_BROKER = os.environ['MQTT_BROKER']
-    MQTT_USER = os.environ['MQTT_USER']
-    MQTT_SECRET = os.environ['MQTT_SECRET']
-    MQTT_PORT = int(os.environ['MQTT_PORT'])
+    TOKEN = os.environ['TOKEN']
+    ORG = os.environ['ORG']
+    URL = os.environ['URL']
+    BUCKET = os.environ['BUCKET']
+    TABLE = os.environ['SMART_PLUG_TABLE']
+    INTERVAL = int(os.environ['INTERVAL'])
 
-    # get unique client ID
-    clientID = deviceUtilities.getClientID()
-
-    # get mqtt client
-    client, code = deviceUtilities.mqttClient(clientID, MQTT_USER,
-                                              MQTT_SECRET, MQTT_BROKER,
-                                              MQTT_PORT)
+    # get client
+    client = influxdb_write.influx_client(TOKEN, ORG, URL)
 
     # start device monitoring
-    try:
-        asyncio.run(get_plug_data(client, TOPIC, DEVICE_IP, INTERVAL))
-
-    finally:
-        client.loop_stop()
+    asyncio.run(get_plug_data(client, DEVICE_IP, INTERVAL, BUCKET, TABLE))
 
 
 if __name__ == "__main__":

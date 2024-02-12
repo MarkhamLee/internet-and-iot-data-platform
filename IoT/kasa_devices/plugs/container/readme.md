@@ -1,2 +1,3 @@
 ### Quick Notes
-* main.py and kasa_power_plug.py are nearly identical, the former is for the Docker container and the later is for stand-alone use. The only difference is that main.py gets all key variables (ports, broker ip, topic, device IP, etc) from environmental variables, while the latter gets topic, refresh interval and device IP via command line parameters.
+
+Files to build a Docker container that will retrieva data from Kasa smart plugs using the open source "unofficial" Kasa Python Library. This version of the container transmits the data via MQTT, while I primarily use the version that writes data directly to InfluxDB this version exists for collecting the data on a low powered device where MQTT might be a smarter approach than using a REST API.
