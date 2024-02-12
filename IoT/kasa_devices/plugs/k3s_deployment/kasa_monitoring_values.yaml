@@ -19,30 +19,38 @@ spec:
           imagePullPolicy: Always
           resources:
             limits:
-              cpu: 500m
-              memory: 512Mi
+              cpu: 200m
+              memory: 256
             requests:
               cpu: 100m
               memory: 128Mi
           env:
-            - name: MQTT_USER
+            - name: TOKEN
               valueFrom:
                 secretKeyRef:
-                  key: MQTT_USER
-                  name: mqtt-prod-secret
-                  optional: false
-            - name: MQTT_SECRET
+                  key: PROD_INFLUX_KEY
+                  name: influxdb-secret
+                  optional: false 
+            - name: ORG
               valueFrom:
-                secretKeyRef:
-                  key: MQTT_SECRET
-                  name: mqtt-prod-secret
-                  optional: false
-            - name: MQTT_BROKER
-              value: <your IP address here>
-            - name: MQTT_PORT
-              value: '1883'
-            - name: TOPIC
-              value: /embedded/lab_plug1
+                configMapKeyRef:
+                  key: INFLUX_ORG
+                  name: key-ops-variables
+            - name: URL
+              valueFrom:
+                configMapKeyRef:
+                  key: INFLUX_URL
+                  name: key-ops-variables
+            - name: BUCKET
+              valueFrom:
+                configMapKeyRef:
+                  key: HARDWARE_BUCKET
+                  name: key-ops-variables
+            - name: SMART_PLUG_TABLE
+              valueFrom:
+                configMapKeyRef:
+                  key: labplug1
+                  name: key-ops-variables
             - name: INTERVAL
               value: '5'
             - name: DEVICE_IP
@@ -52,30 +60,38 @@ spec:
           imagePullPolicy: Always
           resources:
             limits:
-              cpu: 500m
-              memory: 512Mi
+              cpu: 200m
+              memory: 256Mi
             requests:
               cpu: 100m
               memory: 128Mi
           env:
-            - name: MQTT_USER
+            - name: TOKEN
               valueFrom:
                 secretKeyRef:
-                  key: MQTT_USER
-                  name: mqtt-prod-secret #store the secrets in the namespace you deploy this via K3s or Rancher 
-                  optional: false
-            - name: MQTT_SECRET
+                  key: PROD_INFLUX_KEY
+                  name: influxdb-secret
+                  optional: false 
+            - name: ORG
               valueFrom:
-                secretKeyRef:
-                  key: MQTT_SECRET
-                  name: mqtt-prod-secret
-                  optional: false
-            - name: MQTT_BROKER
-              value: <your IP address here>
-            - name: MQTT_PORT
-              value: '1883'
-            - name: TOPIC
-              value: /embedded/lab_plug2
+                configMapKeyRef:
+                  key: INFLUX_ORG
+                  name: key-ops-variables
+            - name: URL
+              valueFrom:
+                configMapKeyRef:
+                  key: INFLUX_URL
+                  name: key-ops-variables
+            - name: BUCKET
+              valueFrom:
+                configMapKeyRef:
+                  key: HARDWARE_BUCKET
+                  name: key-ops-variables
+            - name: SMART_PLUG_TABLE
+              valueFrom:
+                configMapKeyRef:
+                  key: labplug1
+                  name: key-ops-variables
             - name: INTERVAL
               value: '5'
             - name: DEVICE_IP
@@ -85,30 +101,38 @@ spec:
           imagePullPolicy: Always
           resources:
             limits:
-              cpu: 500m
-              memory: 512Mi
+              cpu: 200m
+              memory: 256Mi
             requests:
               cpu: 100m
               memory: 128Mi
           env:
-            - name: MQTT_USER
+            - name: TOKEN
               valueFrom:
                 secretKeyRef:
-                  key: MQTT_USER
-                  name: mqtt-prod-secret
-                  optional: false
-            - name: MQTT_SECRET
+                  key: PROD_INFLUX_KEY
+                  name: influxdb-secret
+                  optional: false 
+            - name: ORG
               valueFrom:
-                secretKeyRef:
-                  key: MQTT_SECRET
-                  name: mqtt-prod-secret
-                  optional: false
-            - name: MQTT_BROKER
-              value: <your IP address here>
-            - name: MQTT_PORT
-              value: '1883'
-            - name: TOPIC
-              value: /embedded/lab_plug3
+                configMapKeyRef:
+                  key: INFLUX_ORG
+                  name: key-ops-variables
+            - name: URL
+              valueFrom:
+                configMapKeyRef:
+                  key: INFLUX_URL
+                  name: key-ops-variables
+            - name: BUCKET
+              valueFrom:
+                configMapKeyRef:
+                  key: HARDWARE_BUCKET
+                  name: key-ops-variables
+            - name: SMART_PLUG_TABLE
+              valueFrom:
+                configMapKeyRef:
+                  key: labplug1
+                  name: key-ops-variables
             - name: INTERVAL
               value: '5'
             - name: DEVICE_IP
@@ -118,30 +142,38 @@ spec:
           imagePullPolicy: Always
           resources:
             limits:
-              cpu: 500m
-              memory: 512Mi
+              cpu: 200m
+              memory: 256Mi
             requests:
               cpu: 100m
               memory: 128Mi
           env:
-            - name: MQTT_USER
+            - name: TOKEN
               valueFrom:
                 secretKeyRef:
-                  key: MQTT_USER
-                  name: mqtt-prod-secret
-                  optional: false
-            - name: MQTT_SECRET
+                  key: PROD_INFLUX_KEY
+                  name: influxdb-secret
+                  optional: false 
+            - name: ORG
               valueFrom:
-                secretKeyRef:
-                  key: MQTT_SECRET
-                  name: mqtt-prod-secret
-                  optional: false
-            - name: MQTT_BROKER
-              value: <your IP address here>
-            - name: MQTT_PORT
-              value: '1883'
-            - name: TOPIC
-              value: /embedded/lab_plug4a
+                configMapKeyRef:
+                  key: INFLUX_ORG
+                  name: key-ops-variables
+            - name: URL
+              valueFrom:
+                configMapKeyRef:
+                  key: INFLUX_URL
+                  name: key-ops-variables
+            - name: BUCKET
+              valueFrom:
+                configMapKeyRef:
+                  key: HARDWARE_BUCKET
+                  name: key-ops-variables
+            - name: SMART_PLUG_TABLE
+              valueFrom:
+                configMapKeyRef:
+                  key: labplug1
+                  name: key-ops-variables
             - name: INTERVAL
               value: '5'
             - name: DEVICE_IP
