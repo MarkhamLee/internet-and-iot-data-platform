@@ -1,3 +1,10 @@
+# Markham Lee (C) 2023 - 2024
+# productivity-music-stocks-weather-IoT-dashboard
+# https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
+# This script retrieves several years from T-Bill data from the Alpha Vantage
+# API. This script + container is used to load all the historical data, prior
+# to running a separate script that will just get the data from the prior day
+
 import os
 import sys
 import json

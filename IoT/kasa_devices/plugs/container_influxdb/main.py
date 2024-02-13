@@ -17,8 +17,8 @@ from logging_util import logger
 influxdb_write = InfluxClient()
 
 
-async def get_plug_data(client: object, device_ip: str,
-                        interval: int, bucket: str, table: str):
+async def get_plug_data(client: object, device_ip: str, interval: int,
+                        bucket: str, table: str):
 
     try:
         dev = SmartPlug(device_ip)
@@ -37,6 +37,8 @@ async def get_plug_data(client: object, device_ip: str,
 
     while True:
 
+        logger.info('starting monitoring loop...')
+
         # poll device for update
         try:
             await dev.update()
@@ -54,7 +56,6 @@ async def get_plug_data(client: object, device_ip: str,
         }
 
         try:
-
             # write data to InfluxDB
             influxdb_write.write_influx_data(client, base_payload,
                                              payload, bucket)
