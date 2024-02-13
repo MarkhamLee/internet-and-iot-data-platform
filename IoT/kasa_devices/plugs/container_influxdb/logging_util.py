@@ -7,7 +7,7 @@ from sys import stdout
 
 
 # set up/configure logging with stdout so it can be picked up by K8s
-logger = logging.getLogger('asana_etl')
+logger = logging.getLogger('kasa_smartplug_logger')
 logger.setLevel(logging.DEBUG)
 
 handler = logging.StreamHandler(stdout)
