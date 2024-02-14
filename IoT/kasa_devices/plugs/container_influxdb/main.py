@@ -33,12 +33,13 @@ async def get_plug_data(client: object, device_ip: str, interval: int,
         logger.info(f'Connected to Kasa smart plug at: {device_ip}')
 
     except Exception as e:
-        logger.debug(f'device connection unsuccessful with error: {e}')
+        message = (f'Kasa smart plug connection unsuccessful with error: {e}')
+        logger.debug(message)
+        # TODO: add Slack Alerts
 
+    logger.info('starting monitoring loop...')
 
     while True:
-
-        logger.info('starting monitoring loop...')
 
         # poll device for update
         try:
@@ -56,14 +57,11 @@ async def get_plug_data(client: object, device_ip: str, interval: int,
             "device_id": dev.device_id
         }
 
-        logger.debug(payload)
-
         try:
 
             # write data to InfluxDB
             influxdb_write.write_influx_data(client, base_payload,
                                              payload, bucket)
-            logger.debug('db write successful')
 
         except Exception as e:
             message = (f'InfluxDB write failed with error: {e}')

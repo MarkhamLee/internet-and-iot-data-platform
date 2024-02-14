@@ -5,7 +5,6 @@
 # to the base to json. A standard data = {"key": "value"} Python dict
 # is fine.
 
-from sys import stdout
 from influxdb_client import InfluxDBClient # noqa E402
 from influxdb_client.client.write_api import SYNCHRONOUS # noqa E402
 from logging_util import logger
