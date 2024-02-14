@@ -5,20 +5,10 @@
 # to the base to json. A standard data = {"key": "value"} Python dict
 # is fine.
 
-import logging
+from sys import stdout
 from influxdb_client import InfluxDBClient # noqa E402
 from influxdb_client.client.write_api import SYNCHRONOUS # noqa E402
-from sys import stdout
-
-# set up/configure logging with stdout so it can be picked up by K8s
-logger = logging.getLogger('rockchip_telemetry_logger')
-logger.setLevel(logging.DEBUG)
-
-handler = logging.StreamHandler(stdout)
-handler.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(filename)s - %(message)s')  # noqa: E501
-handler.setFormatter(formatter)
-logger.addHandler(handler)
+from logging_util import logger
 
 
 class InfluxClient():

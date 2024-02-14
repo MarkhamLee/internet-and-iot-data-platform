@@ -20,6 +20,14 @@ influxdb_write = InfluxClient()
 async def get_plug_data(client: object, device_ip: str, interval: int,
                         bucket: str, table: str):
 
+    # base payload
+    base_payload = {
+        "measurement": table,
+        "tags": {
+                "homelab monitoring": "energy consumption",
+        }
+    }
+
     try:
         dev = SmartPlug(device_ip)
         logger.info(f'Connected to Kasa smart plug at: {device_ip}')
@@ -27,13 +35,6 @@ async def get_plug_data(client: object, device_ip: str, interval: int,
     except Exception as e:
         logger.debug(f'device connection unsuccessful with error: {e}')
 
-    # base payload
-    base_payload = {
-        "measurement": table,
-        "tags": {
-                "k3s_prod": "hardware_telemetry",
-        }
-    }
 
     while True:
 
@@ -55,10 +56,14 @@ async def get_plug_data(client: object, device_ip: str, interval: int,
             "device_id": dev.device_id
         }
 
+        logger.debug(payload)
+
         try:
+
             # write data to InfluxDB
             influxdb_write.write_influx_data(client, base_payload,
                                              payload, bucket)
+            logger.debug('db write successful')
 
         except Exception as e:
             message = (f'InfluxDB write failed with error: {e}')

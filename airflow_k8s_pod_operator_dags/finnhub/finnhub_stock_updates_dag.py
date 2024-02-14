@@ -44,8 +44,9 @@ with DAG(
 ) as dag:
     k = KubernetesPodOperator(
         namespace='airflow',
+        node_selector={'node_type': 'arm64_worker'},
         image_pull_secrets=[k8s.V1LocalObjectReference("dockersecrets")],
-        image="markhamlee/finnhub_stock_etl:latest",
+        image="markhamlee/finnhub_stock_etl:arm64",
         env_vars=env_variables,
         env_from=configmaps,
         secrets=[secret_env1, secret_env2, secret_env3],
