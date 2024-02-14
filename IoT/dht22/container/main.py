@@ -27,7 +27,7 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 
 
-def getTemps(client: object, topic: str, interval: int, error_topic: str):
+def getTemps(client: object, topic: str, interval: int):
 
     # The use pulseio parameter is suggested parameter for a Raspberry Pi
     # may not need to use it with other types of SBCs
@@ -146,7 +146,6 @@ def main():
 
     # load environmental variables
     TOPIC = os.environ['TOPIC']
-    ERROR_TOPIC = os.environ['ERROR_TOPIC']
     INTERVAL = int(os.environ['INTERVAL'])
     MQTT_BROKER = os.environ['MQTT_BROKER']
     MQTT_USER = os.environ['MQTT_USER']
@@ -163,7 +162,7 @@ def main():
 
     # start data monitoring
     try:
-        getTemps(client, TOPIC, INTERVAL, ERROR_TOPIC)
+        getTemps(client, TOPIC, INTERVAL)
 
     finally:
         client.loop_stop()
