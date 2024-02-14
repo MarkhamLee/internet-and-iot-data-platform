@@ -1,1 +1,1 @@
-docker buildx build --push --platform linux/arm64/v8,linux/amd64 --tag  markhamlee/openweather_current:latest -f openweather_current/Dockerfile
+docker buildx build --platform linux/arm64/v8,linux/amd64 --tag  markhamlee/openweather_current:latest -f openweather_current/Dockerfile
