@@ -1,0 +1,4 @@
+#!/bin/bash
+
+
+docker buildx build  -build-context ../..  --platform linux/arm64/v8,linux/amd64 --tag  markhamlee/openweather_current:latest --file /openweather_current/Dockerfile .
