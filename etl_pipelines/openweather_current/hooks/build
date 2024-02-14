@@ -2,4 +2,4 @@
 
 cd ../..
 
-docker buildx build --platform linux/arm64/v8,linux/amd64 --tag  markhamlee/openweather_current:latest --file openweather_current/Dockerfile .
+docker buildx build --platform linux/arm64/v8,linux/amd64 --tag  markhamlee/openweather_current:latest --file ../etl_pipelines/openweather_current/Dockerfile .
