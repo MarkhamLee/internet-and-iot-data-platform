@@ -1,4 +1,4 @@
 #!/bin/bash
 
 
-docker buildx build  -build-context ../../etl_library  --platform linux/arm64/v8,linux/amd64 --tag  markhamlee/openweather_current:latest --file /openweather_current/Dockerfile .
+docker buildx build  --platform linux/arm64/v8,linux/amd64 --tag  markhamlee/openweather_current:latest --file /etl_piplines/openweather_current/Dockerfile .
