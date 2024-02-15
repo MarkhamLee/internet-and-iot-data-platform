@@ -1,4 +1,4 @@
-FROM python:3.11-slim as build
+FROM python:alpine as build
 
 COPY ./etl_library ./etl_library
 COPY ./openweather_library ./openweather_library
