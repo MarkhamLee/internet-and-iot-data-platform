@@ -1,4 +1,4 @@
-FROM python:3.11-slim as build
+FROM python:alpine as build
 
 COPY main.py linux_lepotato.py requirements.txt  /
 

@@ -1,4 +1,4 @@
-FROM python:3.11-slim as build
+FROM python:alpine as build
 
 RUN apt-get update -y && apt-get install -y gcc python3-dev libgpiod2
 

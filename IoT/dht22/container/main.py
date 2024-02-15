@@ -73,6 +73,8 @@ def getTemps(client: object, topic: str, interval: int):
         time.sleep(interval)
 
 
+# not current in use, originally built to track how often the device
+# has a read error
 def error_payload(count: int) -> dict:
     error_payload = {"current_count": count}
 
