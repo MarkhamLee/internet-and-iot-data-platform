@@ -1,6 +1,10 @@
-# client for connecting to InfluxDB API
-# Pass the key, bucket and token and it will return an object
-# for use in writing to InfluxDB.
+# Markham Lee (C) 2023 - 2024
+# productivity-music-stocks-weather-IoT-dashboard
+# https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
+# InfluxDB utilities, generates the client for the API when given the
+# appropriate inuts (token, org, url), also has a method for writing
+# json files to InfluxDB
+# TODO: add method for writing pandas dataframes
 
 from influxdb_client import InfluxDBClient # noqa E402
 from influxdb_client.client.write_api import SYNCHRONOUS # noqa E402
