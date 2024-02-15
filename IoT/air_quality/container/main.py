@@ -3,7 +3,7 @@
 # https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
 # This script retrieves air quality data from a Nova PM SDS011
 # Air Quality sensor connected via USB and then sends the data off
-# to a MQTT broker
+# to an MQTT broker
 
 import json
 import gc
