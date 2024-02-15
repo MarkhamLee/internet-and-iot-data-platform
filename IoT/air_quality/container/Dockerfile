@@ -1,4 +1,4 @@
-FROM python:3.12-slim as build
+FROM python:alpine as build
 
 COPY requirements.txt logging_util.py air_quality.py main.py communications_utilities.py  / 
 
