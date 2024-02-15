@@ -24,4 +24,4 @@ joblib
 Werkzeug
 slack_sdk
 psycopg2-binary
-pyarrow==14.0.2
+pyarrow

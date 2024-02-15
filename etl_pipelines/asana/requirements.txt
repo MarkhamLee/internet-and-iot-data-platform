@@ -1,6 +1,5 @@
 jedi
 lxml
-paho-mqtt==1.6.1
 prometheus-client 
 python-dateutil 
 pyzmq
@@ -20,4 +19,4 @@ joblib
 Werkzeug
 slack_sdk
 psycopg2-binary
-pyarrow==14.0.2
+pyarrow
