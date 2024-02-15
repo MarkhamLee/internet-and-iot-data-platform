@@ -27,7 +27,7 @@ def get_prices(symbol: str):
         return data
 
     except Exception as e:
-        message = (f'stock price data retrieval error: {e}')
+        message = (f'Pipeline error for stock price data: {e}')
         logger.debug(message)
         response = etl_utilities.send_slack_webhook(WEBHOOK_URL, message)
         logger.debug(f'Slack pipeline failure alert sent with code: {response}')  # noqa: E501
@@ -67,7 +67,7 @@ def write_data(data: dict):
         logger.info('stock data successfuly written to InfluxDB')
 
     except Exception as e:
-        message = (f'influx write error: {e}')
+        message = (f'InfluxDB write error for finnhub stock data: {e}')
         logger.debug(message)
         response = etl_utilities.send_slack_webhook(WEBHOOK_URL, message)
         logger.debug(f'Slack pipeline failure alert sent with code: {response}')  # noqa: E501
