@@ -25,7 +25,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: ./IoT/dht22/container
+          context: ./IoT/dht22/container/
           file: ./IoT/dht22/container/Dockerfile
           platforms: linux/arm64
           push: true
