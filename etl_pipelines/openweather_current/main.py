@@ -1,9 +1,13 @@
 # Markham Lee (C) 2023 - 2024
 # productivity-music-stocks-weather-IoT-dashboard
 # https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
-# This script retrieves several years from T-Bill data from the Alpha Vantage
-# API. This script + container is used to load all the historical data, prior
-# to running a separate script that will just get the data from the prior day
+# This script retrieves the current weather from the Open Weather API for a
+# location provided in the environmental variables: name of city and longitude
+# and lattitude coordinates, and then writes that data to InfluxDB.
+# If any part of the pipeline fails, an appropriate alert is sent via Slack.
+# If the container or pod fails, problems with the node, etc., those issues
+# will be detected by Prometheus and Prometheus alert manager will send
+# an alert via Slack.
 
 import os
 import sys
@@ -48,7 +52,7 @@ def get_weather_data():
         validate(instance=data, schema=SCHEMA)
 
     except Exception as e:
-        message = (f'data validation failed for openweather current, with error: {e}')  # noqa: E501
+        message = (f'Data validation failed for the pipeline for openweather current, with error: {e}')  # noqa: E501
         logger.debug(message)
         response = etl_utilities.send_slack_webhook(WEBHOOK_URL, message)
         logger.debug(f'Slack pipeline failure alert sent with code: {response}')  # noqa: E501

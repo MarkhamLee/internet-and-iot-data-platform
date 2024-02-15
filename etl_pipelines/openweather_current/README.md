@@ -41,5 +41,7 @@ To run the container you will need to populate the following environmental varia
 * OPENWEATHER_KEY: API key for the Open Weather API
 * WEATHER_MEASUREMENT: the InfluxDB table, called a "measurement" in InfluxDB parlance
 
+#### Container Details 
 
-Additionally, this ETL container builds using files from the "etl_library" and the "openweather_library" folders that are in this folder's parent/the "etl_pipelines" folder. Please refer to the README in the "etl_pipelines" folder on how to run the 'Docker build' command so that you can properly copy over all the files into your image, otherwise you will get errors related to Docker context and the files it has access to. 
+* The ETL container builds using files from the "etl_library" and the "openweather_library" folders that are in this folder's parent/the "etl_pipelines" folder. Please refer to the README in the "etl_pipelines" folder on how to run the 'Docker build' command so that you can properly copy over all the files into your image, otherwise you will get errors related to Docker context and the files it has access to. 
+* Github actions are used to automate the building of multi-architecture containers that can be used by both the x86 and ARM nodes in the Kubernetes cluster, whenever updates for the relevant folders for this pipeline are pushed the Github the Docker image build process will be triggered and a new container pushed to Dockerhub. The new image will then be used by the ETL pipeline the next time it runs. 
