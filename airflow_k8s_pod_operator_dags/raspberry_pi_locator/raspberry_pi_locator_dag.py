@@ -43,7 +43,7 @@ with DAG(
     k = KubernetesPodOperator(
         namespace='airflow',
         image_pull_secrets=[k8s.V1LocalObjectReference("dockersecrets")],
-        image="markhamlee/rpi5_stock",
+        image="markhamlee/rpi5_stock:latest",
         env_vars=env_variables,
         env_from=configmaps,
         secrets=[secret_env1, secret_env2, secret_env3],
