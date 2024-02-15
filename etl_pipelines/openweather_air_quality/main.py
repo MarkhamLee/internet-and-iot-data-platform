@@ -47,7 +47,7 @@ def get_air_quality_data():
         validate(instance=data, schema=SCHEMA)
 
     except Exception as e:
-        message = (f'data validation failed, with error: {e}')
+        message = (f'data validation failed for open weather air pollution, with error: {e}')  # noqa: E501
         logger.debug(message)
         response = etl_utilities.send_slack_webhook(WEBHOOK_URL, message)
         logger.debug(f'Slack pipeline failure alert sent with code: {response}')  # noqa: E501
@@ -87,7 +87,7 @@ def write_data(data: dict):
         logger.info('Weather data written to InfluxDB')
 
     except Exception as e:
-        message = (f'InfluxDB write failed with error: {e}')
+        message = (f'InfluxDB write for open weather air quality failed with error: {e}')  # noqa: E501
         logger.debug(message)
         response = etl_utilities.send_slack_webhook(WEBHOOK_URL, message)
         logger.debug(f'Slack pipeline failure alert sent with code: {response}')  # noqa: E501
