@@ -1,13 +1,13 @@
-name: openweather_current_container_build
+name: alpha_vantage_tbill_container_build
 
 on:
   push:
     branches:
       - "main"
     paths:
+      - "etl_pipelines/alpha_vantage_library/*"
       - "etl_pipelines/etl_library/*"
-      - "etl_pipelines/openweather_current/*"
-      - "etl_pipelines/openweather_library/*"
+      - "etl_pipelines/alpha_vantage_bonds/*"
 
 jobs:
   docker:
@@ -28,7 +28,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./etl_pipelines/
-          file: ./etl_pipelines/openweather_current/Dockerfile
+          file: ./etl_pipelines/alpha_vantage_bonds/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: markhamlee/openweather_current:latest
+          tags: markhamlee/alphavantagebondetl:latest

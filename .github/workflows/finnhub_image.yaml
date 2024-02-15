@@ -1,4 +1,4 @@
-name: openweather_current_container_build
+name: finnhub_stocks_container_build
 
 on:
   push:
@@ -6,8 +6,7 @@ on:
       - "main"
     paths:
       - "etl_pipelines/etl_library/*"
-      - "etl_pipelines/openweather_current/*"
-      - "etl_pipelines/openweather_library/*"
+      - "etl_pipelines/finnhub/*"
 
 jobs:
   docker:
@@ -28,7 +27,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./etl_pipelines/
-          file: ./etl_pipelines/openweather_current/Dockerfile
+          file: ./etl_pipelines/finnhub/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: markhamlee/openweather_current:latest
+          tags: markhamlee/finnhub_stock_etl:latest

@@ -1,4 +1,4 @@
-name: openweather_current_container_build
+name: openweather_airpollution_container_build
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - "main"
     paths:
       - "etl_pipelines/etl_library/*"
-      - "etl_pipelines/openweather_current/*"
+      - "etl_pipelines/openweather_air_quality/*"
       - "etl_pipelines/openweather_library/*"
 
 jobs:
@@ -28,7 +28,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./etl_pipelines/
-          file: ./etl_pipelines/openweather_current/Dockerfile
+          file: ./etl_pipelines/openweather_air_quality/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: markhamlee/openweather_current:latest
+          tags: markhamlee/openweather_airquality:latest
