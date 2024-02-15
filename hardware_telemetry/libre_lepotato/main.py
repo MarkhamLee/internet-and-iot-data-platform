@@ -12,12 +12,19 @@ import json
 import time
 import gc
 import logging
+from sys import stdout
 from linux_lepotato import LibreCpuData
 
-# create logger for logging errors, exceptions and the like
-logging.basicConfig(filename='hardwareDataLinuxCPU.log', level=logging.DEBUG,
-                    format='%(asctime)s %(levelname)s %(name)s %(threadName)s\
-                        : %(message)s')
+
+# set up/configure logging with stdout so it can be picked up by K8s
+logger = logging.getLogger('libre_lepotato_telemetry')
+logger.setLevel(logging.DEBUG)
+
+handler = logging.StreamHandler(stdout)
+handler.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(filename)s - %(message)s')  # noqa: E501
+handler.setFormatter(formatter)
+logger.addHandler(handler)
 
 
 def monitor(client: object, getData: object, topic: str):
@@ -52,7 +59,7 @@ def monitor(client: object, getData: object, topic: str):
 
         if status != 0:
             print(f'Failed to send {payload} to: {topic}')
-            logging.debug(f'MQTT publishing failure, return code: {status}')
+            logger.debug(f'MQTT publishing failure, return code: {status}')
 
         del payload, cpuUtil, ramUse, cpuFreq, cpuTemp, status, result
         gc.collect()
