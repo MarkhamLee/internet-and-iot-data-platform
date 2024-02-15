@@ -2,6 +2,10 @@
 
 ### 2024
 
+* 02/15/24: a couple of updates related to CI/CD and shifting ETL workloads to run on the more power efficient arm64 nodes (Orange Pi 5+ and Raspberry Pi 4B) that are now running on the Kubernetes cluster as worker nodes. 
+    * Building out automated CI/CD pipeline(s) using GitHub actions to automatically build Docker images and then upload them to Docker Hub, where they can be picked up by Kubernetes the next time an ETL pipeline runs. The process is triggered whenever new code for a particular image is pushed to GitHub. All images are built as multi-container images so they can be run on both the amd64/x86 and arm64 nodes. All ETL containers have been added to the CI/CD pipeline, hardware, IoT and other images are roughly 1/2 complete. 
+    * Added a preference to the Airflow DAGs for the arm64 nodes to take advantage of those devices lower power consumption.
+    * Updated documentation on building multi-architecture images, CI/CD and future plans.
 * 02/02/24: moved all Airflow DAGs to Kubernetes Pod Operator (DAG for Config that runs Docker container), finished Argo Workflow manifest files for all current ETLs. 
 * 1/28/24: adding Slack alerts for IoT device failures, manifests for deploying ETL pipelines on Argo Workflow
 * 1/22/24: added Slack pipeline failure alerts directly into ETL containers so alerts are agnostic of the tool used to run them, updated architecture diagra
