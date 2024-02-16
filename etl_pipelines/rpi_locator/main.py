@@ -129,7 +129,7 @@ def prepare_payload(payload: object, columns: list) -> object:
     # text data with punctuation  without having situations where a comma
     # in a sentence is treated as new column or causes a blank column to be
     # created.
-    payload.to_csv(buffer, index=False, columns=columns, header=False)
+    payload.to_csv(buffer, index=True, columns=columns, header=False)
     buffer.seek(0)
 
     return buffer
