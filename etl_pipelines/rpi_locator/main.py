@@ -18,9 +18,15 @@ sys.path.append(parent_dir)
 
 from etl_library.logging_util import logger  # noqa: E402
 from etl_library.postgres_client import PostgresUtilities  # noqa: E402
+from etl_library.general_utilities import EtlUtilities  # noqa: E402
+
+# Load general utilities
+etl_utilities = EtlUtilities()
 
 # instantiate Postgres writing class
 utilities = PostgresUtilities()
+
+PIPELINE_ALERT_WEBHOOK = os.environ['ALERT_WEBHOOK']
 
 
 # method to read the feed and convert to data frame
@@ -129,7 +135,7 @@ def prepare_payload(payload: object, columns: list) -> object:
     # text data with punctuation  without having situations where a comma
     # in a sentence is treated as new column or causes a blank column to be
     # created.
-    payload.to_csv(buffer, index=True, columns=columns, header=False)
+    payload.to_csv(buffer, index=True, sep='\t', columns=columns, header=False)
     buffer.seek(0)
 
     return buffer
@@ -155,14 +161,18 @@ def write_data(data: object):
     # prepare payload
     buffer = prepare_payload(data, columns)
 
-    # write data
-    response = utilities.write_data(postgres_connection, buffer, TABLE)
+    try:
+        # write data
+        response = utilities.write_data(postgres_connection, buffer, TABLE)
+        logger.info(f"PostgreSQL write complete, {row_count} rows written to database with response: {response}")  # noqa: E501
 
-    if response == 0:
-        logger.info(f"PostgreSQL write complete, {row_count} rows written to database")  # noqa: E501
+    except Exception as e:
+        message = (f'Failure on RPI locator pipeline with error: {e}')  # noqa: E501
+        logger.debug(message)
+        etl_utilities.send_slack_webhook(PIPELINE_ALERT_WEBHOOK, message)
 
 
-def send_alert(data: object):
+def send_product_alert(data: object):
 
     # get webhook link
     WEBHOOK_URL = os.environ.get('WEBHOOK')
@@ -209,11 +219,11 @@ def main():
     # update data frame to show age of each entry & filter out newest
     updated_data = alert_age(cleaned_data, MAX_AGE)
 
+    # send Slack alert
+    response = send_product_alert(updated_data)  # noqa: F841
+
     # write data to Postgres
     write_data(updated_data)
-
-    # send Slack alert
-    response = send_alert(updated_data)  # noqa: F841
 
 
 if __name__ == "__main__":
