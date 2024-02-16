@@ -51,7 +51,7 @@ def data_transformation(data: object) -> object:
     data.rename(columns={'title': 'product_alert'}, inplace=True)
 
     # need to convert published column to date time format
-    data['published'] = pd.to_datetime(data['published'])
+    data['published'] = pd.to_datetime(data['published'], utc=True)
 
     return data
 
@@ -66,8 +66,8 @@ def alert_age(data: object, MAX_AGE: int):
     data['current time'] = current_time
 
     # calculate the age of the alert in hours
-    data['alert_age'] = (current_time - data['published']) /\
-        pd.Timedelta(hours=1)
+    data['alert_age'] = round((current_time - data['published']) /
+                              pd.Timedelta(hours=1), 2)
 
     # filter out entries younger than a minimum threshold
     # i.e. older entries are probably already sold out.
@@ -129,8 +129,7 @@ def prepare_payload(payload: object, columns: list) -> object:
     # text data with punctuation  without having situations where a comma
     # in a sentence is treated as new column or causes a blank column to be
     # created.
-    payload.to_csv(buffer, index=False, sep='\t', columns=columns,
-                   header=False)
+    payload.to_csv(buffer, index=False, columns=columns, header=False)
     buffer.seek(0)
 
     return buffer
@@ -195,8 +194,11 @@ def send_alert(data: object):
 
 def main():
 
-    URL = os.environ.get('LOCATOR_URL')
-    MAX_AGE = int(os.environ.get('MAX_AGE'))
+    # URL = os.environ.get('LOCATOR_URL')
+    # MAX_AGE = int(os.environ.get('MAX_AGE'))
+
+    URL = 'https://rpilocator.com/feed/?country=US&cat=PI5'
+    MAX_AGE = 24
 
     # get raw feed data
     data = read_rss_convert(URL)
