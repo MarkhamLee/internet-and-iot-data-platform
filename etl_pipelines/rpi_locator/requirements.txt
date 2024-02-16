@@ -2,8 +2,6 @@ pandas
 feedparser
 datetime
 requests
-psycopg2-binary
-beautifulsoup4 
 influxdb-client==1.38.0
 jedi
 lxml
