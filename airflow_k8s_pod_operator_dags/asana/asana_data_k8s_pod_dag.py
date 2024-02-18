@@ -12,6 +12,17 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import Kubernete
 configmaps = [
     k8s.V1EnvFromSource(config_map_ref=k8s.V1ConfigMapEnvSource(name="key-etl-variables"))]  # noqa: E501
 
+resource_limits = k8s.V1ResourceRequirements(
+            requests={
+                'cpu': '400m',
+                'memory': '256Mi'
+                },
+            limits={
+                'cpu': '800m',
+                'memory': '512Mi'
+                },
+            )
+
 # load all the required secrets from Kubernetes
 secret_env1 = Secret(deploy_type="env", deploy_target="POSTGRES_USER",
                      secret="postgres-secrets", key="POSTGRES_USER")
@@ -41,6 +52,7 @@ with DAG(
 ) as dag:
     k = KubernetesPodOperator(
         namespace='airflow',
+        container_limits=resource_limits,
         node_selector={'node_type': 'arm64_worker'},
         image_pull_secrets=[k8s.V1LocalObjectReference("dockersecrets")],
         image="markhamlee/asanadata:latest",

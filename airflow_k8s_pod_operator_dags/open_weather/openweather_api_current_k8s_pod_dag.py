@@ -21,6 +21,17 @@ configmaps = [
     k8s.V1EnvFromSource(config_map_ref=k8s.V1ConfigMapEnvSource(name="key-etl-variables"))  # noqa: E501
 ]
 
+resource_limits = k8s.V1ResourceRequirements(
+            requests={
+                'cpu': '200m',
+                'memory': '128Mi'
+                },
+            limits={
+                'cpu': '400m',
+                'memory': '256Mi'
+                },
+            )
+
 # load all the required secrets from Kubernetes
 secret_env1 = Secret(deploy_type="env", deploy_target="OPENWEATHER_KEY",
                      secret="openweather-secret", key="OPEN_WEATHER_SECRET")
@@ -46,7 +57,8 @@ with DAG(
 ) as dag:
     k = KubernetesPodOperator(
         namespace='airflow',
-        node_selector={'node_type': 'arm64_worker'},
+        container_limits=resource_limits,
+        node_selector={'etl_node': 'rpi4b'},
         image_pull_secrets=[k8s.V1LocalObjectReference("dockersecrets")],
         image="markhamlee/openweather_current:latest",
         env_vars=env_variables,

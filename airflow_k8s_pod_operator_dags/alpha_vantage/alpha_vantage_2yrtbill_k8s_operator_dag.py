@@ -13,6 +13,17 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import Kubernete
 env_variables = {"BOND_MATURITY": "2year",
                  "TBILL_TABLE": "two_year_tbill"}
 
+resource_limits = k8s.V1ResourceRequirements(
+            requests={
+                'cpu': '200m',
+                'memory': '128Mi'
+                },
+            limits={
+                'cpu': '400m',
+                'memory': '256Mi'
+                },
+            )
+
 # load config maps from Kubernetes
 configmaps = [
     k8s.V1EnvFromSource(config_map_ref=k8s.V1ConfigMapEnvSource(name="key-etl-variables"))]  # noqa: E501
@@ -46,6 +57,7 @@ with DAG(
 ) as dag:
     k = KubernetesPodOperator(
         namespace='airflow',
+        container_limits=resource_limits,
         node_selector={'node_type': 'arm64_worker'},
         image_pull_secrets=[k8s.V1LocalObjectReference("dockersecrets")],
         image="markhamlee/alphavantagebondetl:latest",
