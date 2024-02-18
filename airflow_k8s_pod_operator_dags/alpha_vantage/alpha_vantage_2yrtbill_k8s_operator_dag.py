@@ -15,12 +15,12 @@ env_variables = {"BOND_MATURITY": "2year",
 
 resource_limits = k8s.V1ResourceRequirements(
             requests={
-                'cpu': '200m',
-                'memory': '128Mi'
-                },
-            limits={
                 'cpu': '400m',
                 'memory': '256Mi'
+                },
+            limits={
+                'cpu': '800m',
+                'memory': '512Mi'
                 },
             )
 
