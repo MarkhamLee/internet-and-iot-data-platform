@@ -204,11 +204,8 @@ def send_product_alert(data: object):
 
 def main():
 
-    # URL = os.environ.get('LOCATOR_URL')
-    # MAX_AGE = int(os.environ.get('MAX_AGE'))
-
-    URL = 'https://rpilocator.com/feed/?country=US&cat=PI5'
-    MAX_AGE = 24
+    URL = os.environ.get('LOCATOR_URL')
+    MAX_AGE = int(os.environ.get('MAX_AGE'))
 
     # get raw feed data
     data = read_rss_convert(URL)
