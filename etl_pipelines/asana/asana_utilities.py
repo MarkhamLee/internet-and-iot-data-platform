@@ -29,6 +29,7 @@ class AsanaUtilities():
 
         try:
             client = asana.Client.access_token(key)
+            client.headers.update({'Asana-Enable': 'new_goal_memberships'})
             logger.info('Asana client created')
             return client
 
@@ -54,7 +55,6 @@ class AsanaUtilities():
 
             # drop the 'gid' field and re-order the columns
             df = df[['name', 'created_at', 'modified_at']]
-            df.columns = ['name', 'created_on', 'last_modified']
 
             total_rows = len(df)
 

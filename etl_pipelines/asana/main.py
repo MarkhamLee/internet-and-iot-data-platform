@@ -56,8 +56,8 @@ def parse_asana_data(response: object) -> list:
 def calculate_task_age(df: object) -> object:
 
     # set field names to date-time format
-    df[['created_on', 'last_modified']] =\
-       df[['created_on', 'last_modified']].apply([pd.to_datetime])
+    df[['created_at', 'modified_at']] =\
+       df[['created_at', 'modified_at']].apply([pd.to_datetime])
 
     # Calculate the age of each task
 
@@ -65,12 +65,17 @@ def calculate_task_age(df: object) -> object:
     current_time = datetime.now(timezone.utc)
 
     # calculate the age of the alert in days
-    df['task_age'] = (current_time - df['created_on']) /\
-        pd.Timedelta(days=1)
+    df['task_age(days)'] = round((current_time - df['created_at']) /
+                                 pd.Timedelta(days=1), 2)
 
     # calculate duration since last update in days
-    df['task_idle'] = (current_time - df['last_modified']) /\
-        pd.Timedelta(days=1)
+    df['task_idle(days)'] = round((current_time - df['modified_at']) /
+                                  pd.Timedelta(days=1), 2)
+
+    # adjust/clean-up date time columns
+
+    df['created_at'] = df['created_at'].dt.strftime('%Y/%m/%d %H:%M')
+    df['modified_at'] = df['modified_at'].dt.strftime('%Y/%m/%d %H:%M')
 
     return df
 
