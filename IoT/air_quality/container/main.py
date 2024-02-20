@@ -16,6 +16,9 @@ from communications_utilities import IoTCommunications
 com_utilities = IoTCommunications()
 DEVICE_FAILURE_CHANNEL = os.environ['DEVICE_FAILURE_CHANNEL']
 
+DEVICE_ID = os.environ['DEVICE_ID']
+# SENSOR_ID = os.environ['SENSOR_ID']
+
 
 def air(client: object, quality: object, topic: str, interval: int) -> str:
 
@@ -37,15 +40,15 @@ def air(client: object, quality: object, topic: str, interval: int) -> str:
         base_sleep = 300
 
         if status != 0:
-            message = (f'data failed to publish to MQTT topic, status code: {status}')  # noqa: E501
+            message = (f'Air quality MQTT publish failure on {DEVICE_ID}, status code: {status}')  # noqa: E501
             logger.debug(message)  # noqa: E501
             com_utilities.send_slack_alert(message, DEVICE_FAILURE_CHANNEL)
             mqtt_error_count += 1
 
-            if mqtt_error_count == 20:
+            if mqtt_error_count == 5:
                 # put container to sleep if broker is down
                 # calculate sleep duration
-                message = (f'20 consecutive MQTT broker failures, going to sleep for {base_sleep/60} minutes')  # noqa: E501
+                message = (f'10 consecutive MQTT broker failures, going to sleep for {base_sleep/60} minutes')  # noqa: E501
                 sleep(base_sleep)
 
         # given that this is a RAM constrained device, let's delete
