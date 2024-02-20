@@ -12,15 +12,23 @@ import json
 import time
 import gc
 import logging
+from sys import stdout
 from rpi4b_data import Rpi4bData
 
-# create logger for logging errors, exceptions and the like
-logging.basicConfig(filename='hardware_data_rpi4b.log', level=logging.DEBUG,
-                    format='%(asctime)s %(levelname)s %(name)s %(threadName)s\
-                        : %(message)s')
+# set up/configure logging with stdout so it can be picked up by K8s
+logger = logging.getLogger('Raspberry_Pi_4B_Telemetry')
+logger.setLevel(logging.DEBUG)
+
+handler = logging.StreamHandler(stdout)
+handler.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(filename)s - %(message)s')  # noqa: E501
+handler.setFormatter(formatter)
+logger.addHandler(handler)
 
 
 def monitor(client: object, getData: object, topic: str):
+
+    DEVICE_ID = os.environ['DEVICE_ID']
 
     while True:
 
@@ -53,7 +61,7 @@ def monitor(client: object, getData: object, topic: str):
         if status != 0:
 
             print(f'Failed to send {payload} to: {topic}')
-            logging.debug(f'MQTT publishing failure, return code: {status}')
+            logger.debug(f'MQTT publishing failure for hardware monitoring on: {DEVICE_ID}, return code: {status}')  # noqa: E501
 
         del payload, cpuUtil, ramUse, cpuFreq, cpuTemp, status, result
         gc.collect()

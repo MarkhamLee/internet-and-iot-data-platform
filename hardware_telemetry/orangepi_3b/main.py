@@ -10,16 +10,23 @@ import time
 import gc
 import os
 import logging
+from sys import stdout
 from orangepi3b_data import OrangePi3BData
 
+# set up/configure logging with stdout so it can be picked up by K8s
+logger = logging.getLogger('Orange_Pi_3B_Telemetry')
+logger.setLevel(logging.DEBUG)
 
-# create logger for logging errors, exceptions and the like
-logging.basicConfig(filename='hardwareDataRockChip.log', level=logging.DEBUG,
-                    format='%(asctime)s %(levelname)s %(name)s %(threadName)s\
-                        : %(message)s')
+handler = logging.StreamHandler(stdout)
+handler.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(filename)s - %(message)s')  # noqa: E501
+handler.setFormatter(formatter)
+logger.addHandler(handler)
 
 
 def monitor(client: object, getData: object, topic: str):
+
+    DEVICE_ID = os.environ['DEVICE_ID']
 
     while True:
 
@@ -52,7 +59,7 @@ def monitor(client: object, getData: object, topic: str):
         if status != 0:
 
             print(f'Failed to send {payload} to: {topic}')
-            logging.debug(f'MQTT publishing failure, return code: {status}')
+            logger.debug(f'MQTT publishing failure for hardware monitoring on: {DEVICE_ID}, return code: {status}')  # noqa: E501
 
         del payload, cpu_util, ram_use, cpu_freq, cpu_temp, gpu_temp, \
             status, result
