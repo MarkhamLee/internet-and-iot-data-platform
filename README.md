@@ -36,17 +36,18 @@ All logos and trademarks are property of their respective owners and their use i
 
 ### Tech Stack
 
-* **Evaluating various tools for ETL from external APIs (Asana, Finnhub, OpenWeather and the like), in addition to general container orchestration. 
+* **ETL Tools:** using a variety of ETL/container orchestration tools to gather data from external APIs (Asana, Finnhub, OpenWeather and the like), in addition to general container orchestration: 
     * **Airflow:** for ETL/data ingestion only
-    * **Argo Workflows:** ETL and general container orchestration, capable of more complex logic than Airflow or just deploying containers directly on Kubernetes. 
-    * **Kubernetes Cron Jobs:** not as elegant as some of the other options, but often the simplest to implement, currently the default for general orchestration or microservices. 
-    * **Open FaaS:** ETL, microservices and containerization. 
+    * **Argo Workflows:** ETL, general container orchestration and in addition to event based use cases, as it's capable of more complex logic than Airflow or just deploying containers directly on Kubernetes. 
+    * **Kubernetes Cron Jobs:** not as elegant as some of the other options but often the simplest to implement, currently being used to deploy IoT related containers
+    * **Open FaaS:** ETL, event-based microservices [Still Evaluating]
+* **CI/CD Pipelines:** each Dockerized microservice or workload has an accompanying Githug Actions config file (see .github/workflows), which tells GitHub Actions what folders/files to monitor. Whenever a file that is used to build an image(s) is updated/pushed to this repo, GitHub actions will automatically build multi-architecture Docker images (amd64, arm64) and then upload them to Docker Hub, where they will be picked up by my Kubernetes cluster. What this means in practice is that I update the Python script that all the ETL containers include in their images, updating that file will trigger an update for all the ETL containers that use it, which will be then be used the next time that pipeline runs.
 * **InfluxDB:** for storing time series data, **PostgreSQL** for everything else 
 * **Grafana:** to display data/dashboards 
 * **Grafana-Loki Stack:** for log aggregation, Prometheus for general monitoring
 * **Eclipse-Mosquito:** for the MQTT broker that will receive messages from IoT/Smart Devices 
 * **Docker:** practically everything is deployed as a containerized workload on Kubernetes or on an orchestration tool that runs on Kubernetes. 
-* **Monitoring:** **Grafana-Loki** for aggregating logs from the cluster and from individual containers, workloads and the like. **The Kube Prometheus Stack** to monitor the cluster, detect when a container crashes, a node goes offline, etc. All alerts are sent via Slack. 
+* **Monitoring:** **Grafana-Loki** for aggregating logs from the cluster and from individual containers, workloads and the like. **The Kube Prometheus Stack** to monitor the cluster, detect when a container crashes, a node goes offline, etc. All alerts are sent via **Prometheus Alerts Manager & Slack**. 
 * **Portainer:** used to manage all docker containers not deployed to K3s, meaning: the validation/beta enivronment, plus new services being tested on Raspberry Pis or similar devices.
 * **Node-RED:** to manage the incoming MQTT messages, data transformation of MQTT messages and then writing the data to InfluxDB 
 * **Slack:** is integrated into practically every function: alerts for cluster monitoring, issues with data pipelines, IoT sensors malfunctioning, etc., alerts are generated both when an issue occurs and when it's resolved. Additionally, reminder alerts are generated for things like Raspberry Pi 5s being in stock (detected by the Raspberry Pi locator bot), reminders that the secure certs for my firewall need to be renewed, etc.
@@ -58,10 +59,10 @@ All logos and trademarks are property of their respective owners and their use i
 * High availability configuration via three Server/control plane + general workload nodes arunning on three **Beelink SER 5 Pros (Ryzen 5 5560U CPUs)**. These high performance but power efficient devices can deliver about 70-80% of the performance of an 11th Gen i5, but in an Intel NUC sized chassis and using less than 10% of the power. The server nodes are all equipped with 2TB NVME drives and 64GB of RAM. 
 * GPIO and USB based sensors are running on **Raspberry Pi 4B 8GB** devices as "sensor nodes", "node_type=sensor_node:NoSchedule" taints and tolerations are used so that key K8s components for monitoring, storage and logging are scheduled on these nodes but general workloads (e.g. ETL containers, apps like Argo or Node-Red) are excluded.  
 * Hardware wise future plans include adding dedicated storage nodes, general purpose worker nodes and nodes equipped with hardware for AI/ML acceleration, E.g., NVIDIA GPUs, RockChip NPUs, etc. 
-* I use letsencrypt.org certificates + traekik as an ingress controller to secure/encrypt connections to the services running on the cluster. 
+* I use **letsencrypt.org certificates + traekik** as an ingress controller to secure/encrypt connections to the services running on the cluster. 
 * The cluster is managed with **Rancher**, **Longhorn** is used to manage shared storage accross the cluster, and all shared storage + Rancher data is backed up to AWS S3 on an hourly basis. 
 * Prometheus is used for monitoring the nodes and the **Grafana-Loki Stack** is used for aggregating/collecting logs. 
-* **Operating Systems:** Only Ubuntu 22.04 distros for the moment, currently testing Armbian on an Orange Pi 3Bs on a separate test cluster. 
+* **Operating Systems:** Only **Ubuntu 22.04** distros for the moment 
 * You can get more details on my K3s cluster in the separate repo I created for it [here](https://github.com/MarkhamLee/kubernetes-k3s-data-platform-IoT).
 
 
@@ -72,12 +73,16 @@ I originally, built all ETL pipelines as Airflow DAGs, but that made testing tri
 * By making the pipelines more agnostic, it's much easier to experiment with, test, get experience with other ETL and orchestration tools. 
 * No longer need to worry about managing dependencies for Airflow as they're all baked into the container
 * I can test locally without having to maintain multiple Airflow instances, or do things like test a standard python ETL script and then test it again as a DAG.  
-* The containers can be used, tested, deployed with practically any container orchestration tool/solution. 
+* The CI/CD pipeline automatically rebuilds the images whenver a relevant file is updated and the pipelines always check for new images before they run, this makes updating the pipelines very smooth and easy: I update a file and everything is taken care of via the automations for CI/CD and ETL.
 * By leveraging libraries of common functions/scripts/files (API clients, writing to DBs, logging, etc.), I can not only build new pipelines faster, but updates/improvements to those core files can be used by any of the existing ETL pipelines as soon as their images are updated.
 
 *i.e., all the advantages of using containers...* 
 
-At the moment I'm experimenting with running the ETL containers with Airflow, Argo, Kubernetes cron jobs and OpenFaaS, and will eventually settle on 1-2 of those solutions on a go-forward basis. To compensate for the level of data you get from Airflow compared to some of the other solutions, I updated the logging within the containers to make things roughly equivalent to what you'd get with Airflow, and I've added Slack alerts that are triggered whenever a data pipeline fails. 
+~~At the moment I'm experimenting with running the ETL containers with Airflow, Argo, Kubernetes cron jobs and OpenFaaS, and will eventually settle on 1-2 of those solutions on a go-forward basis.~~
+
+Airflow and Argo Workflows will be the ETL tools of record. While my preference leans slightly towards Airflow, building ETL containers that work with both will help ensure I meet my goals of making things as as "tool agnostic" as possible. I'll also continue to use Kubernetes cron jobs to test containers. 
+
+To compensate for logging and alerting when using the Airflow Kubernetes Pod Operator or Argo Workflows vs traditional DAGs, I've added more logging to the ETL containers and Slack Alerts for failures at any stage of the pipeline. 
 
 #### Current and Future Data Sources
 * **External/Public API sources:** 
@@ -87,11 +92,11 @@ At the moment I'm experimenting with running the ETL containers with Airflow, Ar
         * Alpha Vantage for treasuries [DONE]
         * Finnhub for stocks [DONE]
     * Raspberry Pi Locator: built a simple bot for consuming the RSS feed and then alerting me via Slack if the stock update is less than 12 hours old [DONE]
+    * GitHub: now that I'm using GitHub actions I need to track my usage so I can see any potential costs/if I'm going to go past the allotment of minutes already included in my current subscription. [IN PROCESS]
     * Tracking hydration - still looking for a good way to do this that isn't 1/2 a hack or require me to build an app that is always connected/synching as opposed to being able to just connect periodically. 
     * Discord - I join servers and then rarely pay attention and often miss announcements related to DIY/Makers, Podcasts I enjoy, Video Game Mods and other hobbies. 
     * eBay? I need to explore the API more but the plan is to track auctions and automate searches for items I'm interested in. 
-    * Spotify - alerts for podcast updates 
-    * I use Roon Music Server to manage my music catalog and listen to services like Tidal and Qubuz, tentative plan is to explore their API and potentially see if I can add "now playing" or even controls to Grafana and/or maybe create a separate web page that I bring Grafana into. 
+
 
 ## Automation, Edge and IoT Devices
 
