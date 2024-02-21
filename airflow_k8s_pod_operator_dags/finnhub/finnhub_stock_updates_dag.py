@@ -7,7 +7,7 @@
 from datetime import datetime, timedelta
 from kubernetes.client import models as k8s
 from airflow import DAG
-from airflow.kubernetes.secret import Secret
+from airflow.providers.cncf.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator  # noqa: E501
 
 
