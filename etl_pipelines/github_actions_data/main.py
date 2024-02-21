@@ -72,11 +72,12 @@ def parse_data(data: dict) -> dict:
 
     # validate data
     response = validate_data(data)
+    logger.debug(data)
 
     if response == 0:
-        parsed_payload = {"total_minutes": data['total_minutes_used'],
+        parsed_payload = {"total_minutes": data["total_minutes_used"],
                           "total_paid_minutes_used":
-                              data['total_paid_minutes_used']}
+                              data["total_paid_minutes_used"]}
     else:
         logger.debug("Data validation failed, exiting...")
         sys.exit()
