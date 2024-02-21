@@ -7,7 +7,7 @@ from sys import stdout
 
 
 # set up/configure logging with stdout so it can be picked up by K8s
-logger = logging.getLogger('telemetry_logger')
+logger = logging.getLogger('slack_telemetry_logger')
 logger.setLevel(logging.DEBUG)
 
 handler = logging.StreamHandler(stdout)
