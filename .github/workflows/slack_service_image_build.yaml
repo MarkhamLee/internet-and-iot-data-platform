@@ -5,7 +5,7 @@ on:
     branches:
       - "main"
     paths:
-      - "k3s_kubernetes_deployment_manifests/custom_micro_services/slack_service/*"
+      - "k3s_kubernetes_deployment_manifests/custom_micro_services/slack_service/container/*"
 
 jobs:
   docker:
@@ -25,8 +25,8 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: ./k3s_kubernetes_deployment_manifests/custom_micro_services/slack_service/
-          file: ./k3s_kubernetes_deployment_manifests/custom_micro_services/slack_service/Dockerfile
+          context: ./k3s_kubernetes_deployment_manifests/custom_micro_services/slack_service/container/
+          file: ./k3s_kubernetes_deployment_manifests/custom_micro_services/slack_service/container/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
           tags: markhamlee/slack_service:latest
