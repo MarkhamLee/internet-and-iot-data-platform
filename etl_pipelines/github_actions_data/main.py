@@ -72,7 +72,6 @@ def parse_data(data: dict) -> dict:
 
     # validate data
     response = validate_data(data)
-    logger.debug(data)
 
     if response == 0:
         parsed_payload = {"total_minutes": data["total_minutes_used"],
@@ -131,7 +130,6 @@ def main():
     data = get_github_data(GITHUB_TOKEN, full_url)
 
     payload = parse_data(data)
-    logger.info(f'payload ready: {payload}')
 
     write_data(payload)
 
