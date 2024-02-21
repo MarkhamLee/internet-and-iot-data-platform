@@ -1,4 +1,4 @@
-FROM python:3.11-slim as build
+FROM python:3.12.2-slim as build
 
 COPY requirements.txt server.py slack_utilities.py logging_util.py wsgi.py  /
 
