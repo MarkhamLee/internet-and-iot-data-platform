@@ -94,7 +94,7 @@ def write_data(payload: dict):
     INFLUX_KEY = os.environ['INFLUX_KEY']
     ORG = os.environ['INFLUX_ORG']
     URL = os.environ['INFLUX_URL']
-    BUCKET = os.environ['BUCKET']
+    BUCKET = os.environ['DEVOPS_BUCKET']
 
     # get the client for connecting to InfluxDB
     client = influx.create_influx_client(INFLUX_KEY, ORG, URL)
