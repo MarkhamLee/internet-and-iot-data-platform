@@ -38,7 +38,7 @@ def get_github_data(token: str, full_url: str) -> dict:
     }
 
     try:
-        response = requests.get(full_url, headers)
+        response = requests.get(full_url, headers=headers)
         logger.info('Github actions data retrieved')
         return response.json()
 
