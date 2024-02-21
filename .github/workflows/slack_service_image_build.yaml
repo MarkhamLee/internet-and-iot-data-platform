@@ -27,6 +27,6 @@ jobs:
         with:
           context: ./k3s_kubernetes_deployment_manifests/custom_micro_services/slack_service/container/
           file: ./k3s_kubernetes_deployment_manifests/custom_micro_services/slack_service/container/Dockerfile
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           push: true
           tags: markhamlee/slack_service:latest
