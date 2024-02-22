@@ -1,6 +1,5 @@
 jedi
 lxml
-pyserial==3.5
 python-dateutil 
 pyzmq
 reactivex==4.0.4
@@ -17,4 +16,3 @@ SQLAlchemy
 joblib
 Werkzeug
 psycopg2-binary
-pyarrow==14.0.2
