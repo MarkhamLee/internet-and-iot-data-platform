@@ -1,4 +1,4 @@
-# (C) Markham Lee
+# (C) Markham Lee 2023 - 2024
 # https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
 # Utilities for the Finnhub Finance API. Unnecessary at this point because
 # the finnhub python library makes things simple, but splitting out some

@@ -1,3 +1,8 @@
+# (C) Markham Lee 2023 - 2024
+# https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
+# Retrieves current stock price for a given security and then writes the
+# data to InfluxDB.
+
 import os
 import sys
 from finnhub_utilities import FinnHubUtilities
