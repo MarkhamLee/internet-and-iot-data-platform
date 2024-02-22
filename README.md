@@ -1,6 +1,6 @@
 # Productivity, Home IoT, Music, Stocks & Weather Dashboard
 
-![Dashboard Thumbnail](/images/dashboard_screenshot3.png)  
+![Dashboard Thumbnail](/images/dashboard_screenshot4.png)  
 *Snapshot of some of the tracked data* 
 
 This project has the following objectives: 
