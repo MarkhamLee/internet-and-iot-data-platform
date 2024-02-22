@@ -1,8 +1,7 @@
 # (C) Markham Lee
 # https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
 # Python config file to run the Alpha Vantage T-Bill ETL container that pulls
-# down daily T-Bill rates from the Alpha Vantage API and writes them to
-# PostgreSQL.
+# down daily T-Bill rates and writes them to PostgreSQL.
 from datetime import datetime, timedelta
 from kubernetes.client import models as k8s
 from airflow import DAG
@@ -11,11 +10,12 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import Kubernete
 
 # define instance specific variables
 env_variables = {"BOND_MATURITY": "10year",
-                 "TBILL_TABLE": "ten_year_tbill"}
+                 "TBILL_TABLE": "ten_year_tbill",
+                 "COUNT": "7"}
 
 resource_limits = k8s.V1ResourceRequirements(
             requests={
-                'cpu': '200m',
+                'cpu': '400m',
                 'memory': '256Mi'
                 },
             limits={
@@ -24,9 +24,11 @@ resource_limits = k8s.V1ResourceRequirements(
                 },
             )
 
+
 # load config maps from Kubernetes
 configmaps = [
     k8s.V1EnvFromSource(config_map_ref=k8s.V1ConfigMapEnvSource(name="key-etl-variables"))]  # noqa: E501
+
 
 # load all the required secrets from Kubernetes
 secret_env1 = Secret(deploy_type="env", deploy_target="POSTGRES_USER",
@@ -56,11 +58,11 @@ with DAG(
     catchup=False,
 ) as dag:
     k = KubernetesPodOperator(
+        container_resources=resource_limits,
         namespace='airflow',
-        container_limits=resource_limits,
         node_selector={'node_type': 'arm64_worker'},
         image_pull_secrets=[k8s.V1LocalObjectReference("dockersecrets")],
-        image="markhamlee/alphavantagebondetl:latest",
+        image="markhamlee/alphavantage_bond_interval:latest",
         env_vars=env_variables,
         env_from=configmaps,
         secrets=[secret_env1, secret_env2, secret_env3, secret_env4],

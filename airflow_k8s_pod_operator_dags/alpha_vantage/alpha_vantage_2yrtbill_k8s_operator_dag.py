@@ -1,8 +1,7 @@
 # (C) Markham Lee
 # https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
 # Python config file to run the Alpha Vantage T-Bill ETL container that pulls
-# down daily T-Bill rates from the Alpha Vantage API and writes them
-# to PostgreSQL.
+# down daily T-Bill rates and writes them to PostgreSQL.
 from datetime import datetime, timedelta
 from kubernetes.client import models as k8s
 from airflow import DAG
@@ -11,7 +10,8 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import Kubernete
 
 # define instance specific variables
 env_variables = {"BOND_MATURITY": "2year",
-                 "TBILL_TABLE": "two_year_tbill"}
+                 "TBILL_TABLE": "two_year_tbill",
+                 "COUNT": "7"}
 
 resource_limits = k8s.V1ResourceRequirements(
             requests={
@@ -50,25 +50,25 @@ default_args = {
 }
 
 with DAG(
-    dag_id='alpha_vantage_2year_tbill',
+    dag_id='alphavantage_2yr_tbill',
     schedule=timedelta(hours=12),
     default_args=default_args,
     catchup=False,
 ) as dag:
     k = KubernetesPodOperator(
         namespace='airflow',
-        container_limits=resource_limits,
-        node_selector={'node_type': 'arm64_worker'},
+        container_resources=resource_limits,
+        node_selector={'etl_node': 'rpi4b'},
         image_pull_secrets=[k8s.V1LocalObjectReference("dockersecrets")],
-        image="markhamlee/alphavantagebondetl:latest",
+        image="markhamlee/alphavantage_bond_interval:latest",
         env_vars=env_variables,
         env_from=configmaps,
         secrets=[secret_env1, secret_env2, secret_env3, secret_env4],
         cmds=["python3"],
         arguments=["main.py"],
-        name="alpha_vantage_2yrtbill_pod",
-        task_id="alpha_vantage_2yrtbill_ingestion",
-        is_delete_operator_pod=True,
+        name="alphavantage_2yr_tbill_pod",
+        task_id="alpha_vantage_2yr_tbill",
+        is_delete_operator_pod=False,
         hostnetwork=False,
         get_logs=True,
         log_events_on_failure=True,
