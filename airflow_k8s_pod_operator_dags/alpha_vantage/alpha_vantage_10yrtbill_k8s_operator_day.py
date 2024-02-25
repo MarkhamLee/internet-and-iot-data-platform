@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from kubernetes.client import models as k8s
 from airflow import DAG
 from airflow.providers.cncf.kubernetes.secret import Secret
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator  # noqa: E501
+from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator  # noqa: E501
 
 # define instance specific variables
 env_variables = {"BOND_MATURITY": "10year",
