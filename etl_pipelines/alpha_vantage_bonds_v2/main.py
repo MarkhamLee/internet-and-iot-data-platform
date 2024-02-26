@@ -157,8 +157,11 @@ def main():
     # get Postgres connection
     connection = postgres_utilities.postgres_client(param_dict)
 
+    # clear table
+    postgres_utilities.clear_table(connection, TABLE)
+
     # write data
-    write_data(data, connection, TABLE)
+    postgres_utilities.write_data_raw(connection, data, TABLE)
 
 
 if __name__ == '__main__':
