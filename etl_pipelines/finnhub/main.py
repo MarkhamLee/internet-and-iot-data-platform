@@ -28,7 +28,7 @@ def get_prices(symbol: str):
 
     try:
         data = finn_util.get_stock_data(symbol)
-        logger.info('stock data retrieved')
+        logger.info('stock price data retrieved')
         return data
 
     except Exception as e:
@@ -80,17 +80,7 @@ def write_data(data: dict):
 
 def main():
 
-    STOCK_SYMBOL = os.environ['STOCK_SYMBOL']
-
-    try:
-        stock_data = get_prices(STOCK_SYMBOL)
-        logger.info('Stock price data retrieved successfully')
-
-    except Exception as e:
-        message = (f'Finnhub stock price pipeline failure: {e}')
-        logger.debug(message)
-        response = etl_utilities.send_slack_webhook(WEBHOOK_URL, message)
-        logger.debug(f'Slack pipeline failure alert sent with code: {response}')  # noqa: E501
+    stock_data = get_prices(os.environ['STOCK_SYMBOL'])
 
     # parse data into a json payload
     stock_payload = parse_data(stock_data)
