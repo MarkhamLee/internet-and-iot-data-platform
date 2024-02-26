@@ -9,7 +9,6 @@ import os
 import sys
 import requests
 import pandas as pd
-from io import StringIO
 
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(parent_dir)
@@ -90,51 +89,6 @@ def check_dates(connection: object, table: str, data: object) -> int:
         return 0
 
 
-# strict enforcement of what columns are used ensures data quality
-# avoids issues where tab delimiting can create erroneous empty columns
-# in the data frame
-def prepare_payload(payload: object, columns: list) -> object:
-
-    buffer = StringIO()
-
-    # explicit column definitions + tab as the delimiter allow us to ingest
-    # text data with punctuation  without having situations where a comma
-    # in a sentence is treated as new column or causes a blank column to be
-    # created.
-    payload.to_csv(buffer, index=False, sep='\t', columns=columns,
-                   header=False)
-    buffer.seek(0)
-
-    return buffer
-
-
-# write data to PostgreSQL
-def write_data(data: object, connection: object, table: str):
-
-    # get dataframe columns for managing data quality
-    columns = list(data.columns)
-
-    # count rows
-    row_count = len(data)
-
-    # prepare payload
-    buffer = prepare_payload(data, columns)
-
-    # clear table
-    # response = postgres_utilities.clear_table(connection, table)
-
-    # write data
-    response = postgres_utilities.write_data(connection, buffer, table)
-
-    if response != 0:
-        message = (f'write failed with error: {response}')
-        logger.debug(message)
-        etl_utilities.send_slack_webhook(WEBHOOK_URL, message)
-
-    else:
-        logger.debug(f"copy_from_stringio() done, {row_count} rows written to database")  # noqa: E501
-
-
 def main():
 
     # Alpha Vantage Key
@@ -169,13 +123,11 @@ def main():
 
     # check existing data for duplicates
     if check_dates(connection, TABLE, data) == 1:
-        write_data(data, connection, TABLE)
+        postgres_utilities.write_data_raw(data, connection, TABLE)
 
     else:
         logger.info('new bond rates not available, exiting..')
         exit()
-
-    # write data
 
 
 if __name__ == '__main__':
