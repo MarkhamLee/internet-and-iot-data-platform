@@ -7,9 +7,6 @@
 
 import os
 import sys
-import pandas as pd
-from io import StringIO
-from datetime import datetime, timezone
 from asana_utilities import AsanaUtilities
 
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -29,11 +26,17 @@ etl_utilities = EtlUtilities()
 WEBHOOK_URL = os.environ.get('ALERT_WEBHOOK')
 
 
-def get_asana_data(asana_client: object, gid: str) -> object:
+def get_asana_data() -> object:
+
+    # get project ID
+    PROJECT_GID = os.environ.get('GID')
+
+    # get Asana client
+    asana_client = utilities.get_asana_client(os.environ.get('ASANA_KEY'))
 
     # retrieve data from Asana API
     try:
-        data = asana_client.tasks.get_tasks_for_project(gid,
+        data = asana_client.tasks.get_tasks_for_project(PROJECT_GID,
                                                         {'completed_since':
                                                          'now', "opt_fields": "name, modified_at, created_at"},  # noqa: E501
                                                         opt_pretty=True)
@@ -53,53 +56,7 @@ def parse_asana_data(response: object) -> list:
     return utilities.transform_asana_data(response)
 
 
-def calculate_task_age(df: object) -> object:
-
-    # set field names to date-time format
-    df[['created_at', 'modified_at']] =\
-       df[['created_at', 'modified_at']].apply([pd.to_datetime])
-
-    # Calculate the age of each task
-
-    # set time zone, get current time and set format
-    current_time = datetime.now(timezone.utc)
-
-    # calculate the age of the alert in days
-    df['task_age(days)'] = round((current_time - df['created_at']) /
-                                 pd.Timedelta(days=1), 2)
-
-    # calculate duration since last update in days
-    df['task_idle(days)'] = round((current_time - df['modified_at']) /
-                                  pd.Timedelta(days=1), 2)
-
-    # adjust/clean-up date time columns
-
-    df['created_at'] = df['created_at'].dt.strftime('%Y/%m/%d %H:%M')
-    df['modified_at'] = df['modified_at'].dt.strftime('%Y/%m/%d %H:%M')
-
-    return df
-
-
-@staticmethod
-def prepare_payload(payload: object, columns: list) -> object:
-
-    buffer = StringIO()
-
-    # explicit column definitions + tab as the delimiter allow us to ingest
-    # text data with punctuation  without having situations where a comma
-    # in a sentence is treated as new column or causes a blank column to be
-    # created.
-    payload.to_csv(buffer, index=False, sep='\t', columns=columns,
-                   header=False)
-    buffer.seek(0)
-
-    logger.info('CSV buffer created successfully')
-
-    return buffer
-
-
-# write data to PostgreSQL
-def write_data(data: object, rows: int):
+def get_asana_vars() -> dict:
 
     TABLE = os.environ.get('ASANA_TABLE')
 
@@ -112,13 +69,24 @@ def write_data(data: object, rows: int):
 
     }
 
+    return TABLE, param_dict
+
+
+def main():
+
+    # get project data
+    response = get_asana_data()
+
+    # parse data
+    payload, total_rows = utilities.transform_asana_data(response)
+
+    # calculate age of tasks
+    payload = utilities.calculate_task_age(payload)
+
+    # get asana variables
+    TABLE, param_dict = get_asana_vars()
+
     postgres_utilities = PostgresUtilities()
-
-    # get dataframe columns for managing data quality
-    columns = list(data.columns)
-
-    # prepare payload
-    buffer = prepare_payload(data, columns)
 
     # get connection client
     connection = postgres_utilities.postgres_client(param_dict)
@@ -127,38 +95,7 @@ def write_data(data: object, rows: int):
     response = postgres_utilities.clear_table(connection, TABLE)
 
     # write data
-    response = postgres_utilities.write_data(connection, buffer, TABLE)
-
-    if response != 0:
-        message = 'Pipeline Failure: PostgreSQL DB write failed'
-        logger.info(message)
-        response = etl_utilities.send_slack_webhook(message)
-        logger.debug(f'Slack pipeline alert sent with code: {response}')
-
-    else:
-        logger.debug(f'copy from stringio buffer complete, {rows} rows written to DB')  # noqa: E501
-
-
-def main():
-
-    PROJECT_GID = os.environ.get('GID')
-    ASANA_KEY = os.environ.get('ASANA_KEY')
-
-    # get Asana client
-    asana_client = utilities.get_asana_client(ASANA_KEY)
-
-    # get project data
-    response = get_asana_data(asana_client, PROJECT_GID)
-
-    # parse data
-    payload, total_rows = utilities.transform_asana_data(response)
-
-    # calculate age of tasks
-
-    payload = calculate_task_age(payload)
-
-    # write data
-    write_data(payload, total_rows)
+    response = postgres_utilities.write_data_raw(connection, payload, TABLE)
 
 
 if __name__ == '__main__':
