@@ -1,0 +1,6 @@
+jsonschema
+pandas
+numpy
+influxdb-client
+slack_sdk
+requests
