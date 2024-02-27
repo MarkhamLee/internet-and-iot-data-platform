@@ -57,18 +57,18 @@ def count_alerts(data: dict) -> dict:
 
     try:
         # count alerts
-        return len([i for i in data if i['state'] != 'fixed'])
+        return int(len([i for i in data if i['state'] != 'fixed']))
 
     except Exception as e:
         logger.debug(f"Data validation failed/state field missing with error: {e}")  # noqa: E501
         sys.exit()
 
 
-def write_data(payload: dict):
+def write_data(alert_count: float):
 
     influx = InfluxClient()
 
-    MEASUREMENT = os.environ['GITHUB_ACTIONS_MEASUREMENT']
+    MEASUREMENT = os.environ['GITHUB_ALERTS_MEASUREMENT']
 
     # Influx DB variables
     INFLUX_KEY = os.environ['INFLUX_KEY']
@@ -83,9 +83,11 @@ def write_data(payload: dict):
     base_payload = {
         "measurement": MEASUREMENT,
         "tags": {
-                "Github_Data": "actions",
+                "Github_Data": "alerts",
         }
     }
+
+    payload = {"alerts_count": alert_count}
 
     try:
         # write data to InfluxDB
