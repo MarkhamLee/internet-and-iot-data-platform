@@ -19,6 +19,12 @@ etl_utilities = EtlUtilities()
 # load Slack Webhook URL variable for sending pipeline failure alerts
 WEBHOOK_URL = os.environ.get('ALERT_WEBHOOK')
 
+# load Slack Webhook URL for sending dependabot security alerts
+DEPENDABOT_WEBHOOK_URL = os.environ['SECURITY_SLACK_WEBHOOK']
+
+# load repo name env vars
+REPO_NAME = os.environ['REPO_NAME']
+
 
 # TODO: move to utilities file
 def build_url(endpoint: str):
@@ -57,7 +63,15 @@ def count_alerts(data: dict) -> dict:
 
     try:
         # count alerts
-        return int(len([i for i in data if i['state'] != 'fixed']))
+        alerts = int(len([i for i in data if i['state'] != 'fixed']))
+
+        if alerts > 0:
+            message = (f'Security vulnerability discovered in repo: {REPO_NAME}')  # noqa: E501
+            logger.info(message)
+            response = etl_utilities.send_slack_webhook(DEPENDABOT_WEBHOOK_URL, message)  # noqa: E501
+            logger.message(f'Dependabot security alert sent via Slack with code: {response}')  # noqa: E501
+
+        return alerts
 
     except Exception as e:
         logger.debug(f"Data validation failed/state field missing with error: {e}")  # noqa: E501
