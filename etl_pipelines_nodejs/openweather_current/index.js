@@ -3,7 +3,6 @@
 // https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
 // Node variant for the OpenWeather API ETL - pulls down current weather data
 // and writes it to InfluxDB
-// Work in progress, testing basic functionality
 // TODO: Slack alerts for failures, more robust exception handling, split out InfluxDB
 // client to separate file that can be shared with other node.js based ETLs that 
 // write to InfluxDB.
@@ -45,7 +44,7 @@ axios.get(WEATHER_URL)
     const { temp } = data
     const { humidity } = data
     const { pressure } = data
-
+   
     write_data(writeClient, temp, wind, pressure, humidity)
 
     })
@@ -76,10 +75,10 @@ function write_data(writeClient, temp, wind, pressure, humidity) {
     MEASUREMENT = process.env['WEATHER_MEASUREMENT']
 
     let point = new Point(MEASUREMENT)
-            .tag('Weather ETL')
-            .floatField('temp', temp) //form of field name, value
-            .floatField('wind_speed', wind)
-            .floatField('pressure', pressure)
+            .tag("OpenWeatherAPI", "current_weather",)
+            .floatField('temp', temp)
+            .floatField('wind', wind)
+            .floatField('barometric_pressure', pressure)
             .floatField('humidity', humidity)
     
     // write
