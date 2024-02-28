@@ -157,4 +157,4 @@ IoT/kasa_devices/config/kasa_secrets.json
 IoT/kasa_devices/*.log
 
 etl_pipelines_nodejs/openweather_current/.dockerignore
-etl_pipelines_nodejs/openweather_current/node_modules
+etl_pipelines_nodejs/openweather_current/node_modules/*
