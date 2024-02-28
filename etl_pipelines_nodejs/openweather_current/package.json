@@ -1,0 +1,15 @@
+{
+  "name": "openweather_current",
+  "version": "1.0.0",
+  "description": "ETL pipeline for weather data from the OpenWeather API",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Markham Lee",
+  "license": "MIT",
+  "dependencies": {
+    "@influxdata/influxdb-client": "^1.33.2",
+    "axios": "^1.6.7"
+  }
+}
