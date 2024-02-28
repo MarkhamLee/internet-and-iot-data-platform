@@ -4,8 +4,7 @@ on:
     branches:
       - "main"
     paths:
-      - "etl_pipelines/etl_library/*"
-      - "etl_pipelines/openweather_current/*"
+      - "etl_pipelines_nodejs/openweather_current/*"
 
 jobs:
   docker:
@@ -29,4 +28,4 @@ jobs:
           file: ./etl_pipelines_nodejs/openweather_current/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: markhamlee/openweather_current:latest
+          tags: markhamlee/openweather_current_node:latest
