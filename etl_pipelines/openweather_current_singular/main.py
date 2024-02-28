@@ -61,7 +61,6 @@ def parse_data(data: dict) -> dict:
     return utilities.weather_parser(data)
 
 
-'''
 def export_data(data: dict):
 
     try:
@@ -76,7 +75,6 @@ def export_data(data: dict):
         logger.debug(message)
         response = etl_utilities.send_slack_webhook(WEBHOOK_URL, message)
         logger.debug(f'Slack pipeline failure alert sent with code: {response}')  # noqa: E501
-'''
 
 
 def main():
