@@ -1,6 +1,9 @@
 # (C) Markham Lee 2023 - 2024
 # https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
-# Retrieves Github actions data (total minutes used) from the Github API.
+# Connects to the GitHub API to retrieve dependabot alerts on security
+# vulnerabilities, counts the alerts with a status other than "fixed" and
+# then writes that data to InfluxDB. In instances when there are unresolved
+# security issues, alerts are sent via Slack.
 
 import os
 import sys
@@ -17,7 +20,7 @@ from etl_library.general_utilities import EtlUtilities  # noqa: E402
 etl_utilities = EtlUtilities()
 
 # load Slack Webhook URL variable for sending pipeline failure alerts
-WEBHOOK_URL = os.environ.get('ALERT_WEBHOOK')
+WEBHOOK_URL = os.environ['ALERT_WEBHOOK']
 
 # load Slack Webhook URL for sending dependabot security alerts
 DEPENDABOT_WEBHOOK_URL = os.environ['SECURITY_SLACK_WEBHOOK']
