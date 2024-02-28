@@ -73,7 +73,9 @@ function create_influx_client(bucket) {
 // TODO: look into writing JSON directly 
 function write_data(writeClient, temp, wind, pressure, humidity) {
 
-    let point = new Point('OpenWeather')
+    MEASUREMENT = process.env['WEATHER_MEASUREMENT']
+
+    let point = new Point(MEASUREMENT)
             .tag('Weather ETL')
             .floatField('temp', temp) //form of field name, value
             .floatField('wind_speed', wind)
