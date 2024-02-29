@@ -5,17 +5,18 @@
 // Node variant for the OpenWeather API ETL - pulls down current weather data
 // and writes it to InfluxDB
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.sendSlackAlerts = exports.writeData = exports.createInfluxClient = exports.getWeatherData = exports.config = void 0;
+exports.createOpenWeatherUrl = exports.sendSlackAlerts = exports.writeData = exports.createInfluxClient = exports.getWeatherData = exports.config = void 0;
 var influxdb_client_1 = require("@influxdata/influxdb-client");
 var axios_1 = require("axios");
 var config = {
     bucket: process.env.BUCKET,
-    weatherKey: process.env.OPENWEATHER_KEY,
+    city: process.env.CITY,
+    measurement: process.env.MEASUREMENT,
+    org: process.env.INFLUX_ORG,
     token: process.env.INFLUX_KEY,
     url: process.env.INFLUX_URL,
-    org: process.env.INFLUX_ORG,
+    weatherKey: process.env.OPENWEATHER_KEY,
     webHookUrl: process.env.ALERT_WEBHOOK,
-    measurement: process.env.MEASUREMENT
 };
 exports.config = config;
 // create InfluxDB client
@@ -28,6 +29,19 @@ var createInfluxClient = function (bucket) {
     return client.getWriteApi(org, bucket, 'ns');
 };
 exports.createInfluxClient = createInfluxClient;
+// create OpenWeather URL 
+var createOpenWeatherUrl = function (endpoint) {
+    // load weather related variables 
+    var weatherKey = config.weatherKey;
+    var city = config.city;
+    // build openweather API URL 
+    var baseUrl = "http://api.openweathermap.org/data/2.5/";
+    var units = "&units=metric";
+    var weatherUrl = baseUrl.concat(endpoint, 'appid=', weatherKey, '&q=', city, units);
+    console.log('Base url created');
+    return weatherUrl;
+};
+exports.createOpenWeatherUrl = createOpenWeatherUrl;
 // Get OpenWeather data 
 var getWeatherData = function (weatherUrl) {
     axios_1.default.get(weatherUrl)
@@ -40,7 +54,9 @@ var getWeatherData = function (weatherUrl) {
 };
 exports.getWeatherData = getWeatherData;
 //method to write data to InfluxDB
-var writeData = function (writeClient, payload) {
+var writeData = function (payload) {
+    var bucket = config.bucket;
+    var writeClient = createInfluxClient(bucket);
     var point = new influxdb_client_1.Point(config.measurement)
         .tag("OpenWeatherAPI", "current_weather")
         .floatField('temp', payload.temp)

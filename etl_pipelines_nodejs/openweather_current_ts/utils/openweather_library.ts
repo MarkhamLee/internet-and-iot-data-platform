@@ -23,25 +23,27 @@ export interface CurrentWeather {
 
 interface VarConfig {
     bucket: string;
-    weatherKey: string;
+    city: string;
+    measurement: string;
+    org: string 
     token: string;
     url: string;
-    org: string 
+    weatherKey: string;
     webHookUrl: string;
-    measurement: string;
+    
   }
 
 const config: VarConfig = {
     
     bucket: process.env.BUCKET as string,
-    weatherKey: process.env.OPENWEATHER_KEY as string,
+    city: process.env.CITY as string,
+    measurement: process.env.MEASUREMENT as string,
+    org: process.env.INFLUX_ORG as string,
     token: process.env.INFLUX_KEY as string,
     url: process.env.INFLUX_URL as string,
-    org: process.env.INFLUX_ORG as string,
+    weatherKey: process.env.OPENWEATHER_KEY as string,
     webHookUrl: process.env.ALERT_WEBHOOK as string,
-    measurement: process.env.MEASUREMENT as string
-
-
+    
   };
 
 // create InfluxDB client
@@ -57,6 +59,24 @@ const createInfluxClient = (bucket: string) => {
         return client.getWriteApi(org, bucket, 'ns')
 
     }
+
+// create OpenWeather URL 
+
+const createOpenWeatherUrl = (endpoint: string) => {
+
+    // load weather related variables 
+    const weatherKey = config.weatherKey
+    const city = config.city
+
+    // build openweather API URL 
+    const baseUrl = "http://api.openweathermap.org/data/2.5/"
+    const units = "&units=metric"
+    const weatherUrl = baseUrl.concat(endpoint,'appid=',weatherKey,'&q=',city,units)
+    console.log('Base url created')
+
+    return weatherUrl
+
+}
 
 
 // Get OpenWeather data 
@@ -75,7 +95,10 @@ const getWeatherData = (weatherUrl: string) => {
 }
 
 //method to write data to InfluxDB
-const writeData = (writeClient: any, payload: any) => {   
+const writeData = (payload: any) => {   
+
+        const bucket = config.bucket
+        const writeClient = createInfluxClient(bucket)
     
         let point = new Point(config.measurement)
                 .tag("OpenWeatherAPI", "current_weather",)
@@ -123,4 +146,5 @@ const sendSlackAlerts = (message: string) => {
         
     }
 
-export {config, getWeatherData, createInfluxClient, writeData, sendSlackAlerts}
+export {config, getWeatherData, createInfluxClient, writeData,
+        sendSlackAlerts, createOpenWeatherUrl}
