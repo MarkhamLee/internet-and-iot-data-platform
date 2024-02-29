@@ -1,6 +1,6 @@
 # Finance, Productivity, Home IoT, General Info & Weather Dashboard
 
-Aggregating a combination of useful data to either directly enhance my productivity, and/or to keep me from getting distracted while looking things up on my phone. E.g., looking up the current weather and then getting distracted by social media. While also giving myself more experience in building a comprehensive data ingestion platform. 
+Aggregating useful data to directly enhance my productivity, monitor things around the house, provide me with information I'd otherwise miss and to keep me from getting distracted while looking things up on my phone. E.g., looking up the current weather and then getting distracted by social media. While also giving myself more experience in building a comprehensive data ingestion platform. 
 
 ![Dashboard Thumbnail](/images/dashboard_screenshot4.png)  
 *Snapshot of some of the tracked data* 
@@ -8,8 +8,7 @@ Aggregating a combination of useful data to either directly enhance my productiv
 ## Architecture - Tech Stack
 
 ![Architecture](/images/new_architecture_mkII.png)  
-*The TL/DR: is that data from external APIs comes in via Airflow or Argo, data from internal sensors and/or smart devices comes in via Zigbee and/or custom code (deployed on Docker containers) to an MQTT broker that is managed/orchestrated via Node-Red and infra data comes from a combination of open source libraries, and data feeds from the firewall and UPS device. 
-If things go wrong, I get alerts via Slack.*
+*The TL/DR: data from external APIs comes in via Airflow or Argo, data from IoT devices comes in either via MQTT (managed by Node-RED), Zigbee (via the Zigbee2MQTT app), code libraries that allow you to collect data directly from IoT/Smart Devices and from custom code for DIY IoT devices & sensors. If things go wrong and/or specific conditions are met (GitHub security alerts, exceeding certain thresholds, a particular product being in stock ) I get alerts via Slack.*
 
 All logos and trademarks are property of their respective owners and their use in the diagram represents an acceptable use based on my understanding of their guidelines. **If that is not the case, please let me now and I'll update the diagram ASAP.** 
 
