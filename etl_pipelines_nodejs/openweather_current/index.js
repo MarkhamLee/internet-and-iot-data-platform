@@ -36,8 +36,7 @@ axios.get(weatherUrl)
     const data = res.data.main;
     
     // parse out individual fields 
-    payload = {
-        "barometric_pressure": data.pressure,
+    payload = {"barometric_pressure": data.pressure,
         "description": res.data.weather[0].description,
         "feels_like": data.feels_like,
         "high": data.temp_max,
@@ -46,8 +45,7 @@ axios.get(weatherUrl)
         "temp": data.temp,
         "time_stamp": res.data.dt,
         "weather": res.data.weather[0].main,
-        "wind": res.data.wind.speed
-    }
+        "wind": res.data.wind.speed }
 
     console.log("InfluxDB payload ready:", payload)
    
@@ -55,7 +53,7 @@ axios.get(weatherUrl)
 
     })
     .catch(err => {
-        message = "Pipeline failure alert: OpenWeather API current weather node.js variant with error:"
+        message = "Pipeline failure alert: OpenWeather API current weather node.js variant with error: "
         console.log(message.concat(err.message));
 
         //send Slack failure alert
@@ -126,8 +124,6 @@ function sendSlackAlerts(message) {
     // load Slack webhook
     webHookUrl = process.env.ALERT_WEBHOOK
 
-    headers = {'Content-type': 'application/json'}
-
     payload = JSON.stringify({
         "text": message
     })
@@ -138,7 +134,7 @@ function sendSlackAlerts(message) {
       })
 
       .catch(function (error) {
-        console.log("Slack message failure with error: ", error.response.statusText);
+        console.log("Slack message failure with error:",error.code);
       });
 
     }
