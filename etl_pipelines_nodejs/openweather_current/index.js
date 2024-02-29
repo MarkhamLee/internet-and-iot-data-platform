@@ -13,7 +13,7 @@ const axios = require("axios");
 
 // load Bucket (database in InfluxDB parlance) & create InfluxDB client
 const bucket = process.env.BUCKET;
-writeClient = createInfluxClient(BUCKET)
+writeClient = createInfluxClient(bucket)
 
 // load weather related variables 
 weatherKey = process.env.OPENWEATHER_KEY
@@ -132,7 +132,7 @@ function sendSlackAlerts(message) {
         "text": message
     })
 
-    axios.post(webHookUrl, json=payload)
+    axios.post(webHookUrl, payload)
       .then(function (response) {
         console.log("Slack message sent successfully with code:", response.status);
       })
