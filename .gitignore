@@ -158,3 +158,5 @@ IoT/kasa_devices/*.log
 
 etl_pipelines_nodejs/openweather_current/.dockerignore
 etl_pipelines_nodejs/openweather_current/node_modules/*
+etl_pipelines_nodejs/openweather_current_ts/node_modules
+etl_pipelines_nodejs/openweather_current_ts/node_modules/*
