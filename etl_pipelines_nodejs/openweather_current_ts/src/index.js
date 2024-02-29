@@ -10,22 +10,11 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var axios_1 = require("axios");
 var openweather_library_1 = require("../utils/openweather_library");
-// load Bucket (database in InfluxDB parlance) & create InfluxDB client
-var bucket = openweather_library_1.config.bucket;
-var writeClient = (0, openweather_library_1.createInfluxClient)(bucket);
-// load weather related variables 
-var weatherKey = openweather_library_1.config.weatherKey;
-var city = "&q=seattle";
 var endpoint = "weather?";
-// build openweather API URL 
-var baseUrl = "http://api.openweathermap.org/data/2.5/";
-var units = "&units=metric";
-var weatherUrl = baseUrl.concat(endpoint, 'appid=', weatherKey, city, units);
-console.log('Base url created');
+var weatherUrl = (0, openweather_library_1.createOpenWeatherUrl)(endpoint);
 // retrieve weather data 
 axios_1.default.get(weatherUrl)
     .then(function (res) {
-    var headerDate = res.headers && res.headers.date ? res.headers.date : 'no response date';
     console.log('Weather data retrieved with status code:', res.status);
     // split out parts of the json 
     var data = res.data.main;
@@ -41,7 +30,7 @@ axios_1.default.get(weatherUrl)
         "weather": res.data.weather[0].main,
         "wind": res.data.wind.speed };
     console.log("InfluxDB payload ready:", payload);
-    (0, openweather_library_1.writeData)(writeClient, payload);
+    (0, openweather_library_1.writeData)(payload);
 })
     .catch(function (err) {
     var message = "Pipeline failure alert: OpenWeather API current weather node.js variant with error: ";

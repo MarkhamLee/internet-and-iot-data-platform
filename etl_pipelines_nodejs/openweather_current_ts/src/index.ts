@@ -9,33 +9,15 @@
 
 
 import axios from 'axios';
-import {InfluxDB, Point} from '@influxdata/influxdb-client';
-import {config, createInfluxClient, writeData, 
+import {config, createOpenWeatherUrl, writeData, 
         sendSlackAlerts, getWeatherData} from "../utils/openweather_library"
 
-
-
-// load Bucket (database in InfluxDB parlance) & create InfluxDB client
-const bucket = config.bucket
-const writeClient = createInfluxClient(bucket)
-
-
-// load weather related variables 
-const weatherKey = config.weatherKey
-const city = "&q=seattle"
 const endpoint = "weather?"
-
-
-// build openweather API URL 
-const baseUrl = "http://api.openweathermap.org/data/2.5/"
-const units = "&units=metric"
-const weatherUrl = baseUrl.concat(endpoint,'appid=',weatherKey,city,units)
-console.log('Base url created')
+const weatherUrl = createOpenWeatherUrl(endpoint)
 
 // retrieve weather data 
 axios.get(weatherUrl)
   .then(res => {
-    const headerDate = res.headers && res.headers.date ? res.headers.date : 'no response date';
     console.log('Weather data retrieved with status code:', res.status)
 
     // split out parts of the json 
@@ -55,7 +37,7 @@ axios.get(weatherUrl)
 
     console.log("InfluxDB payload ready:", payload)
    
-    writeData(writeClient, payload)
+    writeData(payload)
 
     })
     .catch(err => {
