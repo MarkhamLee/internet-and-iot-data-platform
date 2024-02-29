@@ -3,13 +3,13 @@
 // https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
 // Node POC for the OpenWeather API- pulls down current weather data
 // and writes it to InfluxDB. Experimenting with node.js ETL containers running on
-// on Airflow. TODO: convert to TypeScript, split out InfluxDB client to separate file
-// that can be shared with other node.js based ETLs that write to InfluxDB.
+// on Airflow. This is basic POC version, the more polished one will be the 
+// TypeScript version in this folder's parent directory with the _ts added to
+// the folder name.
 
 
 const {InfluxDB, Point} = require("@influxdata/influxdb-client");
 const axios = require("axios");
-
 
 // load Bucket (database in InfluxDB parlance) & create InfluxDB client
 const bucket = process.env.BUCKET;
@@ -17,19 +17,18 @@ writeClient = createInfluxClient(bucket)
 
 // load weather related variables 
 weatherKey = process.env.OPENWEATHER_KEY
-const city = "&q=seattle"
+city = process.env.CITY
 const endpoint = "weather?"
 
 // build openweather API URL 
 const baseUrl = "http://api.openweathermap.org/data/2.5/"
 const units = "&units=metric"
-const weatherUrl = baseUrl.concat(endpoint,'appid=',weatherKey,city,units)
+const weatherUrl = baseUrl.concat(endpoint,'appid=',weatherKey,'&q=',city,units)
 console.log('Base url created')
 
 // retrieve weather data 
 axios.get(weatherUrl)
   .then(res => {
-    const headerDate = res.headers && res.headers.date ? res.headers.date : 'no response date';
     console.log('Weather data retrieved with status code:', res.status)
 
     // split out parts of the json 
@@ -75,13 +74,7 @@ function createInfluxClient(bucket) {
 
 }
 
-
 // largely boiler plate code from Influx Data
-// TODO: figure out how to write JSON directly
-// TODO: move to utilities file
-// TODO: improve exception handling, the Influx library handles auth errors
-// in a way that they don't really register as errors/aren't picked up
-// by try/catch 
 function writeData(writeClient, payload) {
 
     measurement = process.env['WEATHER_MEASUREMENT']
