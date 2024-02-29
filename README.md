@@ -1,4 +1,4 @@
-# Finance, Productivity, Home IoT, General Info & Weather Dashboard
+## Finance, Productivity, Home IoT, General Info & Weather Dashboard
 
 Aggregating useful data to directly enhance my productivity, monitor things around the house, provide me with information I'd otherwise miss and to keep me from getting distracted while looking things up on my phone. E.g., looking up the current weather and then getting distracted by social media. While also giving myself more experience in building a comprehensive data ingestion platform. 
 
