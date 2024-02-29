@@ -12,22 +12,22 @@ const axios = require("axios");
 
 
 // load Bucket (database in InfluxDB parlance) & create InfluxDB client
-const BUCKET = process.env.BUCKET;
-writeClient = create_influx_client(BUCKET)
+const bucket = process.env.BUCKET;
+writeClient = createInfluxClient(BUCKET)
 
 // load weather related variables 
-WEATHER_KEY = process.env.OPENWEATHER_KEY
-const CITY = "&q=seattle"
-const ENDPOINT = "weather?"
+weatherKey = process.env.OPENWEATHER_KEY
+const city = "&q=seattle"
+const endpoint = "weather?"
 
 // build openweather API URL 
-const BASE_URL = "http://api.openweathermap.org/data/2.5/"
-const UNITS = "&units=metric"
-const WEATHER_URL = BASE_URL.concat(ENDPOINT,'appid=',WEATHER_KEY,CITY,UNITS)
+const baseUrl = "http://api.openweathermap.org/data/2.5/"
+const units = "&units=metric"
+const weatherUrl = baseUrl.concat(endpoint,'appid=',weatherKey,city,units)
 console.log('Base url created')
 
 // retrieve weather data 
-axios.get(WEATHER_URL)
+axios.get(weatherUrl)
   .then(res => {
     const headerDate = res.headers && res.headers.date ? res.headers.date : 'no response date';
     console.log('Weather data retrieved with status code:', res.status)
@@ -51,7 +51,7 @@ axios.get(WEATHER_URL)
 
     console.log("InfluxDB payload ready:", payload)
    
-    write_data(writeClient, payload)
+    writeData(writeClient, payload)
 
     })
     .catch(err => {
@@ -59,12 +59,12 @@ axios.get(WEATHER_URL)
         console.log(message.concat(err.message));
 
         //send Slack failure alert
-        send_slack_alerts(message.concat(err.message))
+        sendSlackAlerts(message.concat(err.message))
         });
 
 // creates client for connecting to InfluxDB via the official InfluxDB
 // Node/Library 
-function create_influx_client(bucket) {
+function createInfluxClient(bucket) {
 
     const token = process.env.INFLUX_KEY
     const url = process.env.INFLUX_URL
@@ -84,12 +84,11 @@ function create_influx_client(bucket) {
 // TODO: improve exception handling, the Influx library handles auth errors
 // in a way that they don't really register as errors/aren't picked up
 // by try/catch 
-function write_data(writeClient, payload) {
+function writeData(writeClient, payload) {
 
-    MEASUREMENT = process.env['WEATHER_MEASUREMENT']
-    console.log(MEASUREMENT)
+    measurement = process.env['WEATHER_MEASUREMENT']
 
-    let point = new Point(MEASUREMENT)
+    let point = new Point(measurement)
             .tag("OpenWeatherAPI", "current_weather",)
             .floatField('temp', payload.temp)
             .floatField('wind', payload.wind)
@@ -122,10 +121,10 @@ function write_data(writeClient, payload) {
 
 // method to send Slack alerts 
 // TODO: move to utilities file for all Node.js ETLs
-function send_slack_alerts(message) {
+function sendSlackAlerts(message) {
 
     // load Slack webhook
-    WEBHOOK_URL = process.env.ALERT_WEBHOOK
+    webHookUrl = process.env.ALERT_WEBHOOK
 
     headers = {'Content-type': 'application/json'}
 
@@ -133,7 +132,7 @@ function send_slack_alerts(message) {
         "text": message
     })
 
-    axios.post(WEBHOOK_URL, json=payload)
+    axios.post(webHookUrl, json=payload)
       .then(function (response) {
         console.log("Slack message sent successfully with code:", response.status);
       })
