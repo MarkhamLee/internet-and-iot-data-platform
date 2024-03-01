@@ -11,7 +11,7 @@ var axios_1 = require("axios");
 var config = {
     bucket: process.env.BUCKET,
     city: process.env.CITY,
-    measurement: process.env.MEASUREMENT,
+    measurement: process.env.WEATHER_MEASUREMENT,
     org: process.env.INFLUX_ORG,
     token: process.env.INFLUX_KEY,
     url: process.env.INFLUX_URL,

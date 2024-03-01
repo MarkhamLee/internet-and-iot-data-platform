@@ -39,7 +39,7 @@ const config: VarConfig = {
     
     bucket: process.env.BUCKET as string,
     city: process.env.CITY as string,
-    measurement: process.env.MEASUREMENT as string,
+    measurement: process.env.WEATHER_MEASUREMENT as string,
     org: process.env.INFLUX_ORG as string,
     token: process.env.INFLUX_KEY as string,
     url: process.env.INFLUX_URL as string,
