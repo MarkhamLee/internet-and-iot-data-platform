@@ -54,6 +54,7 @@ with DAG(
     schedule=timedelta(minutes=15),
     default_args=default_args,
     catchup=False,
+    tags=['k8s-pod-operator-container', 'Python'],
 ) as dag:
     k = KubernetesPodOperator(
         namespace='airflow',
