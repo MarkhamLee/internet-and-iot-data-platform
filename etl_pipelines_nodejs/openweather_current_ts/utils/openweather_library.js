@@ -2,8 +2,8 @@
 // (C) Markham Lee 2023 - 2024
 // productivity-music-stocks-weather-IoT-dashboard
 // https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
-// Node variant for the OpenWeather API ETL - pulls down current weather data
-// and writes it to InfluxDB
+// Node variant for the OpenWeather API ETL - pulls down data for current weather
+// conditions and writes it to InfluxDB
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createOpenWeatherUrl = exports.sendSlackAlerts = exports.createInfluxClient = exports.config = void 0;
 var influxdb_client_1 = require("@influxdata/influxdb-client");
