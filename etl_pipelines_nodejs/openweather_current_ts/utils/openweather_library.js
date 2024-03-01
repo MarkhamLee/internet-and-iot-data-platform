@@ -49,7 +49,7 @@ var sendSlackAlerts = function (message) {
         console.log("Slack message sent successfully with code:", response.status);
     })
         .catch(function (error) {
-        console.error("Slack message failure with error: ", error.response.statusText);
+        console.error("Slack message failure with error: ", error.statusText);
     });
 };
 exports.sendSlackAlerts = sendSlackAlerts;

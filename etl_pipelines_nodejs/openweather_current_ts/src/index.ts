@@ -1,53 +1,52 @@
 // (C) Markham Lee 2023 - 2024
 // productivity-music-stocks-weather-IoT-dashboard
 // https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
+// Node variant for the OpenWeather API ETL - pulls down data for current weather
+// conditions and writes it to InfluxDB
 // WORK IN PROGRESS
-// TODO: turn weather data API call into a function, add await & async
-// Use the interface for data checking
-// Move build API URL to a separate function 
-// Move city and endpoint to environmental variables
+// TODO: add an interface to the API call
 
 import axios from 'axios'
 import { Point } from '@influxdata/influxdb-client';
 import {config, createOpenWeatherUrl, createInfluxClient,
-        sendSlackAlerts} from "../utils/openweather_library"
+        sendSlackAlerts, WeatherResponse, CurrentWeather} from "../utils/openweather_library"
 
 
 // Get OpenWeather data 
-const getWeatherData = (weatherUrl: string) => {
+const getWeatherData = async (weatherUrl: string) => {
+    
+    try {
 
-  // retrieve weather data 
-  axios.get(weatherUrl)
-  .then(res => {
-  console.log('Weather data retrieved with status code:', res.status)
+      const data = await axios.get(weatherUrl)
+      
+      // split out the part of the json that contains the bulk of the data points
+      const weather_data = data.data.main;
+        
+      // parse out individual fields 
+        const payload = {"barometric_pressure": weather_data.pressure,
+        "description": data.data.weather[0].description,
+        "feels_like": weather_data.feels_like,
+        "high": weather_data.temp_max,
+        "humidity": weather_data.humidity,
+        "low": weather_data.temp_min,
+        "temp": weather_data.temp,
+        "time_stamp": data.data.dt,
+        "weather": data.data.weather[0].main,
+        "wind": data.data.wind.speed }
 
-  // split out parts of the json 
-  const data = res.data.main;
-  
-  // parse out individual fields 
-      const payload = {"barometric_pressure": data.pressure,
-      "description": res.data.weather[0].description,
-      "feels_like": data.feels_like,
-      "high": data.temp_max,
-      "humidity": data.humidity,
-      "low": data.temp_min,
-      "temp": data.temp,
-      "time_stamp": res.data.dt,
-      "weather": res.data.weather[0].main,
-      "wind": res.data.wind.speed }
+        console.log("InfluxDB payload ready:", payload)
+        const response = writeData(payload)
 
-      console.log("InfluxDB payload ready:", payload)
-      writeData(payload)
+    } catch (error: any) {
+        const message = "Pipeline failure alert - OpenWeather API current weather node.js variant with error: "
+        const full_message = (message.concat(error.request.data));
+        console.error(full_message);
 
+        //send pipeline failure alert via Slack
+        sendSlackAlerts(full_message);
 
-  })
-  .catch(err => {
-      const message = "Pipeline failure alert: OpenWeather API current weather node.js variant with error: "
-      console.error(message.concat(err.message));
+    }
 
-      //send Slack failure alert
-      sendSlackAlerts(message.concat(err.message))
-      });
 }
 
 
@@ -56,6 +55,8 @@ const getWeatherData = (weatherUrl: string) => {
 // pushing json data to the DB. So, the write methods will have to 
 // live in the primary ETL code for now. 
 const writeData = (payload: any) => {   
+
+  console.log(payload)
 
   const bucket = config.bucket
   const writeClient = createInfluxClient(bucket)

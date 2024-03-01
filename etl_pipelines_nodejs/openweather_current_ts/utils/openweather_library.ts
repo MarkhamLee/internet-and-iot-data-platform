@@ -21,6 +21,11 @@ export interface CurrentWeather {
     speed: number,
   }
 
+export interface WeatherResponse {
+    data: CurrentWeather[],
+    status: number
+}
+
 
 interface VarConfig {
     bucket: string;
@@ -88,7 +93,7 @@ const sendSlackAlerts = (message: string) => {
         })
         
         .catch(function (error) {
-            console.error("Slack message failure with error: ", error.response.statusText);
+            console.error("Slack message failure with error: ", error.statusText);
         });
         
     }
