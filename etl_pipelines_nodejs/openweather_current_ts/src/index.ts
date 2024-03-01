@@ -39,7 +39,7 @@ const getWeatherData = async (weatherUrl: string) => {
 
     } catch (error: any) {
         const message = "Pipeline failure alert - OpenWeather API current weather node.js variant with error: "
-        const full_message = (message.concat(error.request.data));
+        const full_message = (message.concat(JSON.stringify((error.response.data))));
         console.error(full_message);
 
         //send pipeline failure alert via Slack
@@ -55,8 +55,6 @@ const getWeatherData = async (weatherUrl: string) => {
 // pushing json data to the DB. So, the write methods will have to 
 // live in the primary ETL code for now. 
 const writeData = (payload: any) => {   
-
-  console.log(payload)
 
   const bucket = config.bucket
   const writeClient = createInfluxClient(bucket)

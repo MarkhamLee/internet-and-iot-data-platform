@@ -75,7 +75,7 @@ var getWeatherData = function (weatherUrl) { return __awaiter(void 0, void 0, vo
             case 2:
                 error_1 = _a.sent();
                 message = "Pipeline failure alert - OpenWeather API current weather node.js variant with error: ";
-                full_message = (message.concat(error_1.request.data));
+                full_message = (message.concat(JSON.stringify((error_1.response.data))));
                 console.error(full_message);
                 //send pipeline failure alert via Slack
                 (0, openweather_library_1.sendSlackAlerts)(full_message);
@@ -89,7 +89,6 @@ var getWeatherData = function (weatherUrl) { return __awaiter(void 0, void 0, vo
 // pushing json data to the DB. So, the write methods will have to 
 // live in the primary ETL code for now. 
 var writeData = function (payload) {
-    console.log(payload);
     var bucket = openweather_library_1.config.bucket;
     var writeClient = (0, openweather_library_1.createInfluxClient)(bucket);
     var point = new influxdb_client_1.Point(openweather_library_1.config.measurement)
