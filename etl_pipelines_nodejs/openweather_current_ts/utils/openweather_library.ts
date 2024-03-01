@@ -7,19 +7,21 @@
 import {InfluxDB, Point} from '@influxdata/influxdb-client';
 import axios from 'axios';
 
-
 // interface for weather data
+
 export interface CurrentWeather {
     main: string,
     description: string,
     temp: number,
-    feels_like: number,
+    feels_like: string,
     temp_min: number,
     temp_max: number,
     pressure: number,
     humidity: number,
-    speed: number
+    speed: number,
+    cheese: string,
   }
+
 
 interface VarConfig {
     bucket: string;
@@ -32,6 +34,12 @@ interface VarConfig {
     webHookUrl: string;
     
   }
+
+export interface WeatherPayload{
+    [x: string]: any
+    
+}
+
 
 const config: VarConfig = {
     
@@ -53,15 +61,14 @@ const createInfluxClient = (bucket: string) => {
     const token = config.token
     const org = config.org
 
-        const client = new InfluxDB({url, token})
-        console.log('InfluxDB client created')
+    const client = new InfluxDB({url, token})
+    console.log('InfluxDB client created')
 
-        return client.getWriteApi(org, bucket, 'ns')
+    return client.getWriteApi(org, bucket, 'ns')
 
     }
 
 // create OpenWeather URL 
-
 const createOpenWeatherUrl = (endpoint: string) => {
 
     // load weather related variables 
@@ -78,59 +85,6 @@ const createOpenWeatherUrl = (endpoint: string) => {
 
 }
 
-
-// Get OpenWeather data 
-const getWeatherData = (weatherUrl: string) => {
-
-    axios.get(weatherUrl)
-    .then(response => {
-
-        console.log(response.data)
-
-    })
-    .catch(err => {
-        
-        console.error(err);
-    })
-}
-
-//method to write data to InfluxDB
-const writeData = (payload: any) => {   
-
-        const bucket = config.bucket
-        const writeClient = createInfluxClient(bucket)
-    
-        let point = new Point(config.measurement)
-                .tag("OpenWeatherAPI", "current_weather",)
-                .floatField('temp', payload.temp) 
-                .floatField('wind', payload.wind)
-                .floatField('barometric_pressure', payload.barometric_pressure)
-                .floatField('humidity', payload.humidity)
-                .floatField('low', payload.low)
-                .floatField('high', payload.high)
-                .floatField('feels_like', payload.feels_like)
-                .intField('time_stamp', payload.time_stamp)
-                .stringField('description', payload.description)
-                .stringField('weather', payload.weather)
-                
-        // write data to InfluxDB
-        void setTimeout(() => {
-    
-            writeClient.writePoint(point);
-            console.log("Weather data successfully written to InfluxDB")
-    
-            }, 1000)
-    
-    
-        // flush client
-        void setTimeout(() => {
-    
-                // flush InfluxDB client
-                writeClient.flush()
-            }, 1000)
-        
-        }
-
 const sendSlackAlerts = (message: string) => {
 
     const payload = JSON.stringify({"text": message})
@@ -141,10 +95,10 @@ const sendSlackAlerts = (message: string) => {
         })
         
         .catch(function (error) {
-            console.log("Slack message failure with error: ", error.response.statusText);
+            console.error("Slack message failure with error: ", error.response.statusText);
         });
         
     }
 
-export {config, getWeatherData, createInfluxClient, writeData,
-        sendSlackAlerts, createOpenWeatherUrl}
+
+export {config, createInfluxClient, sendSlackAlerts, createOpenWeatherUrl}
