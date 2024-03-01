@@ -8,10 +8,9 @@
 // Move city and endpoint to environmental variables
 
 import axios from 'axios'
-import {InfluxDB, Point} from '@influxdata/influxdb-client';
-import {config, WeatherPayload, createOpenWeatherUrl, createInfluxClient,
-        sendSlackAlerts,
-        CurrentWeather} from "../utils/openweather_library"
+import { Point } from '@influxdata/influxdb-client';
+import {config, createOpenWeatherUrl, createInfluxClient,
+        sendSlackAlerts} from "../utils/openweather_library"
 
 
 // Get OpenWeather data 

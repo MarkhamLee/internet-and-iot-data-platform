@@ -35,12 +35,6 @@ interface VarConfig {
     
   }
 
-export interface WeatherPayload{
-    [x: string]: any
-    
-}
-
-
 const config: VarConfig = {
     
     bucket: process.env.BUCKET as string,
