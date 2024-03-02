@@ -16,7 +16,10 @@ const finnhubClient = new finnhub.DefaultApi()
 finnhubClient.quote(config.stock, (error: any, data: any, response: any) => {
     
     if (error) {
-        console.error(error)
+        const message = "Pipeline failure for Node.js version of Finnhub Stock Price ETL, with error:"
+        const full_message = message.concat(error)
+        console.error(full_message)
+        sendSlackAlerts(full_message)
 
     } else {
 

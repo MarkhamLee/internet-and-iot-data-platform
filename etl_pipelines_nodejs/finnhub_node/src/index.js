@@ -13,7 +13,10 @@ api_key.apiKey = utilities_1.config.finnhubKey;
 var finnhubClient = new finnhub_1.default.DefaultApi();
 finnhubClient.quote(utilities_1.config.stock, function (error, data, response) {
     if (error) {
-        console.error(error);
+        var message = "Pipeline failure for Node.js version of Finnhub Stock Price ETL, with error:";
+        var full_message = message.concat(error);
+        console.error(full_message);
+        (0, utilities_1.sendSlackAlerts)(full_message);
     }
     else {
         var payload = {
