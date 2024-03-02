@@ -27,7 +27,8 @@ finnhubClient.quote(config.stock, (error: any, data: any, response: any) => {
             "last_price": Number(data['l']),
             "change": Number(data['dp'])
         }
-            
+
+        console.log("InfluxDB payload ready", payload)
         writeData(payload)
 
 
@@ -56,7 +57,6 @@ const writeData = (payload: any) => {
         writeClient.writePoint(point);
         console.log("Weather data successfully written to InfluxDB")
         }, 1000)
-  
   
     // flush client
     void setTimeout(() => {

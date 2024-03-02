@@ -23,6 +23,7 @@ finnhubClient.quote(utilities_1.config.stock, function (error, data, response) {
             "last_price": Number(data['l']),
             "change": Number(data['dp'])
         };
+        console.log("InfluxDB payload ready", payload);
         writeData(payload);
     }
 });
