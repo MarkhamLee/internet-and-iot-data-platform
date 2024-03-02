@@ -4,8 +4,7 @@ on:
     branches:
       - "main"
     paths:
-      - "etl_pipelines_nodejs/openweather_current_ts/utils/*"
-      - "etl_pipelines_nodejs/openweather_current_ts/src/*"
+      - "etl_pipelines_nodejs/openweather_current_ts/*"
 
 jobs:
   docker:
