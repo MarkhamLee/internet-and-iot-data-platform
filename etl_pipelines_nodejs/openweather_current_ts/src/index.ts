@@ -60,7 +60,7 @@ const writeData = (payload: any) => {
   const writeClient = createInfluxClient(bucket)
 
   let point = new Point(config.measurement)
-          .tag("OpenWeatherAPI", "current_weather",)
+          .tag("OpenWeatherAPI", "current_weather")
           .floatField('temp', payload.temp) 
           .floatField('wind', payload.wind)
           .floatField('barometric_pressure', payload.barometric_pressure)
