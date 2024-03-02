@@ -24,7 +24,7 @@ const config: VarConfig = {
     
     bucket: process.env.BUCKET as string,
     finnhubKey: process.env.FINNHUB_KEY as string,
-    measurement: process.env.WEATHER_MEASUREMENT as string,
+    measurement: process.env.FINNHUB_MEASUREMENT_SPY as string,
     org: process.env.INFLUX_ORG as string,
     stock: process.env.STOCK_SYMBOL as string,
     token: process.env.INFLUX_KEY as string,

@@ -32,8 +32,6 @@ finnhubClient.quote(config.stock, (error: any, data: any, response: any) => {
 
 
     }        
-
-
 });
 
 //method to write data to InfluxDB
