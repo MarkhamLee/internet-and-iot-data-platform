@@ -4,7 +4,7 @@ on:
     branches:
       - "main"
     paths:
-      - "etl_pipelines_nodejs/openweather_current_ts/*"
+      - "etl_pipelines_nodejs/finnhub_node/*"
 
 jobs:
   docker:
@@ -24,8 +24,8 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: ./etl_pipelines_nodejs/openweather_current_ts
-          file: ./etl_pipelines_nodejs/openweather_current_ts/Dockerfile
+          context: ./etl_pipelines_nodejs/finnhub_node
+          file: ./etl_pipelines_nodejs/finnhub_node/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: markhamlee/openweather_current_ts_node:latest
+          tags: markhamlee/finnhub_stockprice_nodejs:latest
