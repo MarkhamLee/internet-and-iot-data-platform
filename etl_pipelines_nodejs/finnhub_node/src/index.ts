@@ -5,7 +5,7 @@
 // and writing it to InfluxDB.
 
 import { Point } from '@influxdata/influxdb-client';
-import finnhub from 'finnhub'
+const finnhub = require('finnhub')
 import {config, createInfluxClient, sendSlackAlerts} from "../utils/utilities"
 
 const api_key = finnhub.ApiClient.instance.authentications['api_key']

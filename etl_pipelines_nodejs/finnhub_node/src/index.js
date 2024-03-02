@@ -6,11 +6,11 @@
 // and writing it to InfluxDB.
 Object.defineProperty(exports, "__esModule", { value: true });
 var influxdb_client_1 = require("@influxdata/influxdb-client");
-var finnhub_1 = require("finnhub");
+var finnhub = require('finnhub');
 var utilities_1 = require("../utils/utilities");
-var api_key = finnhub_1.default.ApiClient.instance.authentications['api_key'];
+var api_key = finnhub.ApiClient.instance.authentications['api_key'];
 api_key.apiKey = utilities_1.config.finnhubKey;
-var finnhubClient = new finnhub_1.default.DefaultApi();
+var finnhubClient = new finnhub.DefaultApi();
 finnhubClient.quote(utilities_1.config.stock, function (error, data, response) {
     if (error) {
         var message = "Pipeline failure for Node.js version of Finnhub Stock Price ETL, with error:";
