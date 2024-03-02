@@ -1,4 +1,4 @@
-name: openweather_current_node_typescript_container_build
+name: finnhub_stockprice_nodejs_typescript_container_build
 on:
   push:
     branches:
