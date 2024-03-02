@@ -1,8 +1,8 @@
 // (C) Markham Lee 2023 - 2024
 // productivity-music-stocks-weather-IoT-dashboard
 // https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
-// Node variant for the OpenWeather API ETL - pulls down current weather data
-// and writes it to InfluxDB
+// Node variant of the Finnhub Stock Price ETL, pulls down current price data for
+// a given stock and then writes it to InfluxDB.
 
 import {InfluxDB} from '@influxdata/influxdb-client';
 import axios from 'axios';

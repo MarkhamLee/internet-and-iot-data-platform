@@ -16,7 +16,6 @@ finnhubClient.quote(utilities_1.config.stock, function (error, data, response) {
         console.error(error);
     }
     else {
-        console.log(data);
         var payload = {
             "previous_close": Number(data['pc']),
             "open": Number(data['o']),

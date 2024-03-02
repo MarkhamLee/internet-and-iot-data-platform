@@ -8,7 +8,7 @@ import { Point } from '@influxdata/influxdb-client';
 import finnhub from 'finnhub'
 import {config, createInfluxClient, sendSlackAlerts} from "../utils/utilities"
 
-const api_key = finnhub.ApiClient.instance.authentications['api_key'];
+const api_key = finnhub.ApiClient.instance.authentications['api_key']
 api_key.apiKey = config.finnhubKey 
 const finnhubClient = new finnhub.DefaultApi()
 
@@ -19,7 +19,6 @@ finnhubClient.quote(config.stock, (error: any, data: any, response: any) => {
         console.error(error)
 
     } else {
-        console.log(data)
 
         const payload = {
             "previous_close": Number(data['pc']),
@@ -30,8 +29,6 @@ finnhubClient.quote(config.stock, (error: any, data: any, response: any) => {
 
         console.log("InfluxDB payload ready", payload)
         writeData(payload)
-
-
     }        
 });
 
