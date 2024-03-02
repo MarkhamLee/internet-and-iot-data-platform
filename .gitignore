@@ -163,4 +163,6 @@ etl_pipelines_nodejs/openweather_current_ts/node_modules
 etl_pipelines_nodejs/openweather_current_ts/node_modules/*
 etl_pipelines_nodejs/finnhub_node/node_modules/*
 etl_pipelines_nodejs/finnhub_node/node_modules
-
+etl_pipelines_nodejs/openweather_airquality_nodejs/node_modules/*
+etl_pipelines_nodejs/openweather_airquality_nodejs/node_modules
+etl_pipelines_nodejs/openweather_airquality_nodejs/.eslintrc.yml
