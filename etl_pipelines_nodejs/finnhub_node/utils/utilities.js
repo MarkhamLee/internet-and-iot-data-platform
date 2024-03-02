@@ -10,8 +10,8 @@ var influxdb_client_1 = require("@influxdata/influxdb-client");
 var axios_1 = require("axios");
 var config = {
     bucket: process.env.BUCKET,
-    finnhubKey: process.env.FINNHUB_KEY,
-    measurement: process.env.WEATHER_MEASUREMENT,
+    finnhubKey: process.env.FINNHUB_SECRET,
+    measurement: process.env.FINNHUB_MEASUREMENT_SPY,
     org: process.env.INFLUX_ORG,
     stock: process.env.STOCK_SYMBOL,
     token: process.env.INFLUX_KEY,

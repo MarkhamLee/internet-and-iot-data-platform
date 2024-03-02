@@ -23,7 +23,7 @@ interface VarConfig {
 const config: VarConfig = {
     
     bucket: process.env.BUCKET as string,
-    finnhubKey: process.env.FINNHUB_KEY as string,
+    finnhubKey: process.env.FINNHUB_SECRET as string,
     measurement: process.env.FINNHUB_MEASUREMENT_SPY as string,
     org: process.env.INFLUX_ORG as string,
     stock: process.env.STOCK_SYMBOL as string,
