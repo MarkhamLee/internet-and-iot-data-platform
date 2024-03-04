@@ -1,7 +1,8 @@
 // (C) Markham Lee 2023 - 2024
 // productivity-music-stocks-weather-IoT-dashboard
 // https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
-// Retrieving Air Quality data from the OpenWeather API and writing it to InfluxDB.
+// Node variant of the OpenWeather API ETL - pulls down current weather data
+// and writes it to InfluxDB
 
 import axios from 'axios'
 import { Point } from '@influxdata/influxdb-client';
@@ -33,7 +34,8 @@ const getAirQualityData = async (airUrl: string): Promise<AirResponse[] | ErrorM
 
 }
 
-
+// parse out the desired fields
+// TODO: update to calculate AQI - may need all the fields for that 
 const parseData = (data: any) => {
 
     // split out the part of the json that contains the bulk of the data points
@@ -108,7 +110,7 @@ const airUrl = createAirqUrl(endpoint)
 getAirQualityData(airUrl)
   .then(result => { 
 
-    // parsed data - i.e., finish teh extraction step 
+    // parsed data - i.e., finish the extraction step 
     const parsedData = parseData(result)
 
     // write data to InfluxDB

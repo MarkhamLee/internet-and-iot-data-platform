@@ -1,7 +1,7 @@
 // (C) Markham Lee 2023 - 2024
 // productivity-music-stocks-weather-IoT-dashboard
 // https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
-// Node variant for the OpenWeather API ETL - pulls down current weather data
+// Node variant of the OpenWeather API ETL - pulls down current weather data
 // and writes it to InfluxDB
 
 import { InfluxDB } from '@influxdata/influxdb-client';
@@ -28,6 +28,7 @@ export interface AirQualityMetrics {
             }],
     dt: number}
 
+// for the air quality interface
 export interface AirResponse {
     data: AirQualityMetrics[],
     status: number
@@ -41,6 +42,7 @@ export interface ErrorMessage {
 
 }
 
+// this interface allows us to define all the environmental variables
 interface VarConfig {
     bucket: string;
     city: string;
@@ -55,6 +57,8 @@ interface VarConfig {
     
   }
 
+// this combined with the above allow us to retriev all the environmental
+// variables and make them available to any script that imports this file. 
 const config: VarConfig = {
     
     bucket: process.env.BUCKET as string,
@@ -101,6 +105,8 @@ const createAirqUrl = (endpoint: string) => {
 
 }
 
+// send Slack alerts via a web hook specific to a channel for
+// data pipeline errors.
 const sendSlackAlerts = (message: string) => {
 
     const payload = JSON.stringify({"text": message})
