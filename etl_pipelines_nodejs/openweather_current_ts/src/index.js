@@ -4,8 +4,7 @@
 // https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
 // Node variant for the OpenWeather API ETL - pulls down data for current weather
 // conditions and writes it to InfluxDB
-// WORK IN PROGRESS
-// TODO: add an interface to the API call
+// TODO: add json schema validation via the Ajv library
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -45,77 +44,99 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var axios_1 = require("axios");
 var influxdb_client_1 = require("@influxdata/influxdb-client");
+var openweather_config_1 = require("../utils/openweather_config");
 var openweather_library_1 = require("../utils/openweather_library");
 // Get OpenWeather data 
 var getWeatherData = function (weatherUrl) { return __awaiter(void 0, void 0, void 0, function () {
-    var data, weather_data, payload, response, error_1, message, full_message;
+    var data, error_1, message, full_message;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, axios_1.default.get(weatherUrl)
-                    // split out the part of the json that contains the bulk of the data points
-                ];
+                return [4 /*yield*/, axios_1.default.get(weatherUrl)];
             case 1:
-                data = _a.sent();
-                weather_data = data.data.main;
-                payload = { "barometric_pressure": weather_data.pressure,
-                    "description": data.data.weather[0].description,
-                    "feels_like": weather_data.feels_like,
-                    "high": weather_data.temp_max,
-                    "humidity": weather_data.humidity,
-                    "low": weather_data.temp_min,
-                    "temp": weather_data.temp,
-                    "time_stamp": data.data.dt,
-                    "weather": data.data.weather[0].main,
-                    "wind": data.data.wind.speed };
-                console.log("InfluxDB payload ready:", payload);
-                response = writeData(payload);
-                return [3 /*break*/, 3];
+                data = (_a.sent()).data;
+                return [2 /*return*/, data];
             case 2:
                 error_1 = _a.sent();
-                message = "Pipeline failure alert - OpenWeather API current weather node.js variant with error: ";
-                full_message = (message.concat(JSON.stringify((error_1.response.data))));
+                message = "OpenWeather API Pipeline Current Weather (Nodejs variant) failure, API connection error: ";
+                full_message = message.concat(error_1.message);
                 console.error(full_message);
-                //send pipeline failure alert via Slack
                 (0, openweather_library_1.sendSlackAlerts)(full_message);
-                return [3 /*break*/, 3];
+                return [2 /*return*/, {
+                        message: error_1.message,
+                        status: error_1.response.status
+                    }];
             case 3: return [2 /*return*/];
         }
     });
 }); };
+// parse out the desired fields
+// TODO: update to calculate AQI - may need all the fields for that 
+var parseData = function (data) {
+    // split out the part of the json that contains the bulk of the data points
+    var weather_data = data.main;
+    // parse out individual fields 
+    var payload = { "barometric_pressure": weather_data.pressure,
+        "description": data.weather[0].description,
+        "feels_like": weather_data.feels_like,
+        "high": weather_data.temp_max,
+        "humidity": weather_data.humidity,
+        "low": weather_data.temp_min,
+        "temp": weather_data.temp,
+        "time_stamp": data.dt,
+        "weather": data.weather[0].main,
+        "wind": data.wind.speed };
+    console.log('DB payload ready: ', payload);
+    return payload;
+};
 //method to write data to InfluxDB
 // the InfluxDB node.js library doesn't have a clean way of just
 // pushing json data to the DB. So, the write methods will have to 
 // live in the primary ETL code for now. 
 var writeData = function (payload) {
-    var bucket = openweather_library_1.config.bucket;
-    var writeClient = (0, openweather_library_1.createInfluxClient)(bucket);
-    var point = new influxdb_client_1.Point(openweather_library_1.config.measurement)
-        .tag("OpenWeatherAPI", "current_weather")
-        .floatField('temp', payload.temp)
-        .floatField('wind', payload.wind)
-        .floatField('barometric_pressure', payload.barometric_pressure)
-        .floatField('humidity', payload.humidity)
-        .floatField('low', payload.low)
-        .floatField('high', payload.high)
-        .floatField('feels_like', payload.feels_like)
-        .intField('time_stamp', payload.time_stamp)
-        .stringField('description', payload.description)
-        .stringField('weather', payload.weather);
-    // write data to InfluxDB
-    void setTimeout(function () {
-        writeClient.writePoint(point);
-        console.log("Weather data successfully written to InfluxDB");
-    }, 1000);
-    // flush client
-    void setTimeout(function () {
-        // flush InfluxDB client
-        writeClient.flush();
-    }, 1000);
+    try {
+        var writeClient_1 = (0, openweather_library_1.createInfluxClient)(openweather_config_1.config.bucket);
+        var point_1 = new influxdb_client_1.Point(openweather_config_1.config.measurement)
+            .tag("OpenWeatherAPI", "current_weather")
+            .floatField('temp', payload.temp)
+            .floatField('wind', payload.wind)
+            .floatField('barometric_pressure', payload.barometric_pressure)
+            .floatField('humidity', payload.humidity)
+            .floatField('low', payload.low)
+            .floatField('high', payload.high)
+            .floatField('feels_like', payload.feels_like)
+            .intField('time_stamp', payload.time_stamp)
+            .stringField('description', payload.description)
+            .stringField('weather', payload.weather);
+        // write data to InfluxDB
+        void setTimeout(function () {
+            writeClient_1.writePoint(point_1);
+            console.log("Weather data successfully written to InfluxDB");
+        }, 1000);
+        // flush client
+        void setTimeout(function () {
+            // flush InfluxDB client
+            writeClient_1.flush();
+        }, 1000);
+    }
+    catch (error) {
+        var message = "OpenWeather API Pipeline Current Weather (Nodejs variant) failure, InfluxDB write error: ";
+        var full_message = (message.concat(JSON.stringify((error.body))));
+        console.error(full_message);
+        //send pipeline failure alert via Slack
+        (0, openweather_library_1.sendSlackAlerts)(full_message);
+    }
 };
+//baseline endpoint
 var endpoint = "weather?";
 // create URL for API get request
 var weatherUrl = (0, openweather_library_1.createOpenWeatherUrl)(endpoint);
 // get & write data
-getWeatherData(weatherUrl);
+getWeatherData(weatherUrl)
+    .then(function (result) {
+    //parse data - finish extraction
+    var parsedData = parseData(result);
+    //write data to InfluxDB
+    writeData(parsedData);
+});
