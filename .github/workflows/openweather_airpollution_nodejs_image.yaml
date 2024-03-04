@@ -1,5 +1,4 @@
-name: openweather_airpollution_container_nodejs_build
-
+name: openweather_airq_node_container_build_v2
 on:
   push:
     branches:
