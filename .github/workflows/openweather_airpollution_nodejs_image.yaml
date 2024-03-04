@@ -5,6 +5,8 @@ on:
       - "main"
     paths:
       - "etl_pipelines_nodejs/openweather_airquality_nodejs/*"
+      - "etl_pipelines_nodejs/openweather_airquality_nodejs/src/*"
+      - "etl_pipelines_nodejs/openweather_airquality_nodejs/utils/*"
 
 jobs:
   docker:
