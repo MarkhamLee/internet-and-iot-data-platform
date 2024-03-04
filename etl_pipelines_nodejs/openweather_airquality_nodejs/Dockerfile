@@ -13,5 +13,4 @@ RUN npm install
 
 COPY --chown=node:node ./src ./src
 
-
 CMD [ "node", "src/index.js" ]

@@ -6,8 +6,8 @@
 
 import axios from 'axios'
 import { Point } from '@influxdata/influxdb-client';
-import {config, createAirqUrl, createInfluxClient,
-        sendSlackAlerts, AirResponse, ErrorMessage} from "../utils/openweather_air_library"
+import { config, AirResponse, ErrorMessage } from "../utils/openweather_air_config"
+import {createAirqUrl, createInfluxClient, sendSlackAlerts, validateJson,} from "../utils/openweather_air_library"
 
 
 // Get OpenWeather data 
@@ -39,16 +39,15 @@ const parseData = (data: any) => {
     // split out the part of the json that contains the bulk of the data points
     const airData = data['list'][0]['components']
 
-    const { co } = airData
-    const { pm2_5 } = airData
-    const { pm10 } = airData
-        
+    // validate the data, script(s) will exit if data is invalid
+    validateJson(airData)
+    
     // parse out individual fields 
-   const payload = {"carbon_monoxide": co,
-                     "pm_2": pm2_5,
-                     "pm_10": pm10 }
+   const payload = {"carbon_monoxide": airData.co,
+                     "pm_2": airData.pm2_5,
+                     "pm_10": airData.pm10 }
 
-    console.log('DB payload ready: ', payload)
+    console.log('DB payload ready:', payload)
 
     return payload
 
@@ -86,7 +85,7 @@ const writeData = (payload: any) => {
 
     } catch (error: any) {
 
-        const message = "Pipeline failure alert - InfluxDB write error: "
+        const message = "OpenWeather API, Air Pollution Pipeline (Nodejs variant) failure - InfluxDB write error: "
         const full_message = (message.concat(JSON.stringify((error.body))));
         console.error(full_message);
 

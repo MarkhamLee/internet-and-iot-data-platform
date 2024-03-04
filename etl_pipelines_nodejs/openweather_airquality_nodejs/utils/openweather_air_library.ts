@@ -4,75 +4,11 @@
 // Node variant of the OpenWeather API ETL - pulls down current weather data
 // and writes it to InfluxDB
 
-import { InfluxDB } from '@influxdata/influxdb-client';
 import axios from 'axios';
+import Ajv from "ajv";
+import { InfluxDB } from '@influxdata/influxdb-client';
+import { config, airQualitySchema } from '../utils/openweather_air_config'
 
-// interface for weather data
-export interface AirQualityMetrics {
-    
-    coord: {
-        lon: number,
-        lat: number
-    },
-    list: [
-        main: {aqi: number},
-        components: {
-            no: number,
-            no2: number,
-            temp: number,
-            o3: number,
-            so2: number,
-            pm2_5: number,
-            pm10: number,
-            nh3: number,
-            }],
-    dt: number}
-
-// for the air quality interface
-export interface AirResponse {
-    data: AirQualityMetrics[],
-    status: number
-}
-
-// error message interface
-export interface ErrorMessage {
-
-    message: string
-    status: number
-
-}
-
-// this interface allows us to define all the environmental variables
-interface VarConfig {
-    bucket: string;
-    city: string;
-    lat: string;
-    long: string;
-    measurement: string;
-    org: string 
-    token: string;
-    url: string;
-    weatherKey: string;
-    webHookUrl: string;
-    
-  }
-
-// this combined with the above allow us to retriev all the environmental
-// variables and make them available to any script that imports this file. 
-const config: VarConfig = {
-    
-    bucket: process.env.BUCKET as string,
-    city: process.env.CITY as string,
-    lat: process.env.LAT as string,
-    long: process.env.LONG as string,
-    measurement: process.env.AIR_QUALITY_MEASUREMENT as string,
-    org: process.env.INFLUX_ORG as string,
-    token: process.env.INFLUX_KEY as string,
-    url: process.env.INFLUX_URL as string,
-    weatherKey: process.env.OPENWEATHER_KEY as string,
-    webHookUrl: process.env.ALERT_WEBHOOK as string,
-    
-  };
 
 // create InfluxDB client
 const createInfluxClient = (bucket: string) => {
@@ -122,4 +58,26 @@ const sendSlackAlerts = (message: string) => {
         
     }
 
-export {config, createInfluxClient, sendSlackAlerts, createAirqUrl}
+const validateJson = (data: any) => {
+
+    const ajv = new Ajv()
+
+    const validData = ajv.validate(airQualitySchema, data)
+
+    if (validData) {
+
+        console.log("Data validation successful");
+
+      } else {
+        
+        const message = "Pipeline failure data validation - OpenWeather Air Quality (nodejs variant), exiting... "
+        console.error("Data validation error: ", ajv.errors);
+        // exit the script so we don't attempt a DB write that won't work or
+        // would write bad data to our db.
+        return process.exit()  
+
+      }
+
+}
+
+export {config, createInfluxClient, sendSlackAlerts, createAirqUrl, validateJson}
