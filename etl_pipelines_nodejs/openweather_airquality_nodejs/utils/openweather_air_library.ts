@@ -122,5 +122,4 @@ const sendSlackAlerts = (message: string) => {
         
     }
 
-
 export {config, createInfluxClient, sendSlackAlerts, createAirqUrl}

@@ -57,8 +57,8 @@ var getAirQualityData = function (airUrl) { return __awaiter(void 0, void 0, voi
                 return [2 /*return*/, data];
             case 2:
                 error_1 = _a.sent();
-                message = "Pipeline failure on nodejs version of OpenWeather Air Quality Pipeline: ";
-                full_message = message.concat(error_1);
+                message = "Pipeline Failure, API error on Nodejs AirQuality pipeline: ";
+                full_message = message.concat(error_1.message);
                 console.error(full_message);
                 (0, openweather_air_library_1.sendSlackAlerts)(full_message);
                 return [2 /*return*/, {

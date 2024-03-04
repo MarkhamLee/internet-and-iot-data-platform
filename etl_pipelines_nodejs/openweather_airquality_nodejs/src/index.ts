@@ -20,8 +20,8 @@ const getAirQualityData = async (airUrl: string): Promise<AirResponse[] | ErrorM
 
     } catch (error: any) {
 
-        const message = "Pipeline failure on nodejs version of OpenWeather Air Quality Pipeline: "
-        const full_message = message.concat(error)
+        const message = "Pipeline Failure, API error on Nodejs AirQuality pipeline: "
+        const full_message = message.concat(error.message)
         console.error(full_message)
         sendSlackAlerts(full_message)
         
@@ -29,9 +29,7 @@ const getAirQualityData = async (airUrl: string): Promise<AirResponse[] | ErrorM
             message: error.message,
             status: error.response.status
         }
-        
     }
-
 }
 
 // parse out the desired fields
@@ -42,7 +40,7 @@ const parseData = (data: any) => {
     const airData = data['list'][0]['components']
 
     const { co } = airData
-    const { pm2_5} = airData
+    const { pm2_5 } = airData
     const { pm10 } = airData
         
     // parse out individual fields 
@@ -55,7 +53,6 @@ const parseData = (data: any) => {
     return payload
 
 }
-
 
 //method to write data to InfluxDB
 // the InfluxDB node.js library doesn't have a clean way of just
@@ -108,7 +105,7 @@ const airUrl = createAirqUrl(endpoint)
   
 // get & write data
 getAirQualityData(airUrl)
-  .then(result => { 
+    .then(result => { 
 
     // parsed data - i.e., finish the extraction step 
     const parsedData = parseData(result)
