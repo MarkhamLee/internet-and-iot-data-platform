@@ -8,24 +8,38 @@ import { InfluxDB } from '@influxdata/influxdb-client';
 import axios from 'axios';
 
 // interface for weather data
-
 export interface AirQualityMetrics {
-    no: number,
-    no2: number,
-    temp: number,
-    o3: number,
-    so2: number,
-    pm2_5: number,
-    pm10: number,
-    nh3: number,
-    dt: number,
-  }
+    
+    coord: {
+        lon: number,
+        lat: number
+    },
+    list: [
+        main: {aqi: number},
+        components: {
+            no: number,
+            no2: number,
+            temp: number,
+            o3: number,
+            so2: number,
+            pm2_5: number,
+            pm10: number,
+            nh3: number,
+            }],
+    dt: number}
 
 export interface AirResponse {
-    data: AirQualityMetrics,
+    data: AirQualityMetrics[],
     status: number
 }
 
+// error message interface
+export interface ErrorMessage {
+
+    message: string
+    status: number
+
+}
 
 interface VarConfig {
     bucket: string;
@@ -78,12 +92,10 @@ const createAirqUrl = (endpoint: string) => {
     const lat = config.lat
     const long = config.long
 
-
     // build openweather API URL 
     const baseUrl = "http://api.openweathermap.org/data/2.5/"
     const units = "&units=metric"
     const airUrl = baseUrl.concat(endpoint,'appid=',weatherKey,'&lat=',lat,'&lon=',long)
-    console.log('Base url created', airUrl)
 
     return airUrl
 

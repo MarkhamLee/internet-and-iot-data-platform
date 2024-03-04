@@ -45,61 +45,82 @@ var influxdb_client_1 = require("@influxdata/influxdb-client");
 var openweather_air_library_1 = require("../utils/openweather_air_library");
 // Get OpenWeather data 
 var getAirQualityData = function (airUrl) { return __awaiter(void 0, void 0, void 0, function () {
-    var data, air_data, payload, response, error_1, message, full_message;
+    var data, error_1, message, full_message;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, axios_1.default.get(airUrl)
-                    // split out the part of the json that contains the bulk of the data points
-                ];
+                return [4 /*yield*/, axios_1.default.get(airUrl)];
             case 1:
-                data = _a.sent();
-                air_data = data.data['list'][0]['components'];
-                payload = { "carbon_monoxide": air_data.co,
-                    "pm_2": air_data.pm2_5,
-                    "pm_10": air_data.pm10 };
-                console.log("InfluxDB payload ready:", payload);
-                response = writeData(payload);
-                return [3 /*break*/, 3];
+                data = (_a.sent()).data;
+                return [2 /*return*/, data];
             case 2:
                 error_1 = _a.sent();
-                message = "Pipeline failure alert - OpenWeather API Air Pollution - node.js variant with error: ";
-                full_message = (message.concat(JSON.stringify((error_1))));
+                message = "Pipeline failure on nodejs version of OpenWeather Air Quality Pipeline: ";
+                full_message = message.concat(error_1);
                 console.error(full_message);
-                //send pipeline failure alert via Slack
                 (0, openweather_air_library_1.sendSlackAlerts)(full_message);
-                return [3 /*break*/, 3];
+                return [2 /*return*/, {
+                        message: error_1.message,
+                        status: error_1.response.status
+                    }];
             case 3: return [2 /*return*/];
         }
     });
 }); };
+var parseData = function (data) {
+    // split out the part of the json that contains the bulk of the data points
+    var airData = data['list'][0]['components'];
+    var co = airData.co;
+    var pm2_5 = airData.pm2_5;
+    var pm10 = airData.pm10;
+    // parse out individual fields 
+    var payload = { "carbon_monoxide": co,
+        "pm_2": pm2_5,
+        "pm_10": pm10 };
+    console.log('DB payload ready: ', payload);
+    return payload;
+};
 //method to write data to InfluxDB
 // the InfluxDB node.js library doesn't have a clean way of just
 // pushing json data to the DB. So, the write methods will have to 
 // live in the primary ETL code for now. 
 var writeData = function (payload) {
-    console.log(payload);
-    var bucket = openweather_air_library_1.config.bucket;
-    var writeClient = (0, openweather_air_library_1.createInfluxClient)(openweather_air_library_1.config.bucket);
-    var point = new influxdb_client_1.Point(openweather_air_library_1.config.measurement)
-        .tag("OpenWeatherAPI", "Air Quality")
-        .floatField('carbon_monoxide', payload.carbon_monoxide)
-        .floatField('pm_2', payload.pm_2)
-        .floatField('pm_10', payload.pm_10);
-    // write data to InfluxDB
-    void setTimeout(function () {
-        writeClient.writePoint(point);
-        console.log("Weather data successfully written to InfluxDB");
-    }, 1000);
-    // flush client
-    void setTimeout(function () {
-        // flush InfluxDB client
-        writeClient.flush();
-    }, 1000);
+    try {
+        var writeClient_1 = (0, openweather_air_library_1.createInfluxClient)(openweather_air_library_1.config.bucket);
+        var point_1 = new influxdb_client_1.Point(openweather_air_library_1.config.measurement)
+            .tag("OpenWeatherAPI", "Air Quality")
+            .floatField('carbon_monoxide', payload.carbon_monoxide)
+            .floatField('pm_2', payload.pm_2)
+            .floatField('pm_10', payload.pm_10);
+        // write data to InfluxDB
+        void setTimeout(function () {
+            writeClient_1.writePoint(point_1);
+            console.log("Weather data successfully written to InfluxDB");
+        }, 1000);
+        // flush client
+        void setTimeout(function () {
+            // flush InfluxDB client
+            writeClient_1.flush();
+        }, 1000);
+    }
+    catch (error) {
+        var message = "Pipeline failure alert - InfluxDB write error: ";
+        var full_message = (message.concat(JSON.stringify((error.body))));
+        console.error(full_message);
+        //send pipeline failure alert via Slack
+        (0, openweather_air_library_1.sendSlackAlerts)(full_message);
+    }
 };
+// baseline endpoint
 var endpoint = "air_pollution?";
 // create URL for API get request
 var airUrl = (0, openweather_air_library_1.createAirqUrl)(endpoint);
 // get & write data
-getAirQualityData(airUrl);
+getAirQualityData(airUrl)
+    .then(function (result) {
+    // parsed data - i.e., finish teh extraction step 
+    var parsedData = parseData(result);
+    // write data to InfluxDB
+    writeData(parsedData);
+});

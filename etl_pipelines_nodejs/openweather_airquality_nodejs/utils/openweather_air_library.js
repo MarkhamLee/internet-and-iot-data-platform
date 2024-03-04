@@ -41,7 +41,6 @@ var createAirqUrl = function (endpoint) {
     var baseUrl = "http://api.openweathermap.org/data/2.5/";
     var units = "&units=metric";
     var airUrl = baseUrl.concat(endpoint, 'appid=', weatherKey, '&lat=', lat, '&lon=', long);
-    console.log('Base url created', airUrl);
     return airUrl;
 };
 exports.createAirqUrl = createAirqUrl;
