@@ -2,7 +2,8 @@
 // (C) Markham Lee 2023 - 2024
 // productivity-music-stocks-weather-IoT-dashboard
 // https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
-// Retrieving Air Quality data from the OpenWeather API and writing it to InfluxDB.
+// Node variant of the OpenWeather API ETL - pulls down current weather data
+// and writes it to InfluxDB
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -68,6 +69,8 @@ var getAirQualityData = function (airUrl) { return __awaiter(void 0, void 0, voi
         }
     });
 }); };
+// parse out the desired fields
+// TODO: update to calculate AQI - may need all the fields for that 
 var parseData = function (data) {
     // split out the part of the json that contains the bulk of the data points
     var airData = data['list'][0]['components'];
@@ -119,7 +122,7 @@ var airUrl = (0, openweather_air_library_1.createAirqUrl)(endpoint);
 // get & write data
 getAirQualityData(airUrl)
     .then(function (result) {
-    // parsed data - i.e., finish teh extraction step 
+    // parsed data - i.e., finish the extraction step 
     var parsedData = parseData(result);
     // write data to InfluxDB
     writeData(parsedData);

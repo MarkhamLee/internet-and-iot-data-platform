@@ -2,12 +2,14 @@
 // (C) Markham Lee 2023 - 2024
 // productivity-music-stocks-weather-IoT-dashboard
 // https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
-// Node variant for the OpenWeather API ETL - pulls down current weather data
+// Node variant of the OpenWeather API ETL - pulls down current weather data
 // and writes it to InfluxDB
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createAirqUrl = exports.sendSlackAlerts = exports.createInfluxClient = exports.config = void 0;
 var influxdb_client_1 = require("@influxdata/influxdb-client");
 var axios_1 = require("axios");
+// this combined with the above allow us to retriev all the environmental
+// variables and make them available to any script that imports this file. 
 var config = {
     bucket: process.env.BUCKET,
     city: process.env.CITY,
@@ -44,6 +46,8 @@ var createAirqUrl = function (endpoint) {
     return airUrl;
 };
 exports.createAirqUrl = createAirqUrl;
+// send Slack alerts via a web hook specific to a channel for
+// data pipeline errors.
 var sendSlackAlerts = function (message) {
     var payload = JSON.stringify({ "text": message });
     axios_1.default.post(config.webHookUrl, payload)
