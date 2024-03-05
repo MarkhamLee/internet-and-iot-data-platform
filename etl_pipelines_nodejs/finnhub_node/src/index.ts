@@ -4,38 +4,54 @@
 // Node.js - TypeScript version of the Finnhub ETL: pulling down daily stock price data 
 // and writing it to InfluxDB.
 
-import { Point } from '@influxdata/influxdb-client';
 const finnhub = require('finnhub')
-import {config, createInfluxClient, sendSlackAlerts} from "../utils/utilities"
+import { Point } from '@influxdata/influxdb-client';
+import {config, createInfluxClient, sendSlackAlerts, validateJson} from "../utils/utilities"
 
 const api_key = finnhub.ApiClient.instance.authentications['api_key']
 api_key.apiKey = config.finnhubKey 
 const finnhubClient = new finnhub.DefaultApi()
 
 
+// get data from the Finnhub API via the Official Finnhub JS library
 finnhubClient.quote(config.stock, (error: any, data: any, response: any) => {
-    
-    if (error) {
-        const message = "Pipeline failure for Node.js version of Finnhub Stock Price ETL, with error:"
-        const full_message = message.concat(error)
-        console.error(full_message)
-        sendSlackAlerts(full_message)
+        
+        if (error) {
+            const message = "Pipeline failure for Node.js version of Finnhub Stock Price ETL, with error:"
+            const full_message = message.concat(error)
+            console.error(full_message)
+            sendSlackAlerts(full_message)
 
-    } else {
+        } else {
 
-        const payload = {
-            "previous_close": Number(data['pc']),
-            "open": Number(data['o']),
-            "last_price": Number(data['l']),
-            "change": Number(data['dp'])
-        }
+            console.log("Finnhub data received")
+            const payload = parseData(data)
+            writeData(payload)
 
-        console.log("InfluxDB payload ready", payload)
-        writeData(payload)
-    }        
-});
+        }        
+    });
 
-//method to write data to InfluxDB
+
+// parse and validate the Finnhub data
+const parseData = (data: any) => {
+
+    // validate data
+    validateJson(data)
+
+    const payload = {
+        "previous_close": Number(data['pc']),
+        "open": Number(data['o']),
+        "last_price": Number(data['l']),
+        "change": Number(data['dp'])
+    }
+
+    console.log("InfluxDB payload ready", payload)
+   
+    return payload
+  
+
+}
+// method to write data to InfluxDB
 // the InfluxDB node.js library doesn't have a clean way of just
 // pushing json data to the DB. So, the write methods will have to 
 // live in the primary ETL code for now. 
@@ -66,4 +82,3 @@ const writeData = (payload: any) => {
         }, 1000)
     
     }
-  

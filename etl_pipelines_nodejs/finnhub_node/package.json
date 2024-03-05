@@ -9,7 +9,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "engines": {
-    "node": "^19"
+    "node": "^18"
   },
   "keywords": [],
   "author": "Markham Lee",
@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "@influxdata/influxdb-client": "^1.33.2",
+    "ajv": "^8.12.0",
     "axios": "^1.6.7",
     "finnhub": "^1.2.18",
     "tsx": "^4.7.1"

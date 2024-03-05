@@ -4,34 +4,11 @@
 // Node variant of the Finnhub Stock Price ETL, pulls down current price data for
 // a given stock and then writes it to InfluxDB.
 
-import {InfluxDB} from '@influxdata/influxdb-client';
 import axios from 'axios';
+import Ajv from "ajv";
+import {InfluxDB} from '@influxdata/influxdb-client';
+import { config, finnhubSchema } from '../utils/finnhub_config'
 
-
-interface VarConfig {
-    bucket: string;
-    finnhubKey: string;
-    measurement: string;
-    org: string; 
-    stock: string;
-    token: string;
-    url: string;
-    webHookUrl: string;
-    
-  }
-
-const config: VarConfig = {
-    
-    bucket: process.env.BUCKET as string,
-    finnhubKey: process.env.FINNHUB_SECRET as string,
-    measurement: process.env.FINNHUB_MEASUREMENT_SPY as string,
-    org: process.env.INFLUX_ORG as string,
-    stock: process.env.STOCK_SYMBOL as string,
-    token: process.env.INFLUX_KEY as string,
-    url: process.env.INFLUX_URL as string,
-    webHookUrl: process.env.ALERT_WEBHOOK as string,
-    
-  };
 
 // create InfluxDB client
 const createInfluxClient = (bucket: string) => {
@@ -62,5 +39,26 @@ const sendSlackAlerts = (message: string) => {
         
     }
 
+const validateJson = (data: any) => {
 
-export {config, createInfluxClient, sendSlackAlerts}
+        const ajv = new Ajv()
+    
+        const validData = ajv.validate(finnhubSchema, data)
+    
+        if (validData) {
+    
+            console.log("Data validation successful");
+    
+          } else {
+            
+            const message = "Pipeline failure data validation - OpenWeather Air Quality (nodejs variant), exiting... "
+            console.error("Data validation error: ", ajv.errors);
+            // exit the script so we don't attempt a DB write that won't work or
+            // would write bad data to our db.
+            return process.exit()  
+    
+          }
+    
+    }
+
+export {config, createInfluxClient, sendSlackAlerts, validateJson}

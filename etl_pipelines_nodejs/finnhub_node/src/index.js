@@ -5,12 +5,13 @@
 // Node.js - TypeScript version of the Finnhub ETL: pulling down daily stock price data 
 // and writing it to InfluxDB.
 Object.defineProperty(exports, "__esModule", { value: true });
-var influxdb_client_1 = require("@influxdata/influxdb-client");
 var finnhub = require('finnhub');
+var influxdb_client_1 = require("@influxdata/influxdb-client");
 var utilities_1 = require("../utils/utilities");
 var api_key = finnhub.ApiClient.instance.authentications['api_key'];
 api_key.apiKey = utilities_1.config.finnhubKey;
 var finnhubClient = new finnhub.DefaultApi();
+// get data from the Finnhub API via the Official Finnhub JS library
 finnhubClient.quote(utilities_1.config.stock, function (error, data, response) {
     if (error) {
         var message = "Pipeline failure for Node.js version of Finnhub Stock Price ETL, with error:";
@@ -19,17 +20,25 @@ finnhubClient.quote(utilities_1.config.stock, function (error, data, response) {
         (0, utilities_1.sendSlackAlerts)(full_message);
     }
     else {
-        var payload = {
-            "previous_close": Number(data['pc']),
-            "open": Number(data['o']),
-            "last_price": Number(data['l']),
-            "change": Number(data['dp'])
-        };
-        console.log("InfluxDB payload ready", payload);
+        console.log("Finnhub data received");
+        var payload = parseData(data);
         writeData(payload);
     }
 });
-//method to write data to InfluxDB
+// parse and validate the Finnhub data
+var parseData = function (data) {
+    // validate data
+    (0, utilities_1.validateJson)(data);
+    var payload = {
+        "previous_close": Number(data['pc']),
+        "open": Number(data['o']),
+        "last_price": Number(data['l']),
+        "change": Number(data['dp'])
+    };
+    console.log("InfluxDB payload ready", payload);
+    return payload;
+};
+// method to write data to InfluxDB
 // the InfluxDB node.js library doesn't have a clean way of just
 // pushing json data to the DB. So, the write methods will have to 
 // live in the primary ETL code for now. 
