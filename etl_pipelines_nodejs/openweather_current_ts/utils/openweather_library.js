@@ -5,8 +5,9 @@
 // Node variant for the OpenWeather API ETL - pulls down data for current weather
 // conditions and writes it to InfluxDB
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createOpenWeatherUrl = exports.sendSlackAlerts = exports.createInfluxClient = exports.config = void 0;
+exports.validateJson = exports.createOpenWeatherUrl = exports.sendSlackAlerts = exports.createInfluxClient = exports.config = void 0;
 var axios_1 = require("axios");
+var ajv_1 = require("ajv");
 var influxdb_client_1 = require("@influxdata/influxdb-client");
 var openweather_config_1 = require("./openweather_config");
 Object.defineProperty(exports, "config", { enumerable: true, get: function () { return openweather_config_1.config; } });
@@ -44,3 +45,18 @@ var sendSlackAlerts = function (message) {
     });
 };
 exports.sendSlackAlerts = sendSlackAlerts;
+var validateJson = function (data) {
+    var ajv = new ajv_1.default();
+    var validData = ajv.validate(openweather_config_1.openWeatherSchema, data);
+    if (validData) {
+        console.log("DB payload validation successful");
+    }
+    else {
+        var message = "Pipeline failure data validation - OpenWeather Air Quality (nodejs variant), exiting... ";
+        console.error("Data validation error: ", ajv.errors);
+        // exit the script so we don't attempt a DB write that won't work or
+        // would write bad data to our db.
+        return process.exit();
+    }
+};
+exports.validateJson = validateJson;

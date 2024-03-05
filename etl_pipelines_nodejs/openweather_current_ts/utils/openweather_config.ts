@@ -5,6 +5,7 @@
 // conditions and writes it to InfluxDB
 // Config file that contains interfaces, json schemas, env variables, etc.
 
+
 // interface for weather data
 export interface CurrentWeather {
     
@@ -87,3 +88,28 @@ export const config: VarConfig = {
     webHookUrl: process.env.ALERT_WEBHOOK as string,
     
   };
+
+export const openWeatherSchema = {
+    
+    "type": "object",
+    
+    "properties": {
+      "coord": {
+        "type": "object",
+        "properties": {
+            "barometric_pressure": {"type": "number"},
+            "description": {"type": "string"},
+            "feels_like": {"type": "string"},
+            "high": {"type": "number"},
+            "humidity": {"type": "number"},
+            "low": {"type": "number"},
+            "temp": {"type": "number"},
+            "time_stamp": {"type": "number"},
+            "weather": {"type": "string"},
+            "wind": {"type": "string"},
+            },
+    "required": ["description", "feels_like", "high", "humidity",
+    "low", "temp", "time_stamp", "weather", "wind"],
+    }
+   }
+}

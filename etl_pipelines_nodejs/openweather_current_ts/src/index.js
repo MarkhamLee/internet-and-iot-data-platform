@@ -74,6 +74,7 @@ var getWeatherData = function (weatherUrl) { return __awaiter(void 0, void 0, vo
 // parse out the desired fields
 // TODO: update to calculate AQI - may need all the fields for that 
 var parseData = function (data) {
+    console.log("incoming data", data);
     // split out the part of the json that contains the bulk of the data points
     var weather_data = data.main;
     // parse out individual fields 
@@ -87,6 +88,8 @@ var parseData = function (data) {
         "time_stamp": data.dt,
         "weather": data.weather[0].main,
         "wind": data.wind.speed };
+    // Validate the payload before writing to InfluxDB.
+    (0, openweather_library_1.validateJson)(payload);
     console.log('DB payload ready: ', payload);
     return payload;
 };

@@ -8,7 +8,7 @@
 import axios from 'axios';
 import { Point } from '@influxdata/influxdb-client';
 import {config, WeatherResponse, ErrorMessage} from "../utils/openweather_config";
-import {createOpenWeatherUrl, createInfluxClient, sendSlackAlerts, }
+import {createOpenWeatherUrl, createInfluxClient, sendSlackAlerts, validateJson, }
 from "../utils/openweather_library";
 
 // Get OpenWeather data 
@@ -37,6 +37,8 @@ const getWeatherData = async (weatherUrl: string): Promise<WeatherResponse[] | E
 // TODO: update to calculate AQI - may need all the fields for that 
 const parseData = (data: any) => {
 
+      console.log("incoming data", data)
+
       // split out the part of the json that contains the bulk of the data points
       const weather_data = data.main;
         
@@ -51,6 +53,9 @@ const parseData = (data: any) => {
         "time_stamp": data.dt,
         "weather": data.weather[0].main,
         "wind": data.wind.speed }
+
+    // Validate the payload before writing to InfluxDB.
+    validateJson(payload) 
 
     console.log('DB payload ready: ', payload)
 
