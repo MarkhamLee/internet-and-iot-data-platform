@@ -16,10 +16,13 @@ class FinnHubUtilities():
     def __init__(self) -> None:
         pass
 
+    # making the key the default value allows us to pass different keys and/or
+    # wrong keys durinig testing.
     @staticmethod
-    def get_stock_data(symbol: str) -> dict:
+    def get_stock_data(symbol: str,
+                       FINNHUB_KEY=os.environ.get('FINNHUB_SECRET')) -> dict:
 
-        FINNHUB_KEY = os.environ.get('FINNHUB_SECRET')
+        # FINNHUB_KEY = os.environ.get('FINNHUB_SECRET')
 
         # import data schema for validation
         with open('stock_prices_payload.json') as file:

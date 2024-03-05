@@ -24,10 +24,10 @@ etl_utilities = EtlUtilities()
 WEBHOOK_URL = os.environ.get('ALERT_WEBHOOK')
 
 
-def get_prices(symbol: str):
+def get_prices(symbol: str, *args):
 
     try:
-        data = finn_util.get_stock_data(symbol)
+        data = finn_util.get_stock_data(symbol, *args)
         logger.info('stock price data retrieved')
         return data
 
@@ -36,6 +36,7 @@ def get_prices(symbol: str):
         logger.debug(message)
         response = etl_utilities.send_slack_webhook(WEBHOOK_URL, message)
         logger.debug(f'Slack pipeline failure alert sent with code: {response}')  # noqa: E501
+        return response
 
 
 def parse_data(data: dict) -> dict:
@@ -76,6 +77,7 @@ def write_data(data: dict):
         logger.debug(message)
         response = etl_utilities.send_slack_webhook(WEBHOOK_URL, message)
         logger.debug(f'Slack pipeline failure alert sent with code: {response}')  # noqa: E501
+        return response
 
 
 def main():
