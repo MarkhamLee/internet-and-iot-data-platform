@@ -7,6 +7,7 @@ import { getAirQualityData, parseData, writeData } from "../src/main"
 // Test end to end
 // There will be a couple of logging errors, as the tests will complete before logging finishes. 
 describe("Full pipeline test", () => {
+    // if the API call fails, a text error message is returned
     it("Pipeline should run, not return a  value", () => {
         
         //baseline endpoint
@@ -51,7 +52,7 @@ describe("API Call - Exception Handling Test", () => {
   });
 
 
-// Validate sending bad data for validation 
+// Test sending bad or wrong data to the json validation step
 describe("Validate data format", () => {
     it("Data format validation should fail", () => {
 
