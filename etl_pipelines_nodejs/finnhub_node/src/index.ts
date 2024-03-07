@@ -12,31 +12,41 @@ const api_key = finnhub.ApiClient.instance.authentications['api_key']
 api_key.apiKey = config.finnhubKey 
 const finnhubClient = new finnhub.DefaultApi()
 
+const getFinanceData = () => {
+    // get data from the Finnhub API via the Official Finnhub JS library
+    finnhubClient.quote(config.stock, (error: any, data: any, response: any) => {
+            
+            if (error) {
+                const message = "Pipeline failure for Node.js version of Finnhub Stock Price ETL, with error:"
+                const full_message = message.concat(error)
+                console.error(full_message)
+                sendSlackAlerts(full_message)
+                // exit process
+                return process.exit()
 
-// get data from the Finnhub API via the Official Finnhub JS library
-finnhubClient.quote(config.stock, (error: any, data: any, response: any) => {
-        
-        if (error) {
-            const message = "Pipeline failure for Node.js version of Finnhub Stock Price ETL, with error:"
-            const full_message = message.concat(error)
-            console.error(full_message)
-            sendSlackAlerts(full_message)
+            } else {
 
-        } else {
+                console.log("Finnhub data received")
+                const payload = parseData(data)
+                writeData(payload)
+                
 
-            console.log("Finnhub data received")
-            const payload = parseData(data)
-            writeData(payload)
-
-        }        
-    });
-
+            }        
+        });
+    return 0
+}
 
 // parse and validate the Finnhub data
 const parseData = (data: any) => {
 
     // validate data
-    validateJson(data)
+    const status = validateJson(data)
+
+    if (status == 1) {
+
+        return process.exit()
+        
+    }
 
     const payload = {
         "previous_close": Number(data['pc']),
@@ -82,3 +92,5 @@ const writeData = (payload: any) => {
         }, 1000)
     
     }
+
+export {getFinanceData, parseData, writeData}

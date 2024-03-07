@@ -48,6 +48,7 @@ const validateJson = (data: any) => {
         if (validData) {
     
             console.log("Data validation successful");
+            return 0
     
           } else {
             
@@ -55,7 +56,7 @@ const validateJson = (data: any) => {
             console.error("Data validation error: ", ajv.errors);
             // exit the script so we don't attempt a DB write that won't work or
             // would write bad data to our db.
-            return process.exit()  
+            return 1
     
           }
     
