@@ -26,6 +26,21 @@ etl_utilities = EtlUtilities()
 WEBHOOK_URL = os.environ.get('ALERT_WEBHOOK')
 
 
+def postgres_connection():
+
+    param_dict = {
+        "host": os.environ.get('DB_HOST'),
+        "database": os.environ.get('DASHBOARD_DB'),
+        "port": int(os.environ.get('POSTGRES_PORT')),
+        "user": os.environ.get('POSTGRES_USER'),
+        "password": os.environ.get('POSTGRES_PASSWORD')
+
+    }
+
+    # get Postgres connection
+    return postgres_utilities.postgres_client(param_dict)
+
+
 def get_tbill_data(url: str) -> dict:
 
     try:
@@ -124,6 +139,8 @@ def write_data(data: object, connection: object, table: str):
     else:
         logger.debug(f"copy_from_stringio() done, {row_count} rows written to database")  # noqa: E501
 
+    return response
+
 
 def main():
 
@@ -145,17 +162,8 @@ def main():
     # parse and transform data
     data = parse_tbill_data(data)
 
-    param_dict = {
-        "host": os.environ.get('DB_HOST'),
-        "database": os.environ.get('DASHBOARD_DB'),
-        "port": int(os.environ.get('POSTGRES_PORT')),
-        "user": os.environ.get('POSTGRES_USER'),
-        "password": os.environ.get('POSTGRES_PASSWORD')
-
-    }
-
     # get Postgres connection
-    connection = postgres_utilities.postgres_client(param_dict)
+    connection = postgres_connection()
 
     # clear table
     postgres_utilities.clear_table(connection, TABLE)
