@@ -3,9 +3,10 @@ import { createAirqUrl, sendSlackAlerts, validateJson } from "../utils/openweath
 import { getAirQualityData, parseData, writeData } from "../src/main"
 
 
-
-// Test end to end
-// There will be a couple of logging errors, as the tests will complete before logging finishes. 
+// Test end to end pipeline, nothing is generated if the pipeline completes
+// successfuly, but a messaged is returned if the pipeline fails.
+// There will be a couple of logging errors, as the tests will 
+// complete before logging finishes. 
 describe("Full pipeline test", () => {
     // if the API call fails, a text error message is returned
     it("Pipeline should run, not return a  value", () => {
@@ -32,8 +33,8 @@ describe("Full pipeline test", () => {
 
 
 // Bad endpoint/API call - validating that it's caught and error message sent
-// This will throw a test fail warning even though the messages match, however, the 
-// the final report will show the test as passed.
+// This will throw a test fail warning even though the messages match, however,
+// the the final report will show the test as passed.
 describe("API Call - Exception Handling Test", () => {
     it("API Call Should Fail and return error message", () => {
         
@@ -86,4 +87,3 @@ describe("Validate Slack Alerts", () => {
     })
 
 });
-
