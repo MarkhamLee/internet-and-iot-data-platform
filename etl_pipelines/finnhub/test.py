@@ -11,9 +11,6 @@ import tracemalloc
 tracemalloc.start()
 
 
-# print(main.get_prices('cheese'))
-
-
 class FinnhubTesting(unittest.TestCase):
 
     @classmethod
