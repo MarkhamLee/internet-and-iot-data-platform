@@ -67,14 +67,15 @@ const validateJson = (data: any) => {
     if (validData) {
 
         console.log("Data validation successful");
+        return 0
 
       } else {
         
         const message = "Pipeline failure data validation - OpenWeather Air Quality (nodejs variant), exiting... "
         console.error("Data validation error: ", ajv.errors);
-        // exit the script so we don't attempt a DB write that won't work or
-        // would write bad data to our db.
-        return process.exit()  
+        sendSlackAlerts(message)
+
+        return 1  
 
       }
 
