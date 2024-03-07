@@ -24,7 +24,6 @@ class PostgresUtilities():
 
         except (Exception, psycopg2.DatabaseError) as error:
             logger.debug(f'Postgres connection failed with error: {error}')
-            return error
 
         return conn
 
@@ -40,9 +39,11 @@ class PostgresUtilities():
             cursor.execute(delete_string)
             connection.commit()
             logger.info('Postgres Table cleared succesfully')
+            return 0
 
         except (Exception, psycopg2.DatabaseError) as error:
             logger.debug(f'Table clearing operation failed with error: {error}')  # noqa: E501
+            return 1
 
     # strict enforcement of what columns are used ensures data quality
     # avoids issues where tab delimiting can create erroneous empty columns
