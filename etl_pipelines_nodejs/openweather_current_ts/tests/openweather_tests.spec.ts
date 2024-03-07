@@ -75,8 +75,8 @@ describe("Validate data format", () => {
 // This is just to generate a message, i.e., this test always passes
 // the tester will need to check their Slack messages to verify the message
 // went through.
-describe("Validate data format", () => {
-    it("Data format validation should fail", () => {
+describe("Test Slack Alerts", () => {
+    it("Slack Alert Sent Successfully", () => {
 
         const message = "Test Slack Alert"
 

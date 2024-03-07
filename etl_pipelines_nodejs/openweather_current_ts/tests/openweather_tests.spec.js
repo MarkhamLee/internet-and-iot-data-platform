@@ -54,8 +54,8 @@ describe("Validate data format", function () {
 // This is just to generate a message, i.e., this test always passes
 // the tester will need to check their Slack messages to verify the message
 // went through.
-describe("Validate data format", function () {
-    it("Data format validation should fail", function () {
+describe("Test Slack Alerts", function () {
+    it("Slack Alert Sent Successfully", function () {
         var message = "Test Slack Alert";
         //validate data
         expect((0, openweather_library_1.sendSlackAlerts)(message)).toBeUndefined();
