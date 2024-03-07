@@ -35,6 +35,7 @@ var createOpenWeatherUrl = function (endpoint) {
 };
 exports.createOpenWeatherUrl = createOpenWeatherUrl;
 var sendSlackAlerts = function (message) {
+    var status_message;
     var payload = JSON.stringify({ "text": message });
     axios_1.default.post(openweather_config_1.config.webHookUrl, payload)
         .then(function (response) {
@@ -50,13 +51,13 @@ var validateJson = function (data) {
     var validData = ajv.validate(openweather_config_1.openWeatherSchema, data);
     if (validData) {
         console.log("DB payload validation successful");
+        return 0;
     }
     else {
         var message = "Pipeline failure data validation - OpenWeather Air Quality (nodejs variant), exiting... ";
         console.error("Data validation error: ", ajv.errors);
-        // exit the script so we don't attempt a DB write that won't work or
-        // would write bad data to our db.
-        return process.exit();
+        sendSlackAlerts(message);
+        return 1;
     }
 };
 exports.validateJson = validateJson;

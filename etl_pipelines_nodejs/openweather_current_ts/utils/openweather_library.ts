@@ -5,11 +5,12 @@
 // conditions and writes it to InfluxDB
 
 import axios from 'axios';
-import Ajv, { str } from "ajv";
+import Ajv from "ajv";
 import { InfluxDB } from '@influxdata/influxdb-client';
 import { config, openWeatherSchema } from "./openweather_config"
 import { strict } from 'assert';
-
+import { error } from 'console';
+import { stat } from 'fs';
 
 
 // create InfluxDB client
@@ -45,17 +46,19 @@ const createOpenWeatherUrl = (endpoint: string) => {
 
 const sendSlackAlerts = (message: string) => {
 
+    var status_message;
+
     const payload = JSON.stringify({"text": message})
         
-        axios.post(config.webHookUrl, payload)
-            .then(function (response) {
-                console.log("Slack message sent successfully with code:", response.status);
-        })
+    axios.post(config.webHookUrl, payload)
+        .then(function (response) {
+            console.log("Slack message sent successfully with code:", response.status);
+    })
         
         .catch(function (error) {
             console.error("Slack message failure with error: ", error.statusText);
-        });
-        
+    });
+
 }
 
 const validateJson = (data: any) => {
@@ -67,14 +70,15 @@ const validateJson = (data: any) => {
     if (validData) {
 
         console.log("DB payload validation successful");
+        return 0
 
       } else {
         
         const message = "Pipeline failure data validation - OpenWeather Air Quality (nodejs variant), exiting... "
         console.error("Data validation error: ", ajv.errors);
-        // exit the script so we don't attempt a DB write that won't work or
-        // would write bad data to our db.
-        return process.exit()  
+        sendSlackAlerts(message)
+
+        return 1  
 
       }
 

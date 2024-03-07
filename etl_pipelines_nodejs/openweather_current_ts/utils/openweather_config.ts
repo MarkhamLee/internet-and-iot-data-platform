@@ -92,24 +92,19 @@ export const config: VarConfig = {
 export const openWeatherSchema = {
     
     "type": "object",
-    
-    "properties": {
-      "coord": {
-        "type": "object",
-        "properties": {
-            "barometric_pressure": {"type": "number"},
-            "description": {"type": "string"},
-            "feels_like": {"type": "string"},
-            "high": {"type": "number"},
-            "humidity": {"type": "number"},
-            "low": {"type": "number"},
-            "temp": {"type": "number"},
-            "time_stamp": {"type": "number"},
-            "weather": {"type": "string"},
-            "wind": {"type": "string"},
-            },
-    "required": ["description", "feels_like", "high", "humidity",
+    "properties":  {
+        "barometric_pressure": {"type": "number"},
+        "description": {"type": "string"},
+        "feels_like": {"type": "number"},
+        "high": {"type": "number"},
+        "humidity": {"type": "number"},
+        "low": {"type": "number"},
+        "temp": {"type": "number"},
+        "time_stamp": {"type": "number"},
+        "weather": {"type": "string"},
+        "wind": {"type": "number"},
+        },
+
+    "required": ["barometric_pressure","description", "feels_like", "high", "humidity",
     "low", "temp", "time_stamp", "weather", "wind"],
-    }
-   }
-}
+    };
