@@ -5,6 +5,7 @@ import { strict } from 'assert';
 
 // Test end to end
 // There will be a couple of logging errors, as the tests will complete before logging finishes. 
+// If the test fails an error message (string) is returned.
 describe("Full pipeline test", () => {
     it("Pipeline should run, not return a  value", () => {
         
