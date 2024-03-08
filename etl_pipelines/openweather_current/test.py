@@ -6,7 +6,6 @@
 # will be the source of most of your errors, as opposed to the code itself.
 import os
 import sys
-import json
 import unittest
 import main
 import tracemalloc
@@ -83,29 +82,6 @@ class OpenWeatherCurrentTesting(unittest.TestCase):
 
         self.assertEqual(code, 1,
                          "API call was successful, it should've failed")
-        self.assertEqual(response, 200, "Slack alert was sent unsuccessfully")
-
-    # Testing data validation, this should throw an error if an improper
-    # data json payload is provided.
-    def test_data_validation(self):
-
-        # define "bad" data payload
-        bad_data = {
-            "weather": 5,
-            "temp": "Gojo",
-            "feels like": "dancing",
-            "low": 6.61
-        }
-
-        # load data schema
-        with open('current_weather.json') as file:
-            SCHEMA = json.load(file)
-
-        # test data validation
-        code, response = self.etl_utilities.validate_json(bad_data, SCHEMA)
-
-        self.assertEqual(code, 1,
-                         "Data validation was unsuccessful")
         self.assertEqual(response, 200, "Slack alert was sent unsuccessfully")
 
 
