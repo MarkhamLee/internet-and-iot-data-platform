@@ -36,7 +36,11 @@ class OpenWeatherCurrentTesting(unittest.TestCase):
 
         self.logger.info('Performing end to end tests')
 
+        # get the data
         data = main.get_weather_data()
+
+        # validate the json paylaod
+        validation_status = main.validate_data(data)
 
         # now we check that data parsing works properly
         parsed_data = main.parse_data(data)
@@ -46,6 +50,7 @@ class OpenWeatherCurrentTesting(unittest.TestCase):
         status = main.write_data(parsed_data)
 
         self.assertIsNotNone(data, 'API call failed')
+        self.assertEqual(validation_status, 0)
         self.assertEqual(parsed_length, 10, "Parsed data is the wrong shape")
         self.assertEqual(status, 0, "InfluxDB write unsuccessful")
 
@@ -68,9 +73,10 @@ class OpenWeatherCurrentTesting(unittest.TestCase):
                          "Data write was successful, should've failed")
         self.assertEqual(response, 200, "Slack alert was sent unsuccessfully")
 
-    # Test using a bad key for the API request, which will also catch any API
-    # error/code other than 200. Expected behavior is that the API request
-    # fails, errors are caught and a Slack alert is sent.
+    # Test using a bad key for the API request and/or API connection errors,
+    # the expected behavior is that any non 200 code http codes/errors will
+    # a) be captured and b) trigger a Slack alert. We also validate that the
+    # Slack alert was sent properly.
     def test_bad_api_keys(self):
 
         # build URL
