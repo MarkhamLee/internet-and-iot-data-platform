@@ -71,16 +71,20 @@ class WeatherUtilities():
 
     def get_weather_data(self, url: str) -> dict:
 
-        try:
-            # get weather data
-            response = requests.get(url)
-            response = response.json()
-            logger.info('weather data retrieved')
-            return response
+        # get weather data
+        response = requests.get(url)
 
-        except Exception as e:
+        try:
+            response.raise_for_status()
+
+        except requests.exceptions.HTTPError as e:
             WEBHOOK_URL = os.environ['ALERT_WEBHOOK']
             message = (f'weather data retrieval failed with error: {e}')
             logger.debug(message)
-            self.etl_utilities.send_slack_webhook(WEBHOOK_URL, message)
-            return e
+            response = self.etl_utilities.send_slack_webhook(WEBHOOK_URL,
+                                                             message)
+            return 1, response
+
+        response = response.json()
+        logger.info('weather data retrieved')
+        return response

@@ -12,7 +12,6 @@
 import os
 import sys
 import json
-from jsonschema import validate
 
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(parent_dir)
@@ -40,24 +39,17 @@ def get_weather_data():
     # create URL
     url = utilities.build_url_weather(WEATHER_KEY, ENDPOINT)
 
-    # get data
-    data = utilities.get_weather_data(url)
+    return utilities.get_weather_data(url)
+
+
+def validate_data(data: dict) -> dict:
 
     # load validation data
     with open('current_weather.json') as file:
         SCHEMA = json.load(file)
 
     # validate the data
-    try:
-        validate(instance=data, schema=SCHEMA)
-
-    except Exception as e:
-        message = (f'Data validation failed for the pipeline for openweather current, with error: {e}')  # noqa: E501
-        logger.debug(message)
-        response = etl_utilities.send_slack_webhook(WEBHOOK_URL, message)
-        logger.debug(f'Slack pipeline failure alert sent with code: {response}')  # noqa: E501
-
-    return data
+    return etl_utilities.validate_json(data, SCHEMA)
 
 
 def parse_data(data: dict) -> dict:
@@ -90,12 +82,14 @@ def write_data(data: dict):
     try:
         influx.write_influx_data(client, payload, data, BUCKET)
         logger.info('Weather data written to InfluxDB')
+        return 0
 
     except Exception as e:
         message = (f'InfluxDB write for openweather current failed with error: {e}')  # noqa: E501
         logger.debug(message)
         response = etl_utilities.send_slack_webhook(WEBHOOK_URL, message)
-        logger.debug(f'Slack pipeline failure alert sent with code: {response}')  # noqa: E501
+        logger.debug(f'Pipeline failure alert sent via Slack with code: {response}')  # noqa: E501
+        return 1, response
 
 
 def main():
@@ -103,10 +97,17 @@ def main():
     # get current weather
     data = get_weather_data()
 
-    # parse air quality data
-    parsed_data = utilities.weather_parser(data)
+    # validate data
+    if validate_data(data) == 0:
 
-    write_data(parsed_data)
+        # parse air quality data
+        parsed_data = utilities.weather_parser(data)
+
+        # write data to InfluxDB
+        write_data(parsed_data)
+
+    else:
+        sys.exit()
 
 
 if __name__ == "__main__":
