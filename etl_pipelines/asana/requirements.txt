@@ -19,3 +19,4 @@ joblib
 Werkzeug
 slack_sdk
 psycopg2-binary
+jsonschema
