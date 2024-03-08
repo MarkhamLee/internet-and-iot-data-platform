@@ -5,6 +5,7 @@
 
 import requests
 import os
+from jsonschema import validate
 from etl_library.logging_util import logger  # noqa: E402
 
 # load Slack Webhook URL for sending pipeline failure alerts
@@ -16,6 +17,21 @@ class EtlUtilities():
     def __init__(self):
 
         pass
+
+    @staticmethod
+    def validate_json(data: dict, schema: dict) -> int:
+
+        # validate the data
+        try:
+            validate(instance=data, schema=schema)
+            return 0
+
+        except Exception as e:
+            message = (f'Data validation failed for the pipeline for openweather current, with error: {e}')  # noqa: E501
+            logger.debug(message)
+            response = EtlUtilities.send_slack_webhook(WEBHOOK_URL, message)
+            logger.debug(f'Slack pipeline failure alert sent with code: {response}')  # noqa: E501
+            return 1, response
 
     @staticmethod
     def send_slack_webhook(url: str, message: str):
@@ -61,4 +77,3 @@ class EtlUtilities():
         except Exception as e:
             message = (f'post request failed with error: {e}')
             logger.debug(message)
-            # EtlUtilities.send_slack_webhook(WEBHOOK_URL, message)
