@@ -16,3 +16,4 @@ SQLAlchemy
 joblib
 Werkzeug
 psycopg2-binary
+jsonschema
