@@ -1,8 +1,8 @@
 # (C) Markham Lee 2023 - 2024
 # https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
-# Test script for the Finnhub Stock Price ETL
-# Before running this make sure all of your environmental variables,
-# connection strings, etc., are setup properly, chances are, those
+# Test script for the OpenWeather API for pulling down current weather
+# conditions. Before running this make sure all of your environmental
+# variables, connection strings, etc., are setup properly, chances are, those
 # will be the source of most of your errors, as opposed to the code itself.
 import os
 import sys
