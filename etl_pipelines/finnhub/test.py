@@ -24,7 +24,7 @@ class FinnhubTesting(unittest.TestCase):
     # has data format validation and type checking/casting built in,
     # i.e. it won't work with the wrong data type, BUT,
     # we double check json shape to be doubly sure.
-    def test_finnhub_api_good(self):
+    def test_finnhub_api_(self):
 
         data = main.get_prices(self.STOCK_SYMBOL)
 
