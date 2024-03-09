@@ -9,7 +9,7 @@ from jsonschema import validate
 from etl_library.logging_util import logger  # noqa: E402
 
 # load Slack Webhook URL for sending pipeline failure alerts
-WEBHOOK_URL = os.environ.get('ALERT_WEBHOOK')
+WEBHOOK_URL = os.environ['ALERT_WEBHOOK']
 
 
 class EtlUtilities():
