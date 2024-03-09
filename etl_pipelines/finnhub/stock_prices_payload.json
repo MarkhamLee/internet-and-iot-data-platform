@@ -1,11 +1,14 @@
-
 {
-"c": 378.85,
-"d": 2.7, 
-"dp": -1.006, 
-"h": 384.3, 
-"l": 377.44, 
-"o": 383.76, 
-"pc": 382.7, 
-"t": 170129160
+    "type": "object",
+    "properties": {
+        "c": {"type": "number"},
+        "d": {"type": "number"},
+        "dp": {"type": "number"},
+        "h": {"type": "number"},
+        "l": {"type": "number"},
+        "o": {"type": "number"},
+        "pc": {"type": "number"},
+        "t": {"type": "number"}
+    },
+    "required": ["pc", "o", "l", "dp"]
 }

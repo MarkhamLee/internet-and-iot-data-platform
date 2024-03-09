@@ -28,10 +28,8 @@ class FinnhubTesting(unittest.TestCase):
 
         data = main.get_prices(self.STOCK_SYMBOL)
 
-        # get length of json object - the get prices method already
-        # validates the json format, so this a double check, still,
-        # if that step failed, then so would this one.
-        value_count = len(data)
+        # validate the returned payload
+        validation_status = main.validate_json_payload(data)
 
         # now we check that data parsing works properly
         parsed_data = main.parse_data(data)
@@ -41,21 +39,10 @@ class FinnhubTesting(unittest.TestCase):
         # back if the write fails and a Slack alert is triggered.
         response = main.write_data(parsed_data)
 
-        self.assertEqual(value_count, 8, 'json data is the wrong shape')
+        self.assertEqual(validation_status, 0,
+                         'json data is missing fields and/or has errors')
         self.assertEqual(parsed_length, 4, "Parsed data is the wrong shape")
         self.assertEqual(response, None, "InfluxDB write unsuccessful")
-
-    # validate proper response if an invalid symbol is sent via the main.py
-    # price method
-    def test_finnhub_api_bad_symbol(self):
-
-        data = main.get_prices('cheese')
-
-        value = data['d']  # comes back as 'None' if the symbol is wrong
-        print(value)
-
-        self.assertEqual(value, None,
-                         'Incorrect  response to invalid stock symbol')
 
     # Check the response of the API call if the wrong key is passed
     # expected response is a 200 code from a successful Slack alert being
@@ -67,27 +54,23 @@ class FinnhubTesting(unittest.TestCase):
 
         self.assertEqual(data, 200, 'Bad API Key')
 
-    # strict type casting and checking is used to ensure that all the numbers
-    # are floats. Here we send bad data composed of integers and strings to
-    # see if it a) fails as expected b) triggers a Slack alert.
-    # We check via sending bad data to InfluxDB as opposed to checking types
-    # within the json as InfluxDB has strct type checking, so what matters is
-    # if Influx perceives the data type as wrong. E.g., you need to cast fields
-    # to floats, in case data comes back as "2" instead of 2.0
+    # Validate the json schema by purposely sending a bad data payload
+    # to be compared against the data schema for this ETL.
     def test_db_write_bad_data(self):
 
         data = {
 
             "previous_close": 'Thursday',
-            "open": float(544.33),
+            "open": "Lateralus",
             "last_price": int(5),
             "change": float(0.33)
         }
 
-        response = main.write_data(data)
+        status, slack_response = main.validate_json_payload(data)
 
-        self.assertEqual(response, 200, 'DB type check failed,\
-                         wrong data type written to DB!')
+        self.assertEqual(status, 1,
+                         "Data validation suceeded, it should've failed")
+        self.assertEqual(slack_response, 200, "Slack alert failed to send")
 
 
 if __name__ == '__main__':

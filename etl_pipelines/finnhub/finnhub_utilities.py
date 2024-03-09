@@ -6,9 +6,7 @@
 # information from the API in the future
 
 import os
-import json
 import finnhub
-from jsonschema import validate
 
 
 class FinnHubUtilities():
@@ -22,20 +20,11 @@ class FinnHubUtilities():
     def get_stock_data(symbol: str,
                        FINNHUB_KEY=os.environ.get('FINNHUB_SECRET')) -> dict:
 
-        # FINNHUB_KEY = os.environ.get('FINNHUB_SECRET')
-
-        # import data schema for validation
-        with open('stock_prices_payload.json') as file:
-            SCHEMA = json.load(file)
-
         # create client
         client = finnhub.Client(FINNHUB_KEY)
 
         # get data
         data = client.quote(symbol)
-
-        # validate data
-        validate(instance=data, schema=SCHEMA)
 
         return data
 

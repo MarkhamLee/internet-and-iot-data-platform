@@ -5,6 +5,7 @@
 
 import os
 import sys
+import json
 from finnhub_utilities import FinnHubUtilities
 
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -37,6 +38,15 @@ def get_prices(symbol: str, *args):
         response = etl_utilities.send_slack_webhook(WEBHOOK_URL, message)
         logger.debug(f'Slack pipeline failure alert sent with code: {response}')  # noqa: E501
         return response
+
+
+def validate_json_payload(data: dict) -> int:
+
+    with open('stock_prices_payload.json') as file:
+        SCHEMA = json.load(file)
+
+    # validate the data
+    return etl_utilities.validate_json(data, SCHEMA)
 
 
 def parse_data(data: dict) -> dict:
@@ -84,11 +94,17 @@ def main():
 
     stock_data = get_prices(os.environ['STOCK_SYMBOL'])
 
-    # parse data into a json payload
-    stock_payload = parse_data(stock_data)
+    # validate the data
+    if validate_json_payload(stock_data) == 0:
 
-    # write data to InfluxDB
-    write_data(stock_payload)
+        # parse data into a json payload
+        stock_payload = parse_data(stock_data)
+
+        # write data to InfluxDB
+        write_data(stock_payload)
+
+    else:
+        sys.exit()
 
 
 if __name__ == '__main__':

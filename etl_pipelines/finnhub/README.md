@@ -18,6 +18,15 @@ The "stock_prices_payload.json" file is used to validate the payload that comes 
 
 You can read more about the Finnhub Stock Price API [here](https://finnhub.io/docs/api/quote)
 
+#### Data Quality & Testing
+* The json validate library is used to ensure that the returned data payload is correct in terms of the right fields being present, and the data in those fields being the right data type. This is critical as InfluxDB has tight type checking and once a field has been written in a particular format e.g., a float, subsequent writes of a different data type will be rejected, e.g.,an integer. 
+* The test.py file will run a series of unit tests, checking both primary and secondary functionality:
+    * The end to end ETL workflow, if any part of the process fails, the entire test fails 
+    * Validating that the appropriate error messages and alerts are sent in response to a bad or failed API call
+    * Testing the data validation process, i.e, comparing a provided "bad" data payload with the ETL's JSON schema, followed by checking that the appropriate error messages and alerts are generated. 
+* Alerts are sent via Slack related to any "pipeline failure issue", whether it's an API call failing, data validation failing, DB write issues, etc.
+
+
 #### Deployment
 To deploy/run/use the container you will need to sign-up for the Finnhub API and get an API key, you're able to hit the API 60/second with the free version, which should be sufficient for most personal use cases. Additionally, please make note that the container uses the finnuhb python library, so you'll need to install that into your python virtual environment if you plan to use this outside of a Docker container. Finally, if you want to receive broken pipeline/pipeline error alerts, you'll need to sign up for the Slack API, and then configure a channel and a wehbhook for receiving messages. 
 
