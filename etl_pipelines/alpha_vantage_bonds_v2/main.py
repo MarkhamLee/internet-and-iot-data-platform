@@ -1,14 +1,11 @@
 # Markham Lee (C) 2023
 # productivity-music-stocks-weather-IoT-dashboard
 # https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
-# This pipeline retrieves the daily t-bill rate, valdiates that it's newer
-# than the data that's already in the database and if it's newer updates the DB
-# with the latest rate.
+# This pipeline retrieves t-bill rates for the last six days and then writes it
+# Postgres.
 import os
 import sys
 import requests
-import pandas as pd
-from io import StringIO
 
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(parent_dir)
@@ -23,17 +20,31 @@ utilities = AlphaUtilities()
 postgres_utilities = PostgresUtilities()
 etl_utilities = EtlUtilities()
 
-WEBHOOK_URL = os.environ.get('ALERT_WEBHOOK')
+WEBHOOK_URL = os.environ['ALERT_WEBHOOK']
+
+
+def load_variables():
+
+    # Alpha Vantage Key
+    ALPHA_KEY = os.environ['ALPHA_KEY']
+
+    # Bond Maturity
+    MATURITY = os.environ['BOND_MATURITY']
+
+    # TABLE
+    TABLE = os.environ['TBILL_TABLE']
+
+    return ALPHA_KEY, MATURITY, TABLE
 
 
 def postgres_connection():
 
     param_dict = {
-        "host": os.environ.get('DB_HOST'),
-        "database": os.environ.get('DASHBOARD_DB'),
-        "port": int(os.environ.get('POSTGRES_PORT')),
-        "user": os.environ.get('POSTGRES_USER'),
-        "password": os.environ.get('POSTGRES_PASSWORD')
+        "host": os.environ['DB_HOST'],
+        "database": os.environ['DASHBOARD_DB'],
+        "port": int(os.environ['POSTGRES_PORT']),
+        "user": os.environ['POSTGRES_USER'],
+        "password": os.environ['POSTGRES_PASSWORD']
 
     }
 
@@ -43,19 +54,24 @@ def postgres_connection():
 
 def get_tbill_data(url: str) -> dict:
 
+    # get T-Bill Data
+    response = requests.get(url)
+
     try:
-        response = requests.get(url)
-        logger.info('Bond data retrieved successfully')
-        return response.json()
+        response.raise_for_status()
 
     # you can only hit the API 26x a day, so if it fails, just exit and
     # check the error message, rather than retrying and using up the day's
     # attempts
     except Exception as e:
         message = (f'Pipeline failure Alert: Bond data retrieval attempt failed with error: {e}')  # noqa: E501
-        logger.info(message)
-        etl_utilities.send_slack_webhook(WEBHOOK_URL, message)
-        sys.exit()
+        logger.debug(message)
+        response = etl_utilities.send_slack_webhook(WEBHOOK_URL, message)
+        return 1, response
+
+    response = requests.get(url)
+    logger.info('Bond data retrieved successfully')
+    return response.json()
 
 
 def parse_tbill_data(data: dict) -> object:
@@ -68,90 +84,29 @@ def parse_tbill_data(data: dict) -> object:
     return utilities.bond_data_parser_entries(data, COUNT)
 
 
-def check_dates(connection: object, table: str, data: object) -> int:
-
-    cursor = connection.cursor()
-
-    columns = list(data.columns)
-
-    # execute query
-    cursor.execute(f"SELECT * FROM {table} ORDER BY date DESC LIMIT 1")
-
-    # query DB
-    query_result = cursor.fetchall()
-
-    # convert to dataframe
-    df = pd.DataFrame(query_result, columns=columns)
-
-    # convert date column to date-time format
-    df['date'] = pd.to_datetime(df['date']).dt.date
-    data['date'] = pd.to_datetime(data['date']).dt.date
-
-    # compare
-
-    if data['date'][0] > df['date'][0]:
-        return 1
-    else:
-        return 0
-
-
-# strict enforcement of what columns are used ensures data quality
-# avoids issues where tab delimiting can create erroneous empty columns
-# in the data frame
-def prepare_payload(payload: object, columns: list) -> object:
-
-    buffer = StringIO()
-
-    # explicit column definitions + tab as the delimiter allow us to ingest
-    # text data with punctuation  without having situations where a comma
-    # in a sentence is treated as new column or causes a blank column to be
-    # created.
-    payload.to_csv(buffer, index=False, sep='\t', columns=columns,
-                   header=False)
-    buffer.seek(0)
-
-    return buffer
-
-
 # write data to PostgreSQL
-def write_data(data: object, connection: object, table: str):
-
-    # get dataframe columns for managing data quality
-    columns = list(data.columns)
-
-    # count rows
-    row_count = len(data)
-
-    # prepare payload
-    buffer = prepare_payload(data, columns)
-
-    # clear table
-    response = postgres_utilities.clear_table(connection, table)
+def write_data(connection: object, data: object,  table: str):
 
     # write data
-    response = postgres_utilities.write_data(connection, buffer, table)
+    # If the write fails response is the error, else it's the # of rows written
+    # to Postgres.
+    status, response = postgres_utilities.write_data_raw(connection,
+                                                         data, table)
 
-    if response != 0:
-        message = (f'write failed with error: {response}')
-        logger.debug(message)
+    if status == 1:
+        message = (f'Postgres write failed for AlphaVantage T-Bill ETL with error: {response}')  # noqa: E501
         etl_utilities.send_slack_webhook(WEBHOOK_URL, message)
 
     else:
-        logger.debug(f"copy_from_stringio() done, {row_count} rows written to database")  # noqa: E501
+        logger.debug(f"Postgres write successfuly, {response} rows written to database")  # noqa: E501
 
-    return response
+    return status
 
 
 def main():
 
-    # Alpha Vantage Key
-    ALPHA_KEY = os.environ.get('ALPHA_KEY')
-
-    # Bond Maturity
-    MATURITY = os.environ.get('BOND_MATURITY')
-
-    # TABLE
-    TABLE = os.environ.get('TBILL_TABLE')
+    # load variables
+    ALPHA_KEY, MATURITY, TABLE = load_variables()
 
     # Build URL
     url = utilities.build_bond_url(MATURITY, ALPHA_KEY)
@@ -169,7 +124,7 @@ def main():
     postgres_utilities.clear_table(connection, TABLE)
 
     # write data
-    postgres_utilities.write_data_raw(connection, data, TABLE)
+    write_data(connection, data, TABLE)
 
 
 if __name__ == '__main__':
