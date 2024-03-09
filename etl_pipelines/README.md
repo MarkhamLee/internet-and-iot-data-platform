@@ -14,6 +14,12 @@ Github Actions is used for CI/CD automation, pushing updated files for an ETL pi
 
 Nearly all of the ETL pipelines use common python scripts/private libraries for writing to DBs, logging, pulling data from certain providers, etc., so I've written the Dockerfiles to pull those scripts from common folders (E.g.,: "etl_library" and "openweather_library"). Used in conjunction with the CI/CD approach, this means that updating (for example) the script that writes to Postgres results in every image that uses that script being rebuilt when that code is pushed to Github. 
 
+### Testing 
+* The testing process was:
+    * Using the Python unit test library to test the end-to-end ETL, in addition to testing key functions like data validation, and generating Slack alerts for various types of issues. 
+    * There are automated unit tests for each ETL pipeline, in addition to unit tests for the shared libraryies. 
+    * Once the above was complete the updates would be pushed to GitHub, this would trigger the automated build process for the Docker images, from there the images would often be tested further via Portainer and/or K8s cron jobs before deploying them via Airflow or Argo Workflow.
+
 **Future state:** I'm going to split out certain functions like writing to databases into separate *"etl component containers"*, this would enable ETL pipelines that use other languages for retrieving and/or preparing data to leverage existing Python code. CI/CD and build process would still work the same, meaning that fully contained ETL pipelines, multi-language pipelines, component containers, etc., would all leverage the same common code to build their containers.
 
 
@@ -44,10 +50,6 @@ This command would build linux containers for arm64 and amd64 architectures, mod
 * I stored all secrets in Kubernetes and stored all other env variables in Kubernetes config maps 
 
 
-### Testing 
-* The testing process was:
-    * Just running the python scripts locally
-    * Building the images and then running them as K8s cron jobs and/or via Portainer to test them further. 
 
 Once the above was fine, I would then deploy them with one or more orchestration tools. 
 
