@@ -27,13 +27,13 @@ utilities = WeatherUtilities()
 etl_utilities = EtlUtilities()
 
 # load Slack Webhook URL variable for sending pipeline failure alerts
-WEBHOOK_URL = os.environ.get('ALERT_WEBHOOK')
+WEBHOOK_URL = os.environ['ALERT_WEBHOOK']
 
 
 def get_weather_data():
 
     # key for OpenWeather API
-    WEATHER_KEY = os.environ.get('OPENWEATHER_KEY')
+    WEATHER_KEY = os.environ['OPENWEATHER_KEY']
     ENDPOINT = 'weather?'
 
     # create URL
@@ -64,10 +64,10 @@ def write_data(data: dict):
     influx = InfluxClient()
 
     # influx DB variables
-    INFLUX_KEY = os.environ.get('INFLUX_KEY')
-    ORG = os.environ.get('INFLUX_ORG')
-    URL = os.environ.get('INFLUX_URL')
-    BUCKET = os.environ.get('BUCKET')
+    INFLUX_KEY = os.environ['INFLUX_KEY']
+    ORG = os.environ['INFLUX_ORG']
+    URL = os.environ['INFLUX_URL']
+    BUCKET = os.environ['BUCKET']
 
     client = influx.create_influx_client(INFLUX_KEY, ORG, URL)
 
