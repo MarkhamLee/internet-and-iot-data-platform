@@ -93,4 +93,6 @@ const writeData = (payload: any) => {
     
     }
 
+getFinanceData();
+
 export {getFinanceData, parseData, writeData}

@@ -74,3 +74,4 @@ var writeData = function (payload) {
     }, 1000);
 };
 exports.writeData = writeData;
+getFinanceData();
