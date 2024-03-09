@@ -7,9 +7,10 @@
 import os
 import sys
 import unittest
-import main
+import json
 import tracemalloc
-tracemalloc.start()
+import main
+
 
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(parent_dir)
@@ -23,6 +24,8 @@ class OpenWeatherCurrentTesting(unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
+
+        tracemalloc.start()
 
         self.utilities = WeatherUtilities()
         self.etl_utilities = EtlUtilities()
@@ -39,12 +42,12 @@ class OpenWeatherCurrentTesting(unittest.TestCase):
         # get the data
         data = main.get_weather_data()
 
-        # validate the json paylaod
-        validation_status = main.validate_data(data)
-
         # now we check that data parsing works properly
         parsed_data = main.parse_data(data)
         parsed_length = len(parsed_data)
+
+        # validate the json paylaod
+        validation_status = main.validate_data(parsed_data)
 
         # Finally, we write the data to the DB
         status = main.write_data(parsed_data)
@@ -53,25 +56,6 @@ class OpenWeatherCurrentTesting(unittest.TestCase):
         self.assertEqual(validation_status, 0)
         self.assertEqual(parsed_length, 10, "Parsed data is the wrong shape")
         self.assertEqual(status, 0, "InfluxDB write unsuccessful")
-
-    # test sending a bad data payload to InfluxDB that "should" fail type
-    # checking. Also testing the triggering of a pipeline failure alert
-    # sent via Slack.
-    def test_bad_data_write(self):
-
-        data = {
-            "weather": 5,
-            "temp": "Gojo",
-            "feels like": "dancing",
-            "low": 6.61
-        }
-
-        # Finally, we write the data to the DB
-        code, response = main.write_data(data)
-
-        self.assertEqual(code, 1,
-                         "Data write was successful, should've failed")
-        self.assertEqual(response, 200, "Slack alert was sent unsuccessfully")
 
     # Test using a bad key for the API request and/or API connection errors,
     # the expected behavior is that any non 200 code http codes/errors will
@@ -89,6 +73,29 @@ class OpenWeatherCurrentTesting(unittest.TestCase):
         self.assertEqual(code, 1,
                          "API call was successful, it should've failed")
         self.assertEqual(response, 200, "Slack alert was sent unsuccessfully")
+
+    # Test json validation for the air quality data payload/validating that
+    # the schema has beeen defined properly.
+    # This should fail and generate an alert message via Slack
+    def test_validate_json_validation(self):
+
+        # bad data
+        bad_data = {
+            "co": "carbon-monoxide",
+            "pm2_5": "1.2",
+            "pm10": "Full Metal Alchemist"
+        }
+
+        # load data schema
+        with open('current_weather.json') as file:
+            SCHEMA = json.load(file)
+
+        # validate
+        code, response = self.etl_utilities.validate_json(bad_data, SCHEMA)
+
+        self.assertEquals(code, 1,
+                          "Data validation successful, should've failed")
+        self.assertEquals(response, 200, "Slack alert w")
 
 
 if __name__ == '__main__':

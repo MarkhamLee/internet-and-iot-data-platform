@@ -22,8 +22,12 @@ The Open Weather API endpoint for current weather returns the following:
 
 Note: all times are given in Unix epoch format 
 
-#### Data Quality 
+#### Data Quality & Testing
 * The "current_weather.json" file is used to validate that the payload is correct, if the payload doesn't match the expected format an error will be thrown, the pipeline will fail and a Slack message will be generated to alert me that there is a problem. 
+* The test.py file will run a series of unit tests, checking both primary and secondary functionality:
+    * The end to end ETL workflow, if any part of the process fails, the entire test fails 
+    * Validating that the appropriate error messages and alerts are sent in response to a bad or failed API call
+    * Testing the data validation process, i.e, comparing a provided "bad" data payload with the ETL's JSON schema, followed by checking that the appropriate error messages and alerts are generated. 
 
 
 #### Implementation 

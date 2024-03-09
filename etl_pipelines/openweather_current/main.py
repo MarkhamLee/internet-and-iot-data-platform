@@ -97,11 +97,13 @@ def main():
     # get current weather
     data = get_weather_data()
 
-    # validate data
-    if validate_data(data) == 0:
+    # parse air quality data
+    parsed_data = utilities.weather_parser(data)
 
-        # parse air quality data
-        parsed_data = utilities.weather_parser(data)
+    # validate data
+    # validating after splitting off the data we need
+    # as the data is simpler to work with.
+    if validate_data(parsed_data) == 0:
 
         # write data to InfluxDB
         write_data(parsed_data)
