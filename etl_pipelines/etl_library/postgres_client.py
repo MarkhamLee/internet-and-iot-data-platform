@@ -102,9 +102,10 @@ class PostgresUtilities():
             cursor.copy_from(buffer, table, sep="\t")
             connection.commit()
             cursor.close()
-            logger.info(f"{row_count} rows successfully written to Postgres")
+            return 0, row_count
 
         except (Exception, psycopg2.DatabaseError) as error:
             connection.rollback()
             cursor.close()
-            logger.debug(f'PostgresDB write failed with error: {error}')
+            logger.debug(f'Postgres write failed with error: {error}')
+            return 1, error
