@@ -9,11 +9,11 @@ exports.writeData = exports.parseData = exports.getFinanceData = void 0;
 var finnhub = require('finnhub');
 var influxdb_client_1 = require("@influxdata/influxdb-client");
 var utilities_1 = require("../utils/utilities");
-var api_key = finnhub.ApiClient.instance.authentications['api_key'];
-api_key.apiKey = utilities_1.config.finnhubKey;
-var finnhubClient = new finnhub.DefaultApi();
 var getFinanceData = function () {
-    // get data from the Finnhub API via the Official Finnhub JS library
+    var api_key = finnhub.ApiClient.instance.authentications['api_key'];
+    api_key.apiKey = utilities_1.config.finnhubKey;
+    var finnhubClient = new finnhub.DefaultApi();
+    // get data from the Finnhub API via the Official Finnhub JS library1
     finnhubClient.quote(utilities_1.config.stock, function (error, data, response) {
         if (error) {
             var message = "Pipeline failure for Node.js version of Finnhub Stock Price ETL, with error:";
@@ -65,7 +65,7 @@ var writeData = function (payload) {
     // write data to InfluxDB
     void setTimeout(function () {
         writeClient.writePoint(point);
-        console.log("Weather data successfully written to InfluxDB");
+        console.log("Finnhub stock price data successfully written to InfluxDB");
     }, 1000);
     // flush client
     void setTimeout(function () {

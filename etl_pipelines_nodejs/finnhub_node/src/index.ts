@@ -8,12 +8,15 @@ const finnhub = require('finnhub')
 import { Point } from '@influxdata/influxdb-client';
 import {config, createInfluxClient, sendSlackAlerts, validateJson} from "../utils/utilities"
 
-const api_key = finnhub.ApiClient.instance.authentications['api_key']
-api_key.apiKey = config.finnhubKey 
-const finnhubClient = new finnhub.DefaultApi()
+
 
 const getFinanceData = () => {
-    // get data from the Finnhub API via the Official Finnhub JS library
+
+    const api_key = finnhub.ApiClient.instance.authentications['api_key']
+    api_key.apiKey = config.finnhubKey 
+    const finnhubClient = new finnhub.DefaultApi()
+
+    // get data from the Finnhub API via the Official Finnhub JS library1
     finnhubClient.quote(config.stock, (error: any, data: any, response: any) => {
             
             if (error) {
@@ -81,7 +84,7 @@ const writeData = (payload: any) => {
     void setTimeout(() => {
   
         writeClient.writePoint(point);
-        console.log("Weather data successfully written to InfluxDB")
+        console.log("Finnhub stock price data successfully written to InfluxDB")
         }, 1000)
   
     // flush client
