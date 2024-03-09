@@ -77,4 +77,5 @@ class AlphaUtilities():
             WEBHOOK_URL = os.environ['ALERT_WEBHOOK']
             message = (f'ETL pipeline failure Alpha Vantage multi-day bond prices: {e}')  # noqa: E501
             logger.debug(message)
-            self.utilities.send_slack_webhook(WEBHOOK_URL, message)
+            response = self.utilities.send_slack_webhook(WEBHOOK_URL, message)
+            return 1, response
