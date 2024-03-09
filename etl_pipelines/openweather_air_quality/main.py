@@ -1,7 +1,6 @@
 import os
 import sys
 import json
-from jsonschema import validate
 
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(parent_dir)
@@ -17,22 +16,17 @@ utilities = WeatherUtilities()
 etl_utilities = EtlUtilities()
 
 # load Slack Webhook URL variable for sending pipeline failure alerts
-WEBHOOK_URL = os.environ.get('ALERT_WEBHOOK')
+WEBHOOK_URL = os.environ['ALERT_WEBHOOK']
 
 
 def get_air_quality_data():
 
     # key for OpenWeather API
-    WEATHER_KEY = os.environ.get('OPENWEATHER_KEY')
-
+    WEATHER_KEY = os.environ['OPENWEATHER_KEY']
     ENDPOINT = 'air_pollution?'
-
-    with open('air_quality.json') as file:
-        SCHEMA = json.load(file)
 
     # create URL
     url = utilities.build_url_air(ENDPOINT, WEATHER_KEY)
-    logger.info('retrieving air quality data....')
 
     # get data
     data = utilities.get_weather_data(url)
@@ -40,19 +34,16 @@ def get_air_quality_data():
 
     # subset the data - note if this is effectively the first validation step
     # e.g., if the subset doesn't exist, the data is wrong
-    data = data['list'][0]['components']
+    return data['list'][0]['components']
 
-    # validate the subset
-    try:
-        validate(instance=data, schema=SCHEMA)
 
-    except Exception as e:
-        message = (f'data validation failed for open weather air pollution, with error: {e}')  # noqa: E501
-        logger.debug(message)
-        response = etl_utilities.send_slack_webhook(WEBHOOK_URL, message)
-        logger.debug(f'Slack pipeline failure alert sent with code: {response}')  # noqa: E501
+def validate_air_data(data: object) -> int:
 
-    return data
+    with open('air_quality.json') as file:
+        SCHEMA = json.load(file)
+
+    # validate the data
+    return etl_utilities.validate_json(data, SCHEMA)
 
 
 def parse_data(data: dict) -> dict:
@@ -64,13 +55,14 @@ def write_data(data: dict):
 
     MEASUREMENT = os.environ['AIR_QUALITY_MEASUREMENT']
 
+    # Instantiate class with utilities for InfluxDB
     influx = InfluxClient()
 
-    # influx DB variables
-    INFLUX_KEY = os.environ.get('INFLUX_KEY')
-    ORG = os.environ.get('INFLUX_ORG')
-    URL = os.environ.get('INFLUX_URL')
-    BUCKET = os.environ.get('BUCKET')
+    # InfluxDB variables
+    INFLUX_KEY = os.environ['INFLUX_KEY']
+    ORG = os.environ['INFLUX_ORG']
+    URL = os.environ['INFLUX_URL']
+    BUCKET = os.environ['BUCKET']
 
     client = influx.create_influx_client(INFLUX_KEY, ORG, URL)
 
@@ -82,15 +74,18 @@ def write_data(data: dict):
         }
     }
 
+    # Write data
     try:
         influx.write_influx_data(client, payload, data, BUCKET)
         logger.info('Weather data written to InfluxDB')
+        return 0
 
     except Exception as e:
         message = (f'InfluxDB write for open weather air quality failed with error: {e}')  # noqa: E501
         logger.debug(message)
         response = etl_utilities.send_slack_webhook(WEBHOOK_URL, message)
         logger.debug(f'Slack pipeline failure alert sent with code: {response}')  # noqa: E501
+        return 1, response
 
 
 def main():
@@ -98,10 +93,17 @@ def main():
     # get air quality data
     data = get_air_quality_data()
 
-    # parse air quality data
-    parsed_data = parse_data(data)
+    # validate data
+    if validate_air_data(data) == 0:
 
-    write_data(parsed_data)
+        # parse air quality data
+        parsed_data = parse_data(data)
+
+        # write data
+        write_data(parsed_data)
+
+    else:
+        sys.exit()
 
 
 if __name__ == "__main__":

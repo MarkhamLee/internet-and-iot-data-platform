@@ -1,11 +1,14 @@
-{"coord": {"lon": -122.3301, "lat": 47.6038},
- "list": [{"main": {"aqi": 1},
-   "components": {"co": 270.37,
-    "no": 0,
-    "no2": 10.8,
-    "o3": 46.49,
-    "so2": 1.12,
-    "pm2_5": 5.04,
-    "pm10": 10.53,
-    "nh3": 0.23},
-   "dt": 1701676578}]}
+{
+    "type": "object",
+    "properties": {
+        "co": {"type": "number"},
+        "no": {"type": "number"},
+        "no2": {"type": "number"},
+        "o3": {"type": "number"},
+        "so2": {"type": "number"},
+        "pm2_5": {"type": "number"},
+        "pm10": {"type": "number"},
+        "nnh3": {"type": "number"}
+    },
+    "required": ["co", "pm2_5", "pm10"]
+  }
