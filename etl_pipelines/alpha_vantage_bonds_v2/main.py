@@ -115,7 +115,7 @@ def main():
     data = get_tbill_data(url)
 
     # parse and transform data
-    data = parse_tbill_data(data)
+    parsed_data = parse_tbill_data(data)
 
     # get Postgres connection
     connection = postgres_connection()
@@ -124,7 +124,7 @@ def main():
     postgres_utilities.clear_table(connection, TABLE)
 
     # write data
-    write_data(connection, data, TABLE)
+    write_data(connection, parsed_data, TABLE)
 
 
 if __name__ == '__main__':

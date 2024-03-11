@@ -85,8 +85,6 @@ class AlphaVantageBondTesting(unittest.TestCase):
         # get T-Bill Data
         code, slack_response = main.get_tbill_data(bad_url)
 
-        logger.info(code)
-
         self.assertEqual(code, 1,
                          "API call was successful, it should've failed")
         self.assertEqual(slack_response, 200,
