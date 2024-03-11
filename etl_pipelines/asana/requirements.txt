@@ -14,7 +14,7 @@ websocket-client
 pandas
 numpy
 SQLAlchemy
-asana==3.2.2
+asana==5.0.3
 joblib
 Werkzeug
 slack_sdk
