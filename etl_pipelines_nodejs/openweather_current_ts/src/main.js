@@ -74,6 +74,9 @@ var getWeatherData = function (weatherUrl) { return __awaiter(void 0, void 0, vo
 exports.getWeatherData = getWeatherData;
 // parse out the desired fields
 // TODO: update to calculate AQI - may need all the fields for that 
+// TODO: figure out how to write json directly to InfluxDB, doesn't
+// seem to be possible with the Node.js library for InfluxDB, need to
+// investigate further.
 var parseData = function (data) {
     // split out the part of the json that contains the bulk of the data points
     var weather_data = data.main;
@@ -125,6 +128,7 @@ var writeData = function (payload) {
         void setTimeout(function () {
             // flush InfluxDB client
             writeClient_1.flush();
+            console.log('InfluxDB Client flushed/cleared.');
         }, 1000);
     }
     catch (error) {

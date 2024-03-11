@@ -14,7 +14,6 @@ const endpoint = "weather?"
 // create URL for API get request
 const weatherUrl = createOpenWeatherUrl(endpoint)
 
-
 // get & write data
 getWeatherData(weatherUrl)
     .then(result => { //unpack value from Axios/API call 

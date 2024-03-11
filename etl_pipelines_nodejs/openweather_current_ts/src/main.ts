@@ -35,6 +35,9 @@ const getWeatherData = async (weatherUrl: string): Promise<WeatherResponse[] | E
 
 // parse out the desired fields
 // TODO: update to calculate AQI - may need all the fields for that 
+// TODO: figure out how to write json directly to InfluxDB, doesn't
+// seem to be possible with the Node.js library for InfluxDB, need to
+// investigate further.
 const parseData = (data: any) => {
 
       // split out the part of the json that contains the bulk of the data points
@@ -103,6 +106,7 @@ const writeData = (payload: any) => {
 
                 // flush InfluxDB client
                 writeClient.flush()
+                console.log('InfluxDB Client flushed/cleared.')
             }, 1000)
 
     } catch (error: any) {
