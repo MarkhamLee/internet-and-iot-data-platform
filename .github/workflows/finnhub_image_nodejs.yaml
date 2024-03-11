@@ -1,10 +1,11 @@
 name: finnhub_stockprice_nodejs_typescript_container_build
-
 on:
   push:
     branches:
       - "main"
     paths:
+      - "etl_pipelines_nodejs/finnhub_node/src/*"
+      - "etl_pipelines_nodejs/finnhub_node/utils/*"
       - "etl_pipelines_nodejs/finnhub_node/*"
 
 jobs:
