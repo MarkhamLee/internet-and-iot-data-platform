@@ -60,16 +60,12 @@ def get_tbill_data(url: str) -> dict:
     try:
         response.raise_for_status()
 
-    # you can only hit the API 26x a day, so if it fails, just exit and
-    # check the error message, rather than retrying and using up the day's
-    # attempts
-    except Exception as e:
+    except requests.exceptions.HTTPError as e:
         message = (f'Pipeline failure Alert: Bond data retrieval attempt failed with error: {e}')  # noqa: E501
         logger.debug(message)
         response = etl_utilities.send_slack_webhook(WEBHOOK_URL, message)
         return 1, response
 
-    response = requests.get(url)
     logger.info('Bond data retrieved successfully')
     return response.json()
 
@@ -98,7 +94,7 @@ def write_data(connection: object, data: object,  table: str):
         etl_utilities.send_slack_webhook(WEBHOOK_URL, message)
 
     else:
-        logger.debug(f"Postgres write successfuly, {response} rows written to database")  # noqa: E501
+        logger.info(f"Postgres write successfuly, {response} rows written to database")  # noqa: E501
 
     return status
 
