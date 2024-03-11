@@ -5,12 +5,12 @@
 
 import { strict } from 'assert';
 import { sendSlackAlerts, validateJson } from "../utils/utilities";
-import { getFinanceData } from "../src/index"
+import { getFinanceData } from "../src/main"
 
 // Test end to end
 // There will be a couple of logging errors, as the tests will complete before logging finishes. 
 describe("Full pipeline test", () => {
-    it("Pipeline should run, not return a  value", () => {
+    it("Pipeline should run and return 0", () => {
         
         expect(getFinanceData()).toEqual(0)
 

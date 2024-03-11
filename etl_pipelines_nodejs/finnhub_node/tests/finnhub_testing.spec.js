@@ -5,12 +5,12 @@
 // Testing for the Finnhub ETL 
 Object.defineProperty(exports, "__esModule", { value: true });
 var utilities_1 = require("../utils/utilities");
-var index_1 = require("../src/index");
+var main_1 = require("../src/main");
 // Test end to end
 // There will be a couple of logging errors, as the tests will complete before logging finishes. 
 describe("Full pipeline test", function () {
-    it("Pipeline should run, not return a  value", function () {
-        expect((0, index_1.getFinanceData)()).toEqual(0);
+    it("Pipeline should run and return 0", function () {
+        expect((0, main_1.getFinanceData)()).toEqual(0);
     });
 });
 // Validate sending bad data for validation 
