@@ -7,6 +7,9 @@
 
 import os
 import sys
+import pandas as pd
+from datetime import datetime, timezone
+from asana.rest import ApiException
 from asana_utilities import AsanaUtilities
 
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -23,79 +26,124 @@ utilities = AsanaUtilities()
 etl_utilities = EtlUtilities()
 
 # load Slack Webhook URL variable for sending pipeline failure alerts
-WEBHOOK_URL = os.environ.get('ALERT_WEBHOOK')
+WEBHOOK_URL = os.environ['ALERT_WEBHOOK']
+
+# instantiate the Postgres class
+postgres_utilities = PostgresUtilities()
 
 
-def get_asana_data() -> object:
-
-    # get project ID
-    PROJECT_GID = os.environ.get('GID')
+def get_asana_data(PROJECT_GID: str) -> object:
 
     # get Asana client
-    asana_client = utilities.get_asana_client(os.environ.get('ASANA_KEY'))
+    asana_client = utilities.get_asana_client(os.environ['ASANA_KEY'])
+
+    extra_params = {'completed_since': 'now',
+                    "opt_fields": "name, modified_at, created_at"}
 
     # retrieve data from Asana API
     try:
-        data = asana_client.tasks.get_tasks_for_project(PROJECT_GID,
-                                                        {'completed_since':
-                                                         'now', "opt_fields": "name, modified_at, created_at"},  # noqa: E501
-                                                        opt_pretty=True)
+        data = asana_client.get_tasks_for_project(PROJECT_GID,
+                                                  extra_params)
         logger.info('Data successfully retrieved from Asana')
         return data
 
-    except Exception as e:
+    except ApiException as e:
         message = (f'Pipeline failure: Asana data read unsuccessful with error: {e}')  # noqa: E501
         logger.debug(message)
         response = etl_utilities.send_slack_webhook(WEBHOOK_URL, message)
         logger.debug(f'Slack pipeline failure alert sent with code: {response}')  # noqa: E501
+        return 1, response
 
 
-# extracting data from the returned object + data validation
-def parse_asana_data(response: object) -> list:
+# calculate age and days since last update for each task
+def calculate_task_age(df: object) -> object:
 
-    return utilities.transform_asana_data(response)
+    # set field names to date-time format
+    df[['created_at', 'modified_at']] =\
+        df[['created_at', 'modified_at']].apply([pd.to_datetime])
+
+    # Calculate the age of each task
+
+    # set time zone, get current time and set format
+    current_time = datetime.now(timezone.utc)
+
+    # calculate the age of the alert in days
+    df['task_age(days)'] = round((current_time - df['created_at']) /
+                                 pd.Timedelta(days=1), 2)
+
+    # calculate duration since last update in days
+    df['task_idle(days)'] = round((current_time - df['modified_at']) /
+                                  pd.Timedelta(days=1), 2)
+
+    # adjust/clean-up date time columns
+    df['created_at'] = df['created_at'].dt.strftime('%Y/%m/%d %H:%M')
+    df['modified_at'] = df['modified_at'].dt.strftime('%Y/%m/%d %H:%M')
+
+    return df
 
 
-def get_asana_vars() -> dict:
+def get_db_vars() -> dict:
 
-    TABLE = os.environ.get('ASANA_TABLE')
+    TABLE = os.environ['ASANA_TABLE']
 
     param_dict = {
-        "host": os.environ.get('DB_HOST'),
-        "database": os.environ.get('DASHBOARD_DB'),
-        "port": int(os.environ.get('PORT')),
-        "user": os.environ.get('POSTGRES_USER'),
-        "password": os.environ.get('POSTGRES_PASSWORD')
+        "host": os.environ['DB_HOST'],
+        "database": os.environ['DASHBOARD_DB'],
+        "port": int(os.environ['POSTGRES_PORT']),
+        "user": os.environ['POSTGRES_USER'],
+        "password": os.environ['POSTGRES_PASSWORD']
 
     }
 
     return TABLE, param_dict
 
 
+def get_postgres_client(TABLE, param_dict):
+
+    # get database variables, connection parameters
+    TABLE, param_dict = get_db_vars()
+
+    return postgres_utilities.postgres_client(param_dict)
+
+
+def write_data(connection, payload, table):
+
+    status, response = postgres_utilities.write_data_raw(connection,
+                                                         payload, table)
+
+    if status == 1:
+        message = (f'Postgres write failed for AlphaVantage T-Bill ETL with error: {response}')  # noqa: E501
+        etl_utilities.send_slack_webhook(WEBHOOK_URL, message)
+
+    else:
+        logger.info(f"Postgres write successfull, {response} rows written to database")  # noqa: E501
+
+    return status
+
+
 def main():
 
+    # get project ID
+    PROJECT_GID = os.environ['GID']
+
     # get project data
-    response = get_asana_data()
+    response = get_asana_data(PROJECT_GID)
 
     # parse data
     payload, total_rows = utilities.transform_asana_data(response)
 
     # calculate age of tasks
-    payload = utilities.calculate_task_age(payload)
+    payload = calculate_task_age(payload)
 
-    # get asana variables
-    TABLE, param_dict = get_asana_vars()
-
-    postgres_utilities = PostgresUtilities()
-
-    # get connection client
-    connection = postgres_utilities.postgres_client(param_dict)
+    # get Postgres connection
+    TABLE, param_dict = get_db_vars()
+    connection = get_postgres_client(TABLE, param_dict)
 
     # clear table
     response = postgres_utilities.clear_table(connection, TABLE)
 
     # write data
-    response = postgres_utilities.write_data_raw(connection, payload, TABLE)
+    response = write_data(connection, payload, TABLE)
 
 
 if __name__ == '__main__':

@@ -7,7 +7,6 @@ import asana
 import os
 import sys
 import pandas as pd
-from datetime import datetime, timezone
 
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(parent_dir)
@@ -16,7 +15,7 @@ from etl_library.logging_util import logger  # noqa: E402
 from etl_library.general_utilities import EtlUtilities  # noqa: E402
 
 etl_utilities = EtlUtilities()
-WEBHOOK_URL = os.environ.get('ALERT_WEBHOOK')
+WEBHOOK_URL = os.environ['ALERT_WEBHOOK']
 
 
 class AsanaUtilities():
@@ -29,10 +28,14 @@ class AsanaUtilities():
     def get_asana_client(key: str) -> object:
 
         try:
-            client = asana.Client.access_token(key)
-            client.headers.update({'Asana-Enable': 'new_goal_memberships'})
+
+            configuration = asana.Configuration()
+            configuration.access_token = key
+            client = asana.ApiClient(configuration)
+            api_instance = asana.TasksApi(client)
+
             logger.info('Asana client created')
-            return client
+            return api_instance
 
         except Exception as e:
             message = (f'Pipeline failure: Asana client creation failed with error: {e}')  # noqa: E501
@@ -49,8 +52,8 @@ class AsanaUtilities():
 
             # Asana data comes back as pagination object, the list
             # comprehension breaks it down into a list of dictionaries
-            # that we can treat as json and convert to a pandas data frame
-            # in one go
+            # that we can treat as a json and convert it to a panda
+            # data frame in one go
 
             df = pd.json_normalize([x for x in data])
 
@@ -68,31 +71,3 @@ class AsanaUtilities():
             logger.debug(message)
             response = etl_utilities.send_slack_webhook(WEBHOOK_URL, message)
             logger.info(f'Slack alert published successfully with code: {response}')  # noqa: E501
-
-    # calculate age and days since last update for each task
-    @staticmethod
-    def calculate_task_age(df: object) -> object:
-
-        # set field names to date-time format
-        df[['created_at', 'modified_at']] =\
-            df[['created_at', 'modified_at']].apply([pd.to_datetime])
-
-        # Calculate the age of each task
-
-        # set time zone, get current time and set format
-        current_time = datetime.now(timezone.utc)
-
-        # calculate the age of the alert in days
-        df['task_age(days)'] = round((current_time - df['created_at']) /
-                                     pd.Timedelta(days=1), 2)
-
-        # calculate duration since last update in days
-        df['task_idle(days)'] = round((current_time - df['modified_at']) /
-                                      pd.Timedelta(days=1), 2)
-
-        # adjust/clean-up date time columns
-
-        df['created_at'] = df['created_at'].dt.strftime('%Y/%m/%d %H:%M')
-        df['modified_at'] = df['modified_at'].dt.strftime('%Y/%m/%d %H:%M')
-
-        return df
