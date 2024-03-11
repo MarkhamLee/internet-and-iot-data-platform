@@ -6,5 +6,5 @@
 // and writing it to InfluxDB.
 Object.defineProperty(exports, "__esModule", { value: true });
 var main_1 = require("./main");
-// run ETL - code is in main.ts/main.js
+// run ETL function from main
 (0, main_1.getFinanceData)();
