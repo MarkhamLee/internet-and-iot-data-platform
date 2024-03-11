@@ -52,7 +52,8 @@ exports.parseData = parseData;
 // method to write data to InfluxDB
 // the InfluxDB node.js library doesn't have a clean way of just
 // pushing json data to the DB. So, the write methods will have to 
-// live in the primary ETL code for now. 
+// live in the primary ETL code for now - as it will have to be
+// customized for each payload.
 var writeData = function (payload) {
     var bucket = utilities_1.config.bucket;
     var writeClient = (0, utilities_1.createInfluxClient)(bucket);

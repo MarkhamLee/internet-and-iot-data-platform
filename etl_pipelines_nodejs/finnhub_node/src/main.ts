@@ -9,7 +9,6 @@ import { Point } from '@influxdata/influxdb-client';
 import {config, createInfluxClient, sendSlackAlerts, validateJson} from "../utils/utilities"
 
 
-
 const getFinanceData = () => {
 
     const api_key = finnhub.ApiClient.instance.authentications['api_key']
@@ -61,13 +60,13 @@ const parseData = (data: any) => {
     console.log("InfluxDB payload ready", payload)
    
     return payload
-  
-
 }
+
 // method to write data to InfluxDB
 // the InfluxDB node.js library doesn't have a clean way of just
 // pushing json data to the DB. So, the write methods will have to 
-// live in the primary ETL code for now. 
+// live in the primary ETL code for now - as it will have to be
+// customized for each payload.
 const writeData = (payload: any) => {   
 
     const bucket = config.bucket
