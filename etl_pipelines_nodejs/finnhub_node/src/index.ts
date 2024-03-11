@@ -8,4 +8,3 @@ import { getFinanceData } from './main';
 
 
 getFinanceData();
-
