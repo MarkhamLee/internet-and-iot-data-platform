@@ -6,5 +6,5 @@
 
 import { getFinanceData } from './main';
 
-// run ETL function from main
+// run ETL function in main.ts/main.js
 getFinanceData();
