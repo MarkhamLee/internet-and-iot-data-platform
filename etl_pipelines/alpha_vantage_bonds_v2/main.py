@@ -91,7 +91,8 @@ def write_data(connection: object, data: object,  table: str):
 
     if status == 1:
         message = (f'Postgres write failed for AlphaVantage T-Bill ETL with error: {response}')  # noqa: E501
-        etl_utilities.send_slack_webhook(WEBHOOK_URL, message)
+        response = etl_utilities.send_slack_webhook(WEBHOOK_URL, message)
+        return 1, response
 
     else:
         logger.info(f"Postgres write successfuly, {response} rows written to database")  # noqa: E501
