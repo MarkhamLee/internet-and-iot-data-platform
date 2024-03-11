@@ -8,9 +8,6 @@ import axios from 'axios';
 import Ajv from "ajv";
 import { InfluxDB } from '@influxdata/influxdb-client';
 import { config, openWeatherSchema } from "./openweather_config"
-import { strict } from 'assert';
-import { error } from 'console';
-import { stat } from 'fs';
 
 
 // create InfluxDB client
