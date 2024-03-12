@@ -5,6 +5,8 @@ on:
       - "main"
     paths:
       - "etl_pipelines_nodejs/openweather_current_ts/*"
+      - "etl_pipelines_nodejs/openweather_current_ts/src/*"
+      - "etl_pipelines_nodejs/openweather_current_ts/utils/*"
 
 jobs:
   docker:
@@ -24,7 +26,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: ./etl_pipelines_nodejs/openweather_current_ts
+          context: ./etl_pipelines_nodejs/openweather_current_ts/
           file: ./etl_pipelines_nodejs/openweather_current_ts/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true

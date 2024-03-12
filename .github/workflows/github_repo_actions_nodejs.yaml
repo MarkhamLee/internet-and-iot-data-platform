@@ -6,6 +6,8 @@ on:
       - "main"
     paths:
       - "etl_pipelines_nodejs/github_node/*"
+      - "etl_pipelines_nodejs/github_node/src/*"
+      - "etl_pipelines_nodejs/github_node/utils/*"
 
 jobs:
   docker:
@@ -25,7 +27,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: ./etl_pipelines_nodejs/
+          context: ./etl_pipelines_nodejs/github_node/
           file: ./etl_pipelines_nodejs/github_node/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true

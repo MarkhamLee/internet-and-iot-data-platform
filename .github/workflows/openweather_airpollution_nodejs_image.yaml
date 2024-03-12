@@ -5,6 +5,8 @@ on:
       - "main"
     paths:
       - "etl_pipelines_nodejs/openweather_airquality_nodejs/*"
+      - "etl_pipelines_nodejs/openweather_airquality_nodejs/src/*"
+      - "etl_pipelines_nodejs/openweather_airquality_nodejs/utils/*"
 
 jobs:
   docker:
@@ -24,7 +26,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: ./etl_pipelines_nodejs/openweather_airquality_nodejs
+          context: ./etl_pipelines_nodejs/openweather_airquality_nodejs/
           file: ./etl_pipelines_nodejs/openweather_airquality_nodejs/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true

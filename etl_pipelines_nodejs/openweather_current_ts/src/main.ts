@@ -108,15 +108,21 @@ const writeData = (payload: any) => {
                 writeClient.flush()
                 console.log('InfluxDB Client flushed/cleared.')
             }, 1000)
+        
+        return 0
 
     } catch (error: any) {
 
         const message = "OpenWeather API Pipeline Current Weather (Nodejs variant) failure, InfluxDB write error: "
-        const full_message = (message.concat(JSON.stringify((error.body))));
+        const full_message = (message.concat(JSON.stringify(error.body)));
         console.error(full_message);
 
         //send pipeline failure alert via Slack
-        sendSlackAlerts(full_message);
+        const slackResponse = sendSlackAlerts(full_message);
+        return {
+            "code": 1,
+            "slackResponse": slackResponse
+        }
 
     }
 
