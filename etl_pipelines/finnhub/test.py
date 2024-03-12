@@ -3,12 +3,17 @@
 # Test script for the Finnhub Stock Price ETL
 
 import os
-# import json
+import sys
 import unittest
 import main
-from finnhub_utilities import FinnHubUtilities
+
 import tracemalloc
 tracemalloc.start()
+
+parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(parent_dir)
+
+from finnhub_libraries.finnhub_utilities import FinnHubUtilities  # noqa: E402
 
 
 class FinnhubTesting(unittest.TestCase):

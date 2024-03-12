@@ -1,6 +1,7 @@
 FROM python:alpine as build
 
 COPY ./etl_library ./etl_library
+COPY ./finnhub_libraries ./finnhub_libraries
 
 WORKDIR /etl
 
