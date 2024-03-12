@@ -6,6 +6,7 @@ on:
       - "main"
     paths:
       - "etl_pipelines/etl_library/*"
+      - "etl_pipelines/finnhub_libraries/*"
       - "etl_pipelines/finnhub/*"
 
 jobs:
