@@ -29,9 +29,22 @@ class FinnHubUtilities():
         return data
 
     @staticmethod
-    def parse_stock_data(data: dict) -> dict:
+    def parse_stock_data(data: dict, symbol: str) -> dict:
 
         payload = {
+            "previous_close": float(data['pc']),
+            "open": float(data['o']),
+            "last_price": float(data['l']),
+            "change": float(data['dp'])
+        }
+
+        return payload
+
+    @staticmethod
+    def parse_stock_data_portfolio(data: dict, symbol: str) -> dict:
+
+        payload = {
+            "stock_symbol": symbol,
             "previous_close": float(data['pc']),
             "open": float(data['o']),
             "last_price": float(data['l']),
