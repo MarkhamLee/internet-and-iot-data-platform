@@ -31,18 +31,13 @@ const getGitHubActions = async (gitUrl: string) => {
         return data
     
     } catch (error: any) {
-        const message = "Pipeline failure alert - GitHub Repo Actions - NodeJS Variant with error: "
-        const full_message = (message.concat(JSON.stringify((error.response.data))));
-        console.error(full_message)
+        const message = "Pipeline failure alert - API Error GitHub Repo Actions"
+        // const fullMessage = (message.concat(JSON.stringify((error.response.data))));
+        console.error(message, error.body)
 
         //send pipeline failure alert via Slack
-        const response = sendSlackAlerts(full_message);
-        console.debug('Slack message sent with code:', response)
-        return {
-
-            "code": 1,
-            "slack_response": response
-        }
+        return sendSlackAlerts(message)
+         
     }
 }
 
@@ -63,28 +58,43 @@ const parseData = (data: any) => {
 // TODO: add exception handling 
 const writeData = (payload: any) => {   
 
-    const bucket = config.bucket
-    const writeClient = createInfluxClient(bucket)
+    try {
+
+        const writeClient = createInfluxClient(config.bucket)
   
-    let point = new Point(config.measurement)
-            .tag("DevOps Data", "GitHub",)
-            .floatField('total_actions', payload.totalActions) 
-            .stringField('mostRecentActions', payload.mostRecentAction)
-            
-    // write data to InfluxDB
-    void setTimeout(() => {
-  
-        writeClient.writePoint(point);
-        console.log("Weather data successfully written to InfluxDB")
-        }, 1000)
-  
-    // flush client
-    void setTimeout(() => {
-  
-            // flush InfluxDB client
-            writeClient.flush()
-        }, 1000)
-    
-    }
+        let point = new Point(config.measurement)
+                .tag("DevOps Data", "GitHub",)
+                .floatField('total_actions', payload.totalActions) 
+                .stringField('mostRecentActions', payload.mostRecentAction)
+                
+        // write data to InfluxDB
+        void setTimeout(() => {
+      
+            writeClient.writePoint(point);
+            console.log("Weather data successfully written to InfluxDB")
+            }, 1000)
+      
+        // flush client
+        void setTimeout(() => {
+      
+                // flush InfluxDB client
+                writeClient.flush()
+            }, 1000)
+
+        return 0
+        
+    } catch (error: any) {
+
+        const message = "GitHub Repo actions pipeline failure - data dashboard, InfluxDB write failure"
+        // const fullMessage = (message.concat(JSON.stringify(error.body)))
+        console.error(message, error)
+
+
+        //send pipeline failure alert via Slack
+        const slackResponse = sendSlackAlerts(message)
+        return slackResponse
+
+    }    
+}
 
 export {getGitHubActions, parseData, writeData}

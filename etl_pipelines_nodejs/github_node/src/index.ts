@@ -25,5 +25,5 @@ getGitHubActions(fullUrl)
         const payload = parseData(result)
 
         // write data
-        const response = writeData(payload)
+        writeData(payload)
 })

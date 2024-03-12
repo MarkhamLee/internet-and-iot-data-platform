@@ -13,16 +13,31 @@ describe("GitHub API Full pipeline test", function () {
         var repo = 'finance-productivity-iot-informational-weather-dashboard/';
         // get full URL
         var fullUrl = (0, utilities_1.buildUrl)(repo);
-        console.log(fullUrl);
         (0, main_1.getGitHubActions)(fullUrl)
             .then(function (result) {
             // get the parsed data/
             var payload = (0, main_1.parseData)(result);
-            console.info(payload);
-            // get response code from API call
-            expect(payload['status']).toEqual(200);
-            // write data
-            expect((0, main_1.writeData)(payload)).toEqual(0);
+            test("Validate Payload was parsed properly", function () {
+                // get response code from API call
+                expect(payload['status']).toEqual(200);
+            });
+            test("Validate that the data was written successfully", function () {
+                // write data
+                expect((0, main_1.writeData)(payload)).toEqual(0);
+            });
+        });
+    });
+});
+// testing failed API call
+describe("GitHub failed API call test", function () {
+    // base URL 
+    var repo = 'not-a-real-repo';
+    // get full URL
+    var fullUrl = (0, utilities_1.buildUrl)(repo);
+    test("API call fails and triggers alert message via Slack", function () {
+        (0, main_1.getGitHubActions)(fullUrl)
+            .then(function (result) {
+            expect(result).toEqual(200);
         });
     });
 });

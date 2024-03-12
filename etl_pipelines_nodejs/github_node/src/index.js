@@ -20,5 +20,5 @@ console.log(fullUrl);
     // get the parsed data/
     var payload = (0, main_1.parseData)(result);
     // write data
-    var response = (0, main_1.writeData)(payload);
+    (0, main_1.writeData)(payload);
 });

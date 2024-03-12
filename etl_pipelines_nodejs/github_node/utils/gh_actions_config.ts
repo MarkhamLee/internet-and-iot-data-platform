@@ -24,3 +24,4 @@ export const config: VarConfig = {
     webHookUrl: process.env.ALERT_WEBHOOK as string,
     
   };
+

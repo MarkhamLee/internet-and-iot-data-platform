@@ -46,8 +46,9 @@ var influxdb_client_1 = require("@influxdata/influxdb-client");
 var octokit_1 = require("octokit");
 var utilities_1 = require("../utils/utilities");
 var gh_actions_config_1 = require("../utils/gh_actions_config");
+// retrieve data from tehe GitHub API using the Octokit library
 var getGitHubActions = function (gitUrl) { return __awaiter(void 0, void 0, void 0, function () {
-    var octokit, data, error_1, message, full_message, response;
+    var octokit, data, error_1, message;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -67,23 +68,19 @@ var getGitHubActions = function (gitUrl) { return __awaiter(void 0, void 0, void
                 return [2 /*return*/, data];
             case 2:
                 error_1 = _a.sent();
-                message = "Pipeline failure alert - GitHub Repo Actions - NodeJS Variant with error: ";
-                full_message = (message.concat(JSON.stringify((error_1.response.data))));
-                console.error(full_message);
-                response = (0, utilities_1.sendSlackAlerts)(full_message);
-                console.debug('Slack message sent with code:', response);
-                return [2 /*return*/, {
-                        "code": 1,
-                        "slack_response": response
-                    }];
+                message = "Pipeline failure alert - API Error GitHub Repo Actions";
+                // const fullMessage = (message.concat(JSON.stringify((error.response.data))));
+                console.error(message, error_1.body);
+                //send pipeline failure alert via Slack
+                return [2 /*return*/, (0, utilities_1.sendSlackAlerts)(message)];
             case 3: return [2 /*return*/];
         }
     });
 }); };
 exports.getGitHubActions = getGitHubActions;
+// parse out data - TODO: add exception handling
 var parseData = function (data) {
-    return {
-        "status": Number(data['status']),
+    return { "status": Number(data['status']),
         "totalActions": Number(data['data']['total_count']),
         "mostRecentAction": String(data['data']['workflow_runs'][0]['name'])
     };
@@ -93,23 +90,33 @@ exports.parseData = parseData;
 // the InfluxDB node.js library doesn't have a clean way of just
 // pushing json data to the DB. So, the write methods will have to 
 // live in the primary ETL code for now. 
+// TODO: add exception handling 
 var writeData = function (payload) {
-    var bucket = gh_actions_config_1.config.bucket;
-    var writeClient = (0, utilities_1.createInfluxClient)(bucket);
-    var point = new influxdb_client_1.Point(gh_actions_config_1.config.measurement)
-        .tag("DevOps Data", "GitHub")
-        .floatField('total_actions', payload.totalActions)
-        .stringField('mostRecentActions', payload.mostRecentAction);
-    // write data to InfluxDB
-    void setTimeout(function () {
-        writeClient.writePoint(point);
-        console.log("Weather data successfully written to InfluxDB");
+    try {
+        var writeClient_1 = (0, utilities_1.createInfluxClient)(gh_actions_config_1.config.bucket);
+        var point_1 = new influxdb_client_1.Point(gh_actions_config_1.config.measurement)
+            .tag("DevOps Data", "GitHub")
+            .floatField('total_actions', payload.totalActions)
+            .stringField('mostRecentActions', payload.mostRecentAction);
+        // write data to InfluxDB
+        void setTimeout(function () {
+            writeClient_1.writePoint(point_1);
+            console.log("Weather data successfully written to InfluxDB");
+        }, 1000);
+        // flush client
+        void setTimeout(function () {
+            // flush InfluxDB client
+            writeClient_1.flush();
+        }, 1000);
         return 0;
-    }, 1000);
-    // flush client
-    void setTimeout(function () {
-        // flush InfluxDB client
-        writeClient.flush();
-    }, 1000);
+    }
+    catch (error) {
+        var message = "GitHub Repo actions pipeline failure - data dashboard, InfluxDB write failure";
+        // const fullMessage = (message.concat(JSON.stringify(error.body)))
+        console.error(message, error);
+        //send pipeline failure alert via Slack
+        var slackResponse = (0, utilities_1.sendSlackAlerts)(message);
+        return slackResponse;
+    }
 };
 exports.writeData = writeData;
