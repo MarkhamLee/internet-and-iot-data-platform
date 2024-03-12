@@ -48,7 +48,7 @@ var openweather_config_1 = require("../utils/openweather_config");
 var openweather_library_1 = require("../utils/openweather_library");
 // Get OpenWeather data 
 var getWeatherData = function (weatherUrl) { return __awaiter(void 0, void 0, void 0, function () {
-    var data, error_1, message, full_message;
+    var data, error_1, message, slackResponse;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -60,12 +60,11 @@ var getWeatherData = function (weatherUrl) { return __awaiter(void 0, void 0, vo
             case 2:
                 error_1 = _a.sent();
                 message = "OpenWeather API Pipeline Current Weather (Nodejs variant) failure, API connection error: ";
-                full_message = message.concat(error_1.message);
-                (0, openweather_library_1.sendSlackAlerts)(full_message);
-                console.error(full_message);
+                console.error(message, error_1.message);
+                slackResponse = (0, openweather_library_1.sendSlackAlerts)(message);
                 return [2 /*return*/, {
                         message: error_1.message,
-                        status: error_1.response.status,
+                        status: slackResponse
                     }];
             case 3: return [2 /*return*/];
         }
@@ -130,13 +129,14 @@ var writeData = function (payload) {
             writeClient_1.flush();
             console.log('InfluxDB Client flushed/cleared.');
         }, 1000);
+        return 0;
     }
     catch (error) {
         var message = "OpenWeather API Pipeline Current Weather (Nodejs variant) failure, InfluxDB write error: ";
-        var full_message = (message.concat(JSON.stringify((error.body))));
+        var full_message = (message.concat(JSON.stringify(error.body)));
         console.error(full_message);
         //send pipeline failure alert via Slack
-        (0, openweather_library_1.sendSlackAlerts)(full_message);
+        return (0, openweather_library_1.sendSlackAlerts)(full_message);
     }
 };
 exports.writeData = writeData;

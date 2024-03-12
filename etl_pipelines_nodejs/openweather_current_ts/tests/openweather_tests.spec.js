@@ -4,6 +4,7 @@ var openweather_library_1 = require("../utils/openweather_library");
 var main_1 = require("../src/main");
 // Test end to end
 // There will be a couple of logging errors, as the tests will complete before logging finishes. 
+// If the test fails an error message (string) is returned.
 describe("Full pipeline test", function () {
     it("Pipeline should run, not return a  value", function () {
         //baseline endpoint
@@ -15,7 +16,14 @@ describe("Full pipeline test", function () {
             .then(function (result) {
             // parse data - finish extraction
             var payload = (0, main_1.parseData)(result);
-            expect((0, main_1.writeData)(payload)).toBeUndefined();
+            test("Validate Payload was parsed properly", function () {
+                // get response code from API call
+                expect((0, openweather_library_1.validateJson)(payload)).rejects.toEqual(0);
+            });
+            test("Validate that the data was written successfully", function () {
+                // write data
+                expect((0, main_1.writeData)(payload)).toEqual(0);
+            });
         });
     });
 });
@@ -25,7 +33,7 @@ describe("API Call - Exception Handling Test", function () {
         // Create URL
         var webUrl = (0, openweather_library_1.createOpenWeatherUrl)("?cheese");
         // define message 
-        var message = { "message": "Request failed with status code 401", "status": 401 };
+        var message = "Request failed with status code 401";
         // Get weather data
         (0, main_1.getWeatherData)(webUrl)
             .then(function (result) {
@@ -57,7 +65,10 @@ describe("Validate data format", function () {
 describe("Test Slack Alerts", function () {
     it("Slack Alert Sent Successfully", function () {
         var message = "Test Slack Alert";
+        (0, openweather_library_1.sendSlackAlerts)(message)
+            .then(function (result) {
+            expect(result).toEqual(200);
+        });
         //validate data
-        expect((0, openweather_library_1.sendSlackAlerts)(message)).toBeUndefined();
     });
 });

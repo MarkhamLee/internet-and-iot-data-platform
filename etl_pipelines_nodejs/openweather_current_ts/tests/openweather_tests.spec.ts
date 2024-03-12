@@ -1,3 +1,11 @@
+// (C) Markham Lee 2023 - 2024
+// productivity-music-stocks-weather-IoT-dashboard
+// https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
+// Node variant for the OpenWeather API ETL - pulls down data for current weather
+// conditions and writes it to InfluxDB
+// TODO: clean up the tests a bit so the console message are written before the tests complete
+
+
 import { createOpenWeatherUrl, sendSlackAlerts, validateJson } from "../utils/openweather_library";
 import { getWeatherData, parseData, writeData } from "../src/main"
 import { strict } from 'assert';
@@ -19,18 +27,28 @@ describe("Full pipeline test", () => {
         getWeatherData(webUrl)
             .then(result => {
                 
-                // parse data - finish extraction
-                const payload = parseData(result)
+            // parse data - finish extraction
+            const payload = parseData(result)
 
-                expect(writeData(payload)).toBeUndefined();
+            test("Validate Payload was parsed properly", () => {
+                // get response code from API call
+                expect(validateJson(payload)).rejects.toEqual(0)
 
             })
 
-    });
-  });
+            test("Validate that the data was written successfully", () => {
+                // write data
+                expect(writeData(payload)).toEqual(0)
 
+            })
+
+    })
+  })
+
+})
 
 // Bad endpoint/API call - validating that it's caught and error message sent
+// Will show an error in console, but shows as passed in the final stats 
 describe("API Call - Exception Handling Test", () => {
     it("API Call Should Fail and return error message", () => {
         
@@ -38,14 +56,16 @@ describe("API Call - Exception Handling Test", () => {
         const webUrl = createOpenWeatherUrl("?cheese")
 
         // define message 
-        const message = {"message": "Request failed with status code 401", "status": 401}
+        const message = "Request failed with status code 401"
 
         // Get weather data
         getWeatherData(webUrl)
             .then(result => {
+
                 expect(result).toContain(message);
             })
     });
+
   });
 
 
@@ -81,8 +101,14 @@ describe("Test Slack Alerts", () => {
 
         const message = "Test Slack Alert"
 
+        sendSlackAlerts(message)
+            .then(result => {
+                expect(result).toEqual(200)
+
+            })
+
         //validate data
-        expect(sendSlackAlerts(message)).toBeUndefined()
+        
 
     })
 

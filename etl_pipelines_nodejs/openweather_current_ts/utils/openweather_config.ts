@@ -57,10 +57,12 @@ export interface WeatherResponse {
 }
 
 // error message interface
+// using "any" kind of defeats the purpose, this is mostly
+// so the API response interface doesn't error message issues.
 export interface ErrorMessage {
 
-    message: string
-    status: number
+    message: any
+    status: any
 
 }
 
