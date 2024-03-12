@@ -19,6 +19,7 @@ console.log(fullUrl);
     .then(function (result) {
     // get the parsed data/
     var payload = (0, main_1.parseData)(result);
+    console.info('Data parsed successfully');
     // write data
     (0, main_1.writeData)(payload);
 });

@@ -23,6 +23,7 @@ getGitHubActions(fullUrl)
 
         // get the parsed data/
         const payload = parseData(result)
+        console.info('Data parsed successfully')
 
         // write data
         writeData(payload)
