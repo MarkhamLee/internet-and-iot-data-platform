@@ -31,4 +31,4 @@ jobs:
           file: ./etl_pipelines_nodejs/github_node/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: markhamlee/github_actions:latest
+          tags: markhamlee/github_repo_actions_nodejs:latest
