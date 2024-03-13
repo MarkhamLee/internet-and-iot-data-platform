@@ -7,7 +7,6 @@
 
 import os
 import sys
-import requests
 
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(parent_dir)
@@ -15,52 +14,48 @@ sys.path.append(parent_dir)
 from etl_library.influx_utilities import InfluxClient  # noqa: E402
 from etl_library.logging_util import logger  # noqa: E402
 from etl_library.general_utilities import EtlUtilities  # noqa: E402
+from github_library.github_utilities import GitHubUtilities  # noqa: E402
 
 # Load general utilities
 etl_utilities = EtlUtilities()
 
+# load InfluxDB utilities
+influx = InfluxClient()
+
 # load Slack Webhook URL variable for sending pipeline failure alerts
 WEBHOOK_URL = os.environ['ALERT_WEBHOOK']
 
-# load Slack Webhook URL for sending dependabot security alerts
-DEPENDABOT_WEBHOOK_URL = os.environ['SECURITY_SLACK_WEBHOOK']
 
-# load repo name env vars
+# load repo name
 REPO_NAME = os.environ['REPO_NAME']
 
 
-# TODO: move to utilities file
 def build_url(endpoint: str):
 
     BASE_URL = os.environ['GITHUB_BASE_URL']
+    REPO_BASE = os.environ['REPO_BASE']
 
-    return BASE_URL + endpoint
+    full_url = BASE_URL + REPO_BASE + REPO_NAME + endpoint
+    logger.info(f'Github URL created: {full_url}')
 
-
-# TODO: move to utilities
-def get_github_data(token: str, full_url: str) -> dict:
-
-    headers = {
-        "Authorization": f"Bearer {token}",
-        'X-GitHub-Api-Version': '2022-11-28',
-        "Accept": "application/vnd.github+json"
-    }
-
-    response = requests.get(full_url, headers=headers)
-
-    try:
-        response.raise_for_status()
-
-    except requests.exceptions.RequestException as e:
-        message = (f'Pipeline failure: Github data retrieval error: {e}')
-        logger.debug(message)
-        logger.debug(f'Slack pipeline failure alert sent with code: {response}')  # noqa: E501
-        return etl_utilities.send_slack_webhook(WEBHOOK_URL, message)
-
-    logger.info('Github security alerts data retrieved')
-    return response.json()
+    return full_url
 
 
+def get_data(full_url: str) -> dict:
+
+    GITHUB_TOKEN = os.environ['GITHUB_TOKEN']
+    NAME = os.environ['GITHUB_PIPELINE_NAME']
+
+    github_utilities = GitHubUtilities
+
+    data = github_utilities.get_github_data(GITHUB_TOKEN, full_url, NAME,
+                                            REPO_NAME)
+    return data
+
+
+# GitHub returns all alerts past or present, so we count up the
+# ones that aren't fixed and only send alerts if there are alerts
+# that need to be resolved.
 def count_alerts(data: dict) -> dict:
 
     # data validation is simple because we're only tracking
@@ -74,6 +69,10 @@ def count_alerts(data: dict) -> dict:
         if alerts > 0:
             message = (f'Security vulnerability discovered in repo: {REPO_NAME}')  # noqa: E501
             logger.info(message)
+
+            # load Slack Webhook URL for sending dependabot security alerts
+            DEPENDABOT_WEBHOOK_URL = os.environ['SECURITY_SLACK_WEBHOOK']
+
             response = etl_utilities.send_slack_webhook(DEPENDABOT_WEBHOOK_URL, message)  # noqa: E501
             logger.message(f'Dependabot security alert sent via Slack with code: {response}')  # noqa: E501
 
@@ -85,20 +84,24 @@ def count_alerts(data: dict) -> dict:
         sys.exit()
 
 
-def write_data(alert_count: float):
-
-    influx = InfluxClient()
-
-    MEASUREMENT = os.environ['GITHUB_ALERTS_MEASUREMENT']
+def get_influx_client():
 
     # Influx DB variables
     INFLUX_KEY = os.environ['INFLUX_KEY']
     ORG = os.environ['INFLUX_ORG']
     URL = os.environ['INFLUX_URL']
-    BUCKET = os.environ['DEVOPS_BUCKET']
 
     # get the client for connecting to InfluxDB
     client = influx.create_influx_client(INFLUX_KEY, ORG, URL)
+
+    return client
+
+
+def write_data(client, alert_count: float):
+
+    # load InfluxDB variables for storing data
+    MEASUREMENT = os.environ['GITHUB_ALERTS_MEASUREMENT']
+    BUCKET = os.environ['DEVOPS_BUCKET']
 
     # base payload
     base_payload = {
@@ -121,7 +124,7 @@ def write_data(alert_count: float):
         logger.debug(message)
         response = etl_utilities.send_slack_webhook(WEBHOOK_URL, message)
         logger.debug(f'Slack pipeline failure alert sent with code: {response}')  # noqa: E501
-        return 1, response
+        return response
 
 
 def main():
@@ -130,13 +133,14 @@ def main():
 
     full_url = build_url(ENDPOINT)
 
-    GITHUB_TOKEN = os.environ['GITHUB_TOKEN']
-
-    data = get_github_data(GITHUB_TOKEN, full_url)
+    data = get_data(full_url)
 
     count = count_alerts(data)
 
-    write_data(count)
+    # get the client for connecting to InfluxDB
+    client = get_influx_client()
+
+    write_data(client, count)
 
 
 if __name__ == "__main__":
