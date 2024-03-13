@@ -48,7 +48,7 @@ var openweather_air_config_1 = require("../utils/openweather_air_config");
 var openweather_air_library_1 = require("../utils/openweather_air_library");
 // Get OpenWeather data 
 var getAirQualityData = function (airUrl) { return __awaiter(void 0, void 0, void 0, function () {
-    var data, error_1, message, full_message;
+    var data, error_1, message, slackResponse;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -59,13 +59,12 @@ var getAirQualityData = function (airUrl) { return __awaiter(void 0, void 0, voi
                 return [2 /*return*/, data];
             case 2:
                 error_1 = _a.sent();
-                message = "Pipeline Failure, API error on Nodejs AirQuality pipeline: ";
-                full_message = message.concat(error_1.message);
-                console.error(full_message);
-                (0, openweather_air_library_1.sendSlackAlerts)(full_message);
+                message = "OpenWeather API Pipeline Current Weather (Nodejs variant) failure, API connection error: ";
+                console.error(message, error_1.message);
+                slackResponse = (0, openweather_air_library_1.sendSlackAlerts)(message);
                 return [2 /*return*/, {
                         message: error_1.message,
-                        status: error_1.response.status
+                        status: slackResponse
                     }];
             case 3: return [2 /*return*/];
         }
@@ -115,10 +114,10 @@ var writeData = function (payload) {
     }
     catch (error) {
         var message = "OpenWeather API, Air Pollution Pipeline (Nodejs variant) failure - InfluxDB write error: ";
-        var full_message = (message.concat(JSON.stringify((error.body))));
-        console.error(full_message);
+        var fullMessage = (message.concat(JSON.stringify((error.body))));
+        console.error(fullMessage);
         //send pipeline failure alert via Slack
-        (0, openweather_air_library_1.sendSlackAlerts)(full_message);
+        (0, openweather_air_library_1.sendSlackAlerts)(fullMessage);
     }
 };
 exports.writeData = writeData;

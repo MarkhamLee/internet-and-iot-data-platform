@@ -6,7 +6,7 @@
 // the OpenWeather API writes it to InfluxDB
 // Config file that contains interfaces, json schemas, env variables, etc.
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.airQualitySchema = exports.config = void 0;
+exports.AirQualitySchema = exports.config = void 0;
 // this combined with the above allow us to retriev all the environmental
 // variables and make them available to any script that imports this file. 
 exports.config = {
@@ -23,7 +23,7 @@ exports.config = {
 };
 // this is the schema that we use to validate that the data
 // received from the API is correct.
-exports.airQualitySchema = {
+exports.AirQualitySchema = {
     "type": "object",
     "properties": {
         "co": { "type": "number" },

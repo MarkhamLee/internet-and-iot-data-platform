@@ -76,13 +76,16 @@ describe("Validate data format", () => {
 // This is just to generate a message, i.e., this test always passes
 // the tester will need to check their Slack messages to verify the message
 // went through.
-describe("Validate Slack Alerts", () => {
-    it("Slack alert should be received successfully", () => {
+describe("Test Slack Alerts", () => {
+    it("Slack Alert Sent Successfully", () => {
 
         const message = "Test Slack Alert"
 
-        //validate data
-        expect(sendSlackAlerts(message)).toBeUndefined()
+        sendSlackAlerts(message)
+            .then(result => {
+                expect(result).toEqual(200)
+
+            })
 
     })
 

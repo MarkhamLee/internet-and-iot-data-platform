@@ -18,17 +18,16 @@ const getAirQualityData = async (airUrl: string): Promise<AirResponse[] | ErrorM
         const { data } = await axios.get<AirResponse[]>(airUrl)
         return data
 
-    } catch (error: any) {
+    } catch (error: any){
 
-        const message = "Pipeline Failure, API error on Nodejs AirQuality pipeline: "
-        const full_message = message.concat(error.message)
-        console.error(full_message)
-        sendSlackAlerts(full_message)
-        
+        const message = "OpenWeather API Pipeline Current Weather (Nodejs variant) failure, API connection error: "
+        console.error(message, error.message)
+        const slackResponse = sendSlackAlerts(message)
+
         return {
             message: error.message,
-            status: error.response.status
-        }
+            status: slackResponse
+        } 
     }
 }
 
@@ -92,11 +91,11 @@ const writeData = (payload: any) => {
     } catch (error: any) {
 
         const message = "OpenWeather API, Air Pollution Pipeline (Nodejs variant) failure - InfluxDB write error: "
-        const full_message = (message.concat(JSON.stringify((error.body))));
-        console.error(full_message);
+        const fullMessage = (message.concat(JSON.stringify((error.body))));
+        console.error(fullMessage);
 
         //send pipeline failure alert via Slack
-        sendSlackAlerts(full_message);
+        sendSlackAlerts(fullMessage);
 
     }
   

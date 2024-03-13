@@ -36,8 +36,8 @@ export interface AirResponse {
 // error message interface
 export interface ErrorMessage {
 
-    message: string
-    status: number
+    message: any
+    status: any
 
 }
 
@@ -75,7 +75,7 @@ export const config: VarConfig = {
 
   // this is the schema that we use to validate that the data
   // received from the API is correct.
-  export const airQualitySchema = {
+  export const AirQualitySchema = {
   
     "type": "object",
     "properties": {

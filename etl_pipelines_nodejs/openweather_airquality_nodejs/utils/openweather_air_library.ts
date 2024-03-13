@@ -7,7 +7,7 @@
 import axios from 'axios';
 import Ajv from "ajv";
 import { InfluxDB } from '@influxdata/influxdb-client';
-import { config, airQualitySchema } from '../utils/openweather_air_config'
+import { config, AirQualitySchema } from '../utils/openweather_air_config'
 
 
 // create InfluxDB client
@@ -43,26 +43,27 @@ const createAirqUrl = (endpoint: string) => {
 
 // send Slack alerts via a web hook specific to a channel for
 // data pipeline errors.
-const sendSlackAlerts = (message: string) => {
+const sendSlackAlerts = async (message: string) => {
 
     const payload = JSON.stringify({"text": message})
-        
-        axios.post(config.webHookUrl, payload)
-            .then(function (response) {
-                console.log("Slack message sent successfully with code:", response.status);
-        })
-        
-        .catch(function (error) {
-            console.error("Slack message failure with error: ", error.statusText);
-        });
-        
+    
+    try {
+        const response = await axios.post(config.webHookUrl, payload)
+        console.log("Slack message sent successfully with code:", response.status);
+        return response.status
+
+    } catch (error: any) {
+        console.error("Slack message failure with error: ", error.statusText)
+        return 1
     }
+
+}
 
 const validateJson = (data: any) => {
 
     const ajv = new Ajv()
 
-    const validData = ajv.validate(airQualitySchema, data)
+    const validData = ajv.validate(AirQualitySchema, data)
 
     if (validData) {
 
