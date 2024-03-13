@@ -9,7 +9,6 @@ import { Point } from '@influxdata/influxdb-client';
 import {config, WeatherResponse, ErrorMessage} from "../utils/openweather_config";
 import { createInfluxClient, sendSlackAlerts, validateJson, }
 from "../utils/openweather_library";
-import { response } from 'express';
 
 
 // Get OpenWeather data 
@@ -114,11 +113,11 @@ const writeData = (payload: any) => {
     } catch (error: any) {
 
         const message = "OpenWeather API Pipeline Current Weather (Nodejs variant) failure, InfluxDB write error: "
-        const full_message = (message.concat(JSON.stringify(error.body)));
-        console.error(full_message);
+        const fullMessage = (message.concat(JSON.stringify(error.body)));
+        console.error(fullMessage);
 
         //send pipeline failure alert via Slack
-        return sendSlackAlerts(full_message);
+        return sendSlackAlerts(fullMessage);
         
     }
 

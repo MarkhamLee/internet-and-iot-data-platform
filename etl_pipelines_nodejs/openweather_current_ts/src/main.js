@@ -133,10 +133,10 @@ var writeData = function (payload) {
     }
     catch (error) {
         var message = "OpenWeather API Pipeline Current Weather (Nodejs variant) failure, InfluxDB write error: ";
-        var full_message = (message.concat(JSON.stringify(error.body)));
-        console.error(full_message);
+        var fullMessage = (message.concat(JSON.stringify(error.body)));
+        console.error(fullMessage);
         //send pipeline failure alert via Slack
-        return (0, openweather_library_1.sendSlackAlerts)(full_message);
+        return (0, openweather_library_1.sendSlackAlerts)(fullMessage);
     }
 };
 exports.writeData = writeData;
