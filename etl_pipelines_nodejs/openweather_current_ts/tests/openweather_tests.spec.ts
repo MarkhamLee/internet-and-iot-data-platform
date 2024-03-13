@@ -10,7 +10,6 @@ import { createOpenWeatherUrl, sendSlackAlerts, validateJson } from "../utils/op
 import { getWeatherData, parseData, writeData } from "../src/main"
 import { strict } from 'assert';
 
-
 // Test end to end
 // There will be a couple of logging errors, as the tests will complete before logging finishes. 
 // If the test fails an error message (string) is returned.
@@ -46,6 +45,8 @@ describe("Full pipeline test", () => {
   })
 
 })
+
+
 
 // Bad endpoint/API call - validating that it's caught and error message sent
 // Will show an error in console, but shows as passed in the final stats 
@@ -106,9 +107,6 @@ describe("Test Slack Alerts", () => {
                 expect(result).toEqual(200)
 
             })
-
-        //validate data
-        
 
     })
 

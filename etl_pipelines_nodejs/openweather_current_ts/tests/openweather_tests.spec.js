@@ -1,4 +1,10 @@
 "use strict";
+// (C) Markham Lee 2023 - 2024
+// productivity-music-stocks-weather-IoT-dashboard
+// https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
+// Node variant for the OpenWeather API ETL - pulls down data for current weather
+// conditions and writes it to InfluxDB
+// TODO: clean up the tests a bit so the console message are written before the tests complete
 Object.defineProperty(exports, "__esModule", { value: true });
 var openweather_library_1 = require("../utils/openweather_library");
 var main_1 = require("../src/main");
@@ -28,6 +34,7 @@ describe("Full pipeline test", function () {
     });
 });
 // Bad endpoint/API call - validating that it's caught and error message sent
+// Will show an error in console, but shows as passed in the final stats 
 describe("API Call - Exception Handling Test", function () {
     it("API Call Should Fail and return error message", function () {
         // Create URL
@@ -69,6 +76,5 @@ describe("Test Slack Alerts", function () {
             .then(function (result) {
             expect(result).toEqual(200);
         });
-        //validate data
     });
 });
