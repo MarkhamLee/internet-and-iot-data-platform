@@ -46,16 +46,19 @@ def get_github_data(token: str, full_url: str) -> dict:
         "Accept": "application/vnd.github+json"
     }
 
-    try:
-        response = requests.get(full_url, headers=headers)
-        logger.info('Github security alerts data retrieved')
-        return response.json()
+    response = requests.get(full_url, headers=headers)
 
-    except Exception as e:
+    try:
+        response.raise_for_status()
+
+    except requests.exceptions.RequestException as e:
         message = (f'Pipeline failure: Github data retrieval error: {e}')
         logger.debug(message)
-        response = etl_utilities.send_slack_webhook(WEBHOOK_URL, message)
         logger.debug(f'Slack pipeline failure alert sent with code: {response}')  # noqa: E501
+        return etl_utilities.send_slack_webhook(WEBHOOK_URL, message)
+
+    logger.info('Github security alerts data retrieved')
+    return response.json()
 
 
 def count_alerts(data: dict) -> dict:
@@ -74,6 +77,7 @@ def count_alerts(data: dict) -> dict:
             response = etl_utilities.send_slack_webhook(DEPENDABOT_WEBHOOK_URL, message)  # noqa: E501
             logger.message(f'Dependabot security alert sent via Slack with code: {response}')  # noqa: E501
 
+        logger.info(f'{alerts} alerts detected for {REPO_NAME}')
         return alerts
 
     except Exception as e:
@@ -100,7 +104,7 @@ def write_data(alert_count: float):
     base_payload = {
         "measurement": MEASUREMENT,
         "tags": {
-                "Github_Data": "alerts",
+                "GitHub_Data": "alerts",
         }
     }
 
@@ -109,13 +113,15 @@ def write_data(alert_count: float):
     try:
         # write data to InfluxDB
         influx.write_influx_data(client, base_payload, payload, BUCKET)
-        logger.info('Github data successfuly written to InfluxDB')
+        logger.info('GitHub data successfuly written to InfluxDB')
+        return 0
 
     except Exception as e:
         message = (f'InfluxDB write error for Github Actions data: {e}')
         logger.debug(message)
         response = etl_utilities.send_slack_webhook(WEBHOOK_URL, message)
         logger.debug(f'Slack pipeline failure alert sent with code: {response}')  # noqa: E501
+        return 1, response
 
 
 def main():
@@ -128,9 +134,9 @@ def main():
 
     data = get_github_data(GITHUB_TOKEN, full_url)
 
-    payload = count_alerts(data)
+    count = count_alerts(data)
 
-    write_data(payload)
+    write_data(count)
 
 
 if __name__ == "__main__":
