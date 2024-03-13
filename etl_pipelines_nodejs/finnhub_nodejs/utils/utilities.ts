@@ -7,7 +7,7 @@
 import axios from 'axios';
 import Ajv from "ajv";
 import {InfluxDB} from '@influxdata/influxdb-client';
-import { config, finnhubSchema } from '../utils/finnhub_config'
+import { config, FinnhubSchema } from '../utils/finnhub_config'
 
 
 // create InfluxDB client
@@ -43,7 +43,7 @@ const validateJson = (data: any) => {
 
         const ajv = new Ajv()
     
-        const validData = ajv.validate(finnhubSchema, data)
+        const validData = ajv.validate(FinnhubSchema, data)
     
         if (validData) {
     
@@ -55,12 +55,9 @@ const validateJson = (data: any) => {
             const message = "Pipeline failure data validation - OpenWeather Air Quality (nodejs variant), exiting... "
             console.error("Data validation error: ", ajv.errors);
             sendSlackAlerts(message)
-            // exit the script so we don't attempt a DB write that won't work or
-            // would write bad data to our db.
             return 1
     
           }
-    
     }
 
 export {config, createInfluxClient, sendSlackAlerts, validateJson}

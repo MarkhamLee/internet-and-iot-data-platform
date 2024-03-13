@@ -10,16 +10,16 @@ var finnhub = require('finnhub');
 var influxdb_client_1 = require("@influxdata/influxdb-client");
 var utilities_1 = require("../utils/utilities");
 var getFinanceData = function () {
-    var api_key = finnhub.ApiClient.instance.authentications['api_key'];
-    api_key.apiKey = utilities_1.config.finnhubKey;
+    var apiKey = finnhub.ApiClient.instance.authentications['api_key'];
+    apiKey.apiKey = utilities_1.config.finnhubKey;
     var finnhubClient = new finnhub.DefaultApi();
     // get data from the Finnhub API via the Official Finnhub JS library1
     finnhubClient.quote(utilities_1.config.stock, function (error, data, response) {
         if (error) {
             var message = "Pipeline failure for Node.js version of Finnhub Stock Price ETL, with error:";
-            var full_message = message.concat(error);
-            console.error(full_message);
-            (0, utilities_1.sendSlackAlerts)(full_message);
+            var fullMessage = message.concat(error);
+            console.error(fullMessage);
+            (0, utilities_1.sendSlackAlerts)(fullMessage);
             // exit process
             return process.exit();
         }

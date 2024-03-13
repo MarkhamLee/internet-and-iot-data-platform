@@ -11,8 +11,8 @@ import {config, createInfluxClient, sendSlackAlerts, validateJson} from "../util
 
 const getFinanceData = () => {
 
-    const api_key = finnhub.ApiClient.instance.authentications['api_key']
-    api_key.apiKey = config.finnhubKey 
+    const apiKey = finnhub.ApiClient.instance.authentications['api_key']
+    apiKey.apiKey = config.finnhubKey 
     const finnhubClient = new finnhub.DefaultApi()
 
     // get data from the Finnhub API via the Official Finnhub JS library1
@@ -20,9 +20,9 @@ const getFinanceData = () => {
             
             if (error) {
                 const message = "Pipeline failure for Node.js version of Finnhub Stock Price ETL, with error:"
-                const full_message = message.concat(error)
-                console.error(full_message)
-                sendSlackAlerts(full_message)
+                const fullMessage = message.concat(error)
+                console.error(fullMessage)
+                sendSlackAlerts(fullMessage)
                 // exit process
                 return process.exit()
 

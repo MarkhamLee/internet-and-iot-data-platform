@@ -32,7 +32,7 @@ export const config: VarConfig = {
   };
 
 // schema for validating the API response from Finnhub
-export const finnhubSchema = {
+export const FinnhubSchema = {
   
     "type": "object",
     "properties": {

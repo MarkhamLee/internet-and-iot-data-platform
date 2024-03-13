@@ -4,7 +4,7 @@
 // https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
 // Config file for Finnhub ETL
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.finnhubSchema = exports.config = void 0;
+exports.FinnhubSchema = exports.config = void 0;
 ;
 // For using the Finnhub interface
 exports.config = {
@@ -18,7 +18,7 @@ exports.config = {
     webHookUrl: process.env.ALERT_WEBHOOK,
 };
 // schema for validating the API response from Finnhub
-exports.finnhubSchema = {
+exports.FinnhubSchema = {
     "type": "object",
     "properties": {
         "c": { "type": "number" },
