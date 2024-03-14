@@ -52,11 +52,17 @@ class GitHubDependabotTesting(unittest.TestCase):
         # count alerts & get alert status code
         alert_count = main.count_alerts(data)
 
-        # get InfluxDB client
-        client = main.get_influx_client()
+        # load InfluxDB variables for storing data
+        MEASUREMENT = os.environ['GITHUB_ALERTS_MEASUREMENT']
+        BUCKET = os.environ['DEVOPS_BUCKET']
+
+        # load tag name
+        tag_name = "Dependabot Alerts"
 
         # Finally, we write the data to the DB
-        response = main.write_data(client, alert_count)
+        response = self.github_utilities.write_github_data(alert_count,
+                                                           MEASUREMENT,
+                                                           BUCKET, tag_name)
 
         self.assertIsNotNone(data, 'Data retrieval failed')
         self.assertIsNotNone(alert_count,
@@ -84,11 +90,17 @@ class GitHubDependabotTesting(unittest.TestCase):
 
         bad_data = "cheese"
 
-        # get InfluxDB client
-        client = main.get_influx_client()
+        # load InfluxDB variables for storing data
+        MEASUREMENT = os.environ['GITHUB_ALERTS_MEASUREMENT']
+        BUCKET = os.environ['DEVOPS_BUCKET']
+
+        # load tag name
+        tag_name = "Dependabot Alerts"
 
         # Finally, we write the data to the DB
-        response = main.write_data(client, bad_data)
+        response = self.github_utilities.write_github_data(bad_data,
+                                                           MEASUREMENT,
+                                                           BUCKET, tag_name)
 
         self.assertEqual(response, 200,
                          "InfluxDB write successful, should've failed")

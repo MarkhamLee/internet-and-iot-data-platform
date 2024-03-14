@@ -22,9 +22,11 @@ etl_utilities = EtlUtilities()
 # load InfluxDB utilities
 influx = InfluxClient()
 
+# load GitHub utilities/shared library
+github_utilities = GitHubUtilities()
+
 # load Slack Webhook URL variable for sending pipeline failure alerts
 WEBHOOK_URL = os.environ['ALERT_WEBHOOK']
-
 
 # load repo name
 REPO_NAME = os.environ['REPO_NAME']
@@ -61,6 +63,10 @@ def count_alerts(data: dict) -> dict:
     # one field - if the state field isn't available the
     # below will throw an error.
 
+    # this env var should be defined in the DAG or Argo config file
+    # I.e., basically a command line type parameter
+    REPO_SHORT_NAME = os.environ['REPO_SHORT_NAME']
+
     try:
         # count alerts
         alerts = int(len([i for i in data if i['state'] != 'fixed']))
@@ -76,72 +82,40 @@ def count_alerts(data: dict) -> dict:
             logger.message(f'Dependabot security alert sent via Slack with code: {response}')  # noqa: E501
 
         logger.info(f'{alerts} alerts detected for {REPO_NAME}')
-        return alerts
+        field_name = (f'{REPO_SHORT_NAME}_dependabot_alerts')
+        payload = {field_name: alerts}
+
+        return payload
 
     except Exception as e:
         logger.debug(f"Data validation failed/state field missing with error: {e}")  # noqa: E501
         sys.exit()
 
 
-def get_influx_client():
+def main():
 
-    # Influx DB variables
-    INFLUX_KEY = os.environ['INFLUX_KEY']
-    ORG = os.environ['INFLUX_ORG']
-    URL = os.environ['INFLUX_URL']
+    ENDPOINT = os.environ['ALERTS_ENDPOINT']
 
-    # get the client for connecting to InfluxDB
-    client = influx.create_influx_client(INFLUX_KEY, ORG, URL)
+    # build URL
+    full_url = build_url(ENDPOINT)
 
-    return client
+    # retrieve GitHub token
+    GITHUB_TOKEN = os.environ['GITHUB_TOKEN']
 
+    # get GitHub dependabot alerts data
+    data = get_dependabot_data(full_url, GITHUB_TOKEN)
 
-def write_data(client, alert_count: float):
+    # count the # of active alerts
+    count = count_alerts(data)
 
     # load InfluxDB variables for storing data
     MEASUREMENT = os.environ['GITHUB_ALERTS_MEASUREMENT']
     BUCKET = os.environ['DEVOPS_BUCKET']
 
-    # base payload
-    base_payload = {
-        "measurement": MEASUREMENT,
-        "tags": {
-                "GitHub_Data": "alerts",
-        }
-    }
+    tag_name = "Dependabot Alerts"
 
-    payload = {"alerts_count": alert_count}
-
-    try:
-        # write data to InfluxDB
-        influx.write_influx_data(client, base_payload, payload, BUCKET)
-        logger.info('GitHub data successfuly written to InfluxDB')
-        return 0
-
-    except Exception as e:
-        message = (f'InfluxDB write error for Github Actions data: {e}')
-        logger.debug(message)
-        response = etl_utilities.send_slack_webhook(WEBHOOK_URL, message)
-        logger.debug(f'Slack pipeline failure alert sent with code: {response}')  # noqa: E501
-        return response
-
-
-def main():
-
-    ENDPOINT = os.environ['ALERTS_ENDPOINT']
-
-    full_url = build_url(ENDPOINT)
-
-    GITHUB_TOKEN = os.environ['GITHUB_TOKEN']
-
-    data = get_dependabot_data(full_url, GITHUB_TOKEN)
-
-    count = count_alerts(data)
-
-    # get the client for connecting to InfluxDB
-    client = get_influx_client()
-
-    write_data(client, count)
+    # write data
+    github_utilities.write_github_data(count, MEASUREMENT, BUCKET, tag_name)
 
 
 if __name__ == "__main__":
