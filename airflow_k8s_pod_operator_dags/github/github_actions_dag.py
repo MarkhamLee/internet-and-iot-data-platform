@@ -8,9 +8,11 @@ from datetime import datetime, timedelta
 from kubernetes.client import models as k8s
 from airflow import DAG
 from airflow.providers.cncf.kubernetes.secret import Secret
-from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator  # noqa: E501
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator  # noqa: E501
 
 # define instance specific variables
+env_variables = {"ACCOUNT_NAME": "full_gh_account",
+                 "REPO_SHORT_NAME": 'github_account'}
 
 resource_limits = k8s.V1ResourceRequirements(
             requests={
@@ -51,6 +53,7 @@ with DAG(
     schedule=timedelta(minutes=60),
     default_args=default_args,
     catchup=False,
+    tags=['k8s-pod-operator-container', 'Python'],
 ) as dag:
     k = KubernetesPodOperator(
         namespace='airflow',
@@ -58,13 +61,14 @@ with DAG(
         node_selector={'node_type': 'arm64_worker'},
         image_pull_secrets=[k8s.V1LocalObjectReference("dockersecrets")],
         image="markhamlee/github_actions:latest",
+        env_vars=env_variables,
         env_from=configmaps,
         secrets=[secret_env1, secret_env2, secret_env3],
         cmds=["python3"],
         arguments=["main.py"],
         name="github_actions_pod",
         task_id="github_actions_data",
-        is_delete_operator_pod=False,
+        is_delete_operator_pod=True,
         hostnetwork=False,
         get_logs=True,
         log_events_on_failure=True,
