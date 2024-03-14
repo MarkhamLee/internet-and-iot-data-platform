@@ -2,7 +2,12 @@
 
 
 #### Contained in this folder 
-Container for connecting to Asana, retrieving data for a particular project and then writing that data to Postgres. The container is built to only track current tasks, so it will erase all the data in the Postgres table before writing new data to it. To run the container you will need to populate the following environmental variables:
+Container for connecting to Asana, retrieving data for a particular project, calculating the age of each tasks and time since it was last updated and then writing that data to Postgres. The container is built to only track current tasks, so it will erase all the data in the Postgres table before writing new data to it. Additionally, there are unit tests (test.py) for the end to end process, in addition to validating that exception handling works correctly for failed API calls and database writes.
+
+
+#### Implementation
+
+To run the container you will need to populate the following environmental variables:
 
 * ALERT_WEBHOOK: Slack web hook for sending messages to my pipeline failure channel
 * ASANA_TABLE: Postgres table the data will be written to 
@@ -17,7 +22,7 @@ Container for connecting to Asana, retrieving data for a particular project and 
 
 You will also need to sign-up for [Slack API access](https://api.slack.com/), create a channel for receiving pipeline failures and then generate a web hook for receiving to send those alerts to. Alternatively, if you're just experimenting, you can just comment out the Slack Alert code. 
 
-Additionally, there are several utility files for writing to Postgres, generating container logs and sending pipeline failure alerts via Slack that are pulled in when the container is built from the "etl_library" folder that are in this folder's parent. I.e. to build the container properly you would have to either pull in those files manually and re-write the Dockerfile OR make sure the folder structure is the same. Building Docker containers in this fashion is slightly tricky, and you'll have to run a slightly different Docker build command than usual, please refer to the README.md in the parent "etl_pipeline" folder for details on how to properly build these containers. 
+Additionally, there are several utility files for writing to Postgres, generating container logs and sending pipeline failure alerts via Slack that are pulled in when the container is built from the "etl_library" folder that is in this folder's parent. I.e. to build the container properly you would have to either pull in those files manually and re-write the Dockerfile OR make sure the folder structure is the same. Building Docker containers in this fashion is slightly tricky, and you'll have to run a slightly different Docker build command than usual, please refer to the README.md in the parent "etl_pipeline" folder for details on how to properly build these containers. 
 
 ### Notes on Data Quality
 

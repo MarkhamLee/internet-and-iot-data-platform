@@ -1,7 +1,7 @@
 ## All Updates
 
 ### 2024
-
+* 03/14/24: Pi, obviously... adding automated unit tests via Jest for Node.js and Unittest for Python, fixed the GitHub actions files for the Node.js ETLs as they weren't always firing properly, added dependabot DAGs for monitoring the repo for the Kubernetes cluster this project runs on.
 * 02/28/24: adding Node.js (JavaScript & TypeScript) based ETL containers, created an ETL that monitors the GitHub dependabot alerts for this repo and sends me a Slack message when security issues are detected.
 * 02/15/24: a couple of updates related to CI/CD and shifting ETL workloads to run on the more power efficient arm64 nodes (Orange Pi 5+ and Raspberry Pi 4B) that are now running on the Kubernetes cluster as worker nodes. 
     * Building out automated CI/CD pipeline(s) using GitHub actions to automatically build Docker images and then upload them to Docker Hub, where they can be picked up by Kubernetes the next time an ETL pipeline runs. The process is triggered whenever new code for a particular image is pushed to GitHub. All images are built as multi-container images so they can be run on both the amd64/x86 and arm64 nodes. All ETL containers have been added to the CI/CD pipeline, hardware, IoT and other images are roughly 1/2 complete. 

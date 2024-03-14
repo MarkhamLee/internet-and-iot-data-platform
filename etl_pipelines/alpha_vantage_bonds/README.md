@@ -1,4 +1,4 @@
-## Alpha Vantage T-Bill ETL
+## Alpha Vantage T-Bill ETL - Not Currently In Use
 
 ### Folder Contents
 
@@ -13,7 +13,8 @@ This folder contains an ETL pipeline container that will retrieve the daily T-Bi
 
 #### Implementation 
 
-To run the container you will to need to sign-up for an Alpha Vantage API key, and spin up an instance of PostgreSQL or another database to store the data, and if you want to use the Slack alerts for pipeline failures, you will need to sign-up for the Slack API and configure a Slack webhook to receive your alerts. You will also need to populate the following environmental variables:
+To run the container you will to need to sign-up for an Alpha Vantage API key and spin up an instance of PostgreSQL or another database to store the data; if you want to use the Slack alerts for pipeline failures, you will need to sign-up for the Slack API and configure a Slack webhook to receive your alerts. You will also need to populate the following environmental variables:
+
 
 * ALPHA_KEY: Alpha Advantage API Key
 * POSTGRES_USER: user name for Postgres connection
@@ -25,5 +26,7 @@ To run the container you will to need to sign-up for an Alpha Vantage API key, a
 * BOND_MATURITY: the type of bond the pipeline will pull data for, e.g., '2year' for a two year T-Bill, '10year' for a ten year one. 
 * ALERT_WEBHOOK: Slack web hook for sending messages to my pipeline failure channel
 
-The image builds using some common "library files" contained within this folder's parent, namely: the "alpha_vantage_library" and "etl_library" folders. Please refer to the README in the parent folder for instructions on building the image, so you don't run into issues dealing with the Docker build context. 
+Note: I deployed this via Argo Workflow and Airflow on my Kubernetes cluster, and managed all of these variables with Kubernetes Configmaps and Secrets.
+
+The image builds using some common "library files" contained within this folder's parent, namely: the "alpha_vantage_library" and "etl_library" folders. Please refer to the README in the parent folder for instructions on building the image, so you don't run into issues dealing with the Docker build context. Currently, I build all of these containers through an automated process via GitHub Actions, and the config files for that are in the .github/workflows folder.
 

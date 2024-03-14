@@ -28,7 +28,7 @@ You can read more about the Finnhub Stock Price API [here](https://finnhub.io/do
 
 
 #### Deployment
-To deploy/run/use the container you will need to sign-up for the Finnhub API and get an API key, you're able to hit the API 60/second with the free version, which should be sufficient for most personal use cases. Additionally, please make note that the container uses the finnuhb python library, so you'll need to install that into your python virtual environment if you plan to use this outside of a Docker container. Finally, if you want to receive broken pipeline/pipeline error alerts, you'll need to sign up for the Slack API, and then configure a channel and a wehbhook for receiving messages. 
+To deploy/run/use the container you will need to sign-up for the Finnhub API and get an API key, you're able to hit the API 60X/second with the free version, which should be sufficient for most personal use cases. Additionally, please make note that the container uses the finnuhb python library, so you'll need to install that into your python virtual environment if you plan to use this outside of a Docker container. Finally, if you want to receive broken pipeline/pipeline error alerts, you'll need to sign up for the Slack API, and then configure a channel and a wehbhook for receiving those messages. 
 
 The container requires the following environmental variables, when I deployed this on my Kubernetes cluster I used config maps and Kubernetes secrets for all of them. 
 
@@ -42,4 +42,4 @@ The container requires the following environmental variables, when I deployed th
 * STOCK_SYMBOL: Symbol for the stock you want to retrieve data for 
 
 
-As with all of my ETL containers, this container pulls files from various library folders as part of the build process, which requires a slightly different Docker build command to ensure the build process has access to all the required files. Please refer to the README file in the parent folder/etl_pipeline folder for more details.
+As with all of my ETL containers, this container pulls files from various library folders as part of the build process, which requires a slightly different Docker build command to ensure the build process has access to all the required files. Please refer to the README file in the parent folder/etl_pipeline folder for more details. Currently, I build all of these containers through an automated process via GitHub Actions, and the config files for that are in the .github/workflows folder.

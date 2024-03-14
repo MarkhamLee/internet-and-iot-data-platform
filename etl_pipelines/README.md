@@ -2,28 +2,26 @@
 
 All the ETL pipelines have been built as Docker containers for a couple of reasons:
 
-1) While I really like Airflow its DAG format isn't very portable and they can be difficult to test locally, by moving to containers not only are my pipelines easier to test but they're now portable and can be used with a variety of different tools. 
+1) While I really like Airflow its DAG format isn't very portable and can be difficult to test locally, by moving to containers not only are my pipelines easier to test but they're now portable and can be used with a variety of different tools. 
 
-2) Continuing from point #1... most ETL tools are really just orchestrators and schedulers, good engineering practice (especiallty for data engineering) is to ensure that things are as portable and shareable as possible. I.e. once you have a working container, deploying it on Airflow vs Argo Worflow vs OpenFaaS vs Kubernetes Cron Jobs is relatively easy, as you just need to edit what's usually no more than 1-2 dozen lines of a config or deployment file. 
+2) Continuing from point #1... most ETL tools are really just orchestrators and schedulers, IMO, a good engineering practice (especiallty for data engineering) is to ensure that things are as portable and shareable as possible. I.e. once you have a working container, deploying it on Airflow vs Argo Worflow vs Kubernetes Cron Jobs is relatively easy, as you just need to edit what's usually no more than 1-2 dozen lines of a config or deployment file. 
 
-This folder holds fully operational ETL containers, however, you'll need to acquire the API keys, setup the appropriate databases, populate environmental variables and configure a Slack webhook to receive pipeline failure alerts in order to use them. Also: all the code is written in Python (for now) but I plan to start experimenting with building pipelines in other languages in the near future, once I finish a few preparations (see "Future State" below). 
+This folder holds fully operational ETL containers, however, you'll need to acquire the API keys, setup the appropriate databases, populate environmental variables and configure a Slack webhook to receive pipeline failure alerts in order to use them. ~~Also: all the code is written in Python (for now) but I plan to start experimenting with building pipelines in other languages in the near future.~~ In keeping with the "Dockerized ETL" theme: while the majority of the pipelines are written in Python, I've added Node.js variants for some of them and will be adding Scala versions as well in the very near future.
 
 ### CI/CD & Docker Build Notes
 
-Github Actions is used for CI/CD automation, pushing updated files for an ETL pipeline to GitHub will trigger the rebuilding of its Docker image and then push it to Docker Hub, where it will be pulled down/used the next time the ETL pipeline runs. Each image is built for amd64 and arm64 so it can be used by both architecture types in my Kubernetes cluster. *Note: currently, I'm only running these workloads on my arm64 devices.*
+Github Actions is used for CI/CD automation, pushing updated files for an ETL pipeline to GitHub will trigger the rebuilding of its Docker image and then push it to Docker Hub, where it will be pulled down/used the next time the ETL pipeline runs. Each image is built for amd64 and arm64 architectures so it can be used by both architecture types in my Kubernetes cluster. *Note: currently, I'm only running these workloads on my arm64 devices, as its more energy efficient*
 
 Nearly all of the ETL pipelines use common python scripts/private libraries for writing to DBs, logging, pulling data from certain providers, etc., so I've written the Dockerfiles to pull those scripts from common folders (E.g.,: "etl_library" and "openweather_library"). Used in conjunction with the CI/CD approach, this means that updating (for example) the script that writes to Postgres results in every image that uses that script being rebuilt when that code is pushed to Github. 
 
 ### Testing 
-* The testing process was:
-    * Using the Python unit test library to test the end-to-end ETL, in addition to testing key functions like data validation, and generating Slack alerts for various types of issues. 
-    * There are automated unit tests for each ETL pipeline, in addition to unit tests for the shared libraryies. 
+* The testing process is:
+    * Use a unit testing library for the respective language (E.g. Jest for Node.js, Unittest for Python) to test the end to end ETL, plus ensure that exception handling and alert triggers are working properly.
     * Once the above was complete the updates would be pushed to GitHub, this would trigger the automated build process for the Docker images, from there the images would often be tested further via Portainer and/or K8s cron jobs before deploying them via Airflow or Argo Workflow.
 
-**Future state:** I'm going to split out certain functions like writing to databases into separate *"etl component containers"*, this would enable ETL pipelines that use other languages for retrieving and/or preparing data to leverage existing Python code. CI/CD and build process would still work the same, meaning that fully contained ETL pipelines, multi-language pipelines, component containers, etc., would all leverage the same common code to build their containers.
+**Future state:** I'm going to split out certain functions like writing to databases into separate *"etl component containers"*, this would enable ETL pipelines that use other languages for retrieving and/or preparing data to leverage existing Python code. CI/CD and build process would still work the same, as far as leveraging GitHub Actions to build container, using shared code/private libraries whenvever possible, etc.
 
-
-Keep in mind that building Docker images from different folders like this (namely from the parent folder the Docker file is in), is slightly tricky because when using the standard Docker build command, the Dockerfile can't copy files from the parent folder for security reasons. SO, to build the images you'll need to run the build command from the etl_pipelines folder so the parent folder is the "Docker build context": 
+Keep in mind that building Docker images from different folders like this from the CLI (namely from the parent folder the Docker file is in), is slightly tricky because when using the standard Docker build command, the Dockerfile can't copy files from the parent folder for security reasons. SO, to build the images you'll need to run the build command from the etl_pipelines folder so the parent folder is the "Docker build context": 
 
 ~~~
 docker build -t openweather_airquality:latest -f openweather_air_quality/Dockerfile .
@@ -49,7 +47,4 @@ This command would build linux containers for arm64 and amd64 architectures, mod
 
 * I stored all secrets in Kubernetes and stored all other env variables in Kubernetes config maps 
 
-
-
-Once the above was fine, I would then deploy them with one or more orchestration tools. 
 
