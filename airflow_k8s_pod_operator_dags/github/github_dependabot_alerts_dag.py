@@ -12,7 +12,8 @@ from airflow.providers.cncf.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator  # noqa: E501
 
 # define instance specific variables
-env_variables = {"REPO_NAME": "Data_Platform_Dashboard"}
+env_variables = {"REPO_NAME": "finance-productivity-iot-informational-weather-dashboard",  # noqa: E501
+                 "GITHUB_PIPELINE_NAME": "dependabot_alerts"}
 
 resource_limits = k8s.V1ResourceRequirements(
             requests={
