@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.config = void 0;
 exports.config = {
-    bucket: process.env.BUCKET,
+    bucket: process.env.DEVOPS_BUCKET,
     ghToken: process.env.GITHUB_TOKEN,
     measurement: process.env.GITHUB_DATAPLATFORM_ACTIONS_MEASUREMENT,
     org: process.env.INFLUX_ORG,

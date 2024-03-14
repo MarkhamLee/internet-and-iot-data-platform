@@ -14,7 +14,7 @@ export interface VarConfig {
 
 export const config: VarConfig = {
     
-    bucket: process.env.BUCKET as string,
+    bucket: process.env.DEVOPS_BUCKET as string,
     ghToken: process.env.GITHUB_TOKEN as string,
     measurement: process.env.GITHUB_DATAPLATFORM_ACTIONS_MEASUREMENT as string,
     org: process.env.INFLUX_ORG as string,
