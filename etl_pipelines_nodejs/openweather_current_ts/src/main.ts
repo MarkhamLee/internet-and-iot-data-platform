@@ -7,8 +7,7 @@
 import axios from 'axios';
 import { Point } from '@influxdata/influxdb-client';
 import {config, WeatherResponse, ErrorMessage} from "../utils/openweather_config";
-import { createInfluxClient, sendSlackAlerts, validateJson, }
-from "../utils/openweather_library";
+import { createInfluxClient, sendSlackAlerts, validateJson, }from "../utils/openweather_library"
 
 
 // Get OpenWeather data 
@@ -64,9 +63,7 @@ const parseData = (data: any) => {
     }
 
     console.log('DB payload ready: ', payload)
-
     return payload
-
 }
 
 //method to write data to InfluxDB
@@ -99,7 +96,6 @@ const writeData = (payload: any) => {
             console.log("Weather data successfully written to InfluxDB")
             }, 1000)
 
-
         // flush client
         void setTimeout(() => {
 
@@ -120,7 +116,6 @@ const writeData = (payload: any) => {
         return sendSlackAlerts(fullMessage);
         
     }
-
 }
 
 export {getWeatherData, parseData, writeData}
