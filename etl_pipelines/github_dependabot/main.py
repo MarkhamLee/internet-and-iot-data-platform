@@ -41,14 +41,13 @@ def build_url(endpoint: str):
     return full_url
 
 
-def get_data(full_url: str) -> dict:
+def get_dependabot_data(full_url: str, token: str) -> dict:
 
-    GITHUB_TOKEN = os.environ['GITHUB_TOKEN']
     NAME = os.environ['GITHUB_PIPELINE_NAME']
 
-    github_utilities = GitHubUtilities
+    github_utilities = GitHubUtilities()
 
-    data = github_utilities.get_github_data(GITHUB_TOKEN, full_url, NAME,
+    data = github_utilities.get_github_data(token, full_url, NAME,
                                             REPO_NAME)
     return data
 
@@ -133,7 +132,9 @@ def main():
 
     full_url = build_url(ENDPOINT)
 
-    data = get_data(full_url)
+    GITHUB_TOKEN = os.environ['GITHUB_TOKEN']
+
+    data = get_dependabot_data(full_url, GITHUB_TOKEN)
 
     count = count_alerts(data)
 

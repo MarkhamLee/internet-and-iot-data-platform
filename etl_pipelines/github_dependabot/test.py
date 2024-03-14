@@ -14,6 +14,8 @@ tracemalloc.start()
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(parent_dir)
 
+from github_library.github_utilities import GitHubUtilities  # noqa: E402
+
 
 class GitHubDependabotTesting(unittest.TestCase):
 
@@ -26,6 +28,8 @@ class GitHubDependabotTesting(unittest.TestCase):
         # load Slack Webhook URL for sending dependabot security alerts
         self.DEPENDABOT_WEBHOOK_URL = os.environ['SECURITY_SLACK_WEBHOOK']
 
+        self.NAME = os.environ['GITHUB_PIPELINE_NAME']
+
         # load repo name env vars
         self.REPO_NAME = os.environ['REPO_NAME']
 
@@ -34,6 +38,8 @@ class GitHubDependabotTesting(unittest.TestCase):
 
         self.ENDPOINT = os.environ['ALERTS_ENDPOINT']
 
+        self.github_utilities = GitHubUtilities()
+
     # End to end test
     def test_dependabot_alerts(self):
 
@@ -41,13 +47,16 @@ class GitHubDependabotTesting(unittest.TestCase):
         full_url = main.build_url(self.ENDPOINT)
 
         # get GitHub dependabot data
-        data = main.get_github_data(self.GITHUB_TOKEN, full_url)
+        data = main.get_dependabot_data(full_url, self.GITHUB_TOKEN)
 
         # count alerts & get alert status code
         alert_count = main.count_alerts(data)
 
+        # get InfluxDB client
+        client = main.get_influx_client()
+
         # Finally, we write the data to the DB
-        response = main.write_data(alert_count)
+        response = main.write_data(client, alert_count)
 
         self.assertIsNotNone(data, 'Data retrieval failed')
         self.assertIsNotNone(alert_count,
@@ -64,7 +73,7 @@ class GitHubDependabotTesting(unittest.TestCase):
         full_url = main.build_url(self.ENDPOINT)
 
         # get GitHub dependabot data
-        data = main.get_github_data('fake-key', full_url)
+        data = main.get_dependabot_data(full_url, 'fake-key')
 
         self.assertEqual(data, 200, 'Bad API Key')
 
@@ -75,8 +84,11 @@ class GitHubDependabotTesting(unittest.TestCase):
 
         bad_data = "cheese"
 
+        # get InfluxDB client
+        client = main.get_influx_client()
+
         # Finally, we write the data to the DB
-        code, response = main.write_data(bad_data)
+        response = main.write_data(client, bad_data)
 
         self.assertEqual(response, 200,
                          "InfluxDB write successful, should've failed")
