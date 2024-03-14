@@ -77,10 +77,15 @@ def parse_data(data: dict) -> dict:
     # validate data
     response = validate_data(data)
 
+    # this env var should be defined in the DAG or Argo config file
+    # I.e., basically a command line type parameter
+    REPO_SHORT_NAME = os.environ['REPO_SHORT_NAME']
+
     if response == 0:
-        parsed_payload = {"total_minutes": data["total_minutes_used"],
+        parsed_payload = {"repo_name": REPO_SHORT_NAME,
+                          "total_minutes": data["total_minutes_used"],
                           "total_paid_minutes_used":
-                              data["total_paid_minutes_used"]}
+                          data["total_paid_minutes_used"]}
     else:
         logger.debug("Data validation failed, exiting...")
         sys.exit()
@@ -108,12 +113,11 @@ def main():
     MEASUREMENT = os.environ['GITHUB_ACTIONS_MEASUREMENT']
     BUCKET = os.environ['DEVOPS_BUCKET']
 
-    tag_name = "Github Actions Count"
-    field_name = "github_actions"
+    tag_name = "github_actions_count"
 
     # write data
     github_utilities.write_github_data(payload, MEASUREMENT,
-                                       BUCKET, tag_name, field_name)
+                                       BUCKET, tag_name)
 
 
 if __name__ == "__main__":
