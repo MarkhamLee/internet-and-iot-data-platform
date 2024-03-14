@@ -6,6 +6,7 @@ on:
       - "main"
     paths:
       - "etl_pipelines/etl_library/*"
+      - "etl_pipelines/github_library/*"
       - "etl_pipelines/github_actions_data/*"
 
 jobs:
