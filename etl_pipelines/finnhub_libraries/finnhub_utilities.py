@@ -29,7 +29,7 @@ class FinnHubUtilities():
         return data
 
     @staticmethod
-    def parse_stock_data(data: dict, symbol: str) -> dict:
+    def parse_stock_data(data: dict) -> dict:
 
         payload = {
             "previous_close": float(data['pc']),
