@@ -4,7 +4,6 @@
 
 import os
 import sys
-import requests
 import json
 from jsonschema import validate
 
@@ -14,39 +13,44 @@ sys.path.append(parent_dir)
 from etl_library.influx_utilities import InfluxClient  # noqa: E402
 from etl_library.logging_util import logger  # noqa: E402
 from etl_library.general_utilities import EtlUtilities  # noqa: E402
+from github_library.github_utilities import GitHubUtilities  # noqa: E402
 
 # Load general utilities
 etl_utilities = EtlUtilities()
 
+# load InfluxDB utilities
+influx = InfluxClient()
+
+# load GitHub utilities/shared library
+github_utilities = GitHubUtilities()
+
 # load Slack Webhook URL variable for sending pipeline failure alerts
 WEBHOOK_URL = os.environ.get('ALERT_WEBHOOK')
+
+# load repo name - it's for all the repos, but load it regardless
+REPO_NAME = os.environ['ACCOUNT_NAME']
 
 
 def build_url(endpoint: str):
 
     BASE_URL = "https://api.github.com"
 
-    return BASE_URL + endpoint
+    full_url = BASE_URL + endpoint
+
+    logger.info(f'API URL created: {full_url}')
+
+    return full_url
 
 
-def get_github_data(token: str, full_url: str) -> dict:
+def get_repo_actions(full_url: str, token: str) -> dict:
 
-    headers = {
-        "Authorization": f"Bearer {token}",
-        'X-GitHub-Api-Version': '2022-11-28',
-        "Accept": "application/vnd.github+json"
-    }
+    PIPELINE_NAME = os.environ['GITHUB_ACCOUNT_ACTIONS_PIPELINE']
 
-    try:
-        response = requests.get(full_url, headers=headers)
-        logger.info('Github actions data retrieved')
-        return response.json()
+    github_utilities = GitHubUtilities()
 
-    except Exception as e:
-        message = (f'Pipeline failure: Github data retrieval error: {e}')
-        logger.debug(message)
-        response = etl_utilities.send_slack_webhook(WEBHOOK_URL, message)
-        logger.debug(f'Slack pipeline failure alert sent with code: {response}')  # noqa: E501
+    data = github_utilities.get_github_data(token, full_url, PIPELINE_NAME,
+                                            REPO_NAME)
+    return data
 
 
 def validate_data(data: dict) -> dict:
@@ -65,7 +69,7 @@ def validate_data(data: dict) -> dict:
         logger.debug(message)
         response = etl_utilities.send_slack_webhook(WEBHOOK_URL, message)
         logger.debug(f'Slack pipeline failure alert sent with code: {response}')  # noqa: E501
-        return 1
+        return response
 
 
 def parse_data(data: dict) -> dict:
@@ -84,54 +88,32 @@ def parse_data(data: dict) -> dict:
     return parsed_payload
 
 
-def write_data(payload: dict):
-
-    influx = InfluxClient()
-
-    MEASUREMENT = os.environ['GITHUB_ACTIONS_MEASUREMENT']
-
-    # Influx DB variables
-    INFLUX_KEY = os.environ['INFLUX_KEY']
-    ORG = os.environ['INFLUX_ORG']
-    URL = os.environ['INFLUX_URL']
-    BUCKET = os.environ['DEVOPS_BUCKET']
-
-    # get the client for connecting to InfluxDB
-    client = influx.create_influx_client(INFLUX_KEY, ORG, URL)
-
-    # base payload
-    base_payload = {
-        "measurement": MEASUREMENT,
-        "tags": {
-                "Github_Data": "actions",
-        }
-    }
-
-    try:
-        # write data to InfluxDB
-        influx.write_influx_data(client, base_payload, payload, BUCKET)
-        logger.info('Github data successfuly written to InfluxDB')
-
-    except Exception as e:
-        message = (f'InfluxDB write error for Github Actions data: {e}')
-        logger.debug(message)
-        response = etl_utilities.send_slack_webhook(WEBHOOK_URL, message)
-        logger.debug(f'Slack pipeline failure alert sent with code: {response}')  # noqa: E501
-
-
 def main():
 
-    ENDPOINT = os.environ['ENDPOINT']
+    ENDPOINT = os.environ['ACTIONS_ENDPOINT']
 
+    # build URL for API request
     full_url = build_url(ENDPOINT)
 
+    # retrieve GitHub token
     GITHUB_TOKEN = os.environ['GITHUB_TOKEN']
 
-    data = get_github_data(GITHUB_TOKEN, full_url)
+    # get data
+    data = get_repo_actions(full_url, GITHUB_TOKEN)
 
+    # parse out data
     payload = parse_data(data)
 
-    write_data(payload)
+    # load InfluxDB variables for storing data
+    MEASUREMENT = os.environ['GITHUB_ACTIONS_MEASUREMENT']
+    BUCKET = os.environ['DEVOPS_BUCKET']
+
+    tag_name = "Github Actions Count"
+    field_name = "github_actions"
+
+    # write data
+    github_utilities.write_github_data(payload, MEASUREMENT,
+                                       BUCKET, tag_name, field_name)
 
 
 if __name__ == "__main__":
