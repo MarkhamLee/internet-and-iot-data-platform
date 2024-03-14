@@ -22,22 +22,23 @@ const createInfluxClient = (bucket: string) => {
 
     return client.getWriteApi(org, bucket, 'ns')
 
-    }
+}
 
-const sendSlackAlerts = (message: string) => {
+const sendSlackAlerts = async (message: string) => {
 
     const payload = JSON.stringify({"text": message})
-        
-        axios.post(config.webHookUrl, payload)
-            .then(function (response) {
-                console.log("Slack message sent successfully with code:", response.status);
-        })
-        
-        .catch(function (error) {
-            console.error("Slack message failure with error: ", error.response.statusText);
-        });
-        
+    
+    try {
+        const response = await axios.post(config.webHookUrl, payload)
+        console.log("Slack message sent successfully with code:", response.status);
+        return response.status
+
+    } catch (error: any) {
+        console.error("Slack message failure with error: ", error.statusText)
+        return 1
     }
+
+}
 
 const validateJson = (data: any) => {
 

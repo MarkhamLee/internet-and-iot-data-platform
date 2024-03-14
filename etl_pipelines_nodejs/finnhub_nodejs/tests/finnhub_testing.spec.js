@@ -30,10 +30,12 @@ describe("Validate data format", function () {
 // This is just to generate a message, i.e., this test always passes
 // the tester will need to check their Slack messages to verify the message
 // went through.
-describe("Validate Slack Alerts", function () {
-    it("Slack alert should be received successfully", function () {
+describe("Test Slack Alerts", function () {
+    it("Slack Alert Sent Successfully", function () {
         var message = "Test Slack Alert";
-        //validate data
-        expect((0, utilities_1.sendSlackAlerts)(message)).toBeUndefined();
+        (0, utilities_1.sendSlackAlerts)(message)
+            .then(function (result) {
+            expect(result).toEqual(200);
+        });
     });
 });
