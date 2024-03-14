@@ -1,6 +1,7 @@
 FROM python:3.12.2-slim as build
 
 COPY ./etl_library ./etl_library
+COPY ./github_library ./github_library
 
 WORKDIR /etl
 
