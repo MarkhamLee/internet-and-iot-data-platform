@@ -22,8 +22,7 @@ class GitHubUtilities():
 
     # generic data retrieval method - once the URL is created/you have
     # the right endpoint, the data retrieval process is always the same.
-    @staticmethod
-    def get_github_data(token: str,
+    def get_github_data(self, token: str,
                         full_url: str, pipeline_name: str,
                         repo_name: str) -> dict:
 
@@ -43,8 +42,8 @@ class GitHubUtilities():
             logger.debug(message)
 
             WEBHOOK_URL = os.environ['ALERT_WEBHOOK']
-            response = GitHubUtilities.etl_utilities.\
-                send_slack_webhook(WEBHOOK_URL, message)
+            response = self.etl_utilities.send_slack_webhook(WEBHOOK_URL,
+                                                             message)
             logger.debug(f'Slack pipeline failure alert sent with code: {response}')  # noqa: E501
             return response
 
