@@ -1,20 +1,16 @@
 FROM node:18-alpine3.18
 
-# adding comment to test Github actions workflow
+WORKDIR /app
 
-RUN mkdir -p /home/node/app/node_modules && chown -R node:node /home/node/app
+COPY package*.json ./
+COPY tsconfig.json ./
 
-WORKDIR /home/node/app
+RUN npm ci
 
-COPY package.json ./
+
 COPY ./utils ./utils
+COPY ./src ./src
 
-USER node
-
-RUN npm install && npm install typescript -g
-
-COPY --chown=node:node ./src ./src
-
-RUN tsc
+RUN npx tsc ./src/index.ts
 
 CMD [ "node", "src/index.js" ]
