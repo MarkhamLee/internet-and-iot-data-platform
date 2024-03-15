@@ -1,18 +1,16 @@
-FROM node:19-alpine3.16
+FROM node:18-alpine3.18
 
-RUN mkdir -p /home/node/app/node_modules && chown -R node:node /home/node/app
+WORKDIR /app
 
-WORKDIR /home/node/app
+COPY package*.json ./
+COPY tsconfig.json ./
 
-COPY package.json ./
+RUN npm ci
+
+
 COPY ./utils ./utils
+COPY ./src ./src
 
-USER node
-
-RUN npm install
-
-COPY --chown=node:node ./src ./src
-
-EXPOSE 8080
+RUN npx tsc ./src/index.ts
 
 CMD [ "node", "src/index.js" ]
