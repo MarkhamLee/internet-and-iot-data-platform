@@ -173,3 +173,4 @@ etl_pipelines_nodejs/finnhub_nodejs/node_modules/*
 etl_pipelines_nodejs/finnhub_nodejs/node_modules
 etl_pipelines_nodejs/finnhub_nodejs/.eslintrc.yml
 etl_pipelines_nodejs/openweather_utilities/*
+etl_pipelines_nodejs/openweather_current_ts/**/*.js
