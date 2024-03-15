@@ -11,7 +11,7 @@ COPY ./utils ./utils
 
 USER node
 
-RUN npm install
+RUN npm install && npm install typescript -g
 
 COPY --chown=node:node ./src ./src
 
