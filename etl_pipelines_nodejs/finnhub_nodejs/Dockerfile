@@ -15,6 +15,4 @@ RUN npm install
 
 COPY --chown=node:node ./src ./src
 
-RUN npx tsc index.ts
-
 CMD [ "node", "src/index.js" ]
