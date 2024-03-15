@@ -174,3 +174,10 @@ etl_pipelines_nodejs/finnhub_nodejs/node_modules
 etl_pipelines_nodejs/finnhub_nodejs/.eslintrc.yml
 etl_pipelines_nodejs/openweather_utilities/*
 etl_pipelines_nodejs/openweather_current_ts/**/*.js
+etl_pipelines_nodejs/openweather_airquality_nodejs/**/*.js
+etl_pipelines_nodejs/github_node/**/*.js
+etl_pipelines_nodejs/finnhub_nodejs/**/*.js
+etl_pipelines_nodejs/finnhub_nodejs/coverage/*
+etl_pipelines_nodejs/github_node/coverage/*
+etl_pipelines_nodejs/openweather_current_ts/coverage
+etl_pipelines_nodejs/openweather_airquality_nodejs/coverage/*.js
