@@ -6,8 +6,10 @@
 
 import axios from 'axios'
 import { Point } from '@influxdata/influxdb-client';
-import { config, AirResponse, ErrorMessage } from "../utils/openweather_air_config"
-import { createInfluxClient, sendSlackAlerts, validateJson } from "../utils/openweather_air_library"
+import { config, AirResponse, AirQualitySchema, ErrorMessage }
+from "../utils/openweather_air_config"
+import {createInfluxClient, sendSlackAlerts, validateJson}
+from "../../common/etlUtilities"
 
 
 // Get OpenWeather data 
@@ -22,7 +24,7 @@ const getAirQualityData = async (airUrl: string): Promise<AirResponse[] | ErrorM
 
         const message = "OpenWeather API Pipeline Current Weather (Nodejs variant) failure, API connection error: "
         console.error(message, error.message)
-        const slackResponse = sendSlackAlerts(message)
+        const slackResponse = sendSlackAlerts(message, config.webHookUrl)
 
         return {
             message: error.message,
@@ -39,7 +41,7 @@ const parseData = (data: any) => {
     const airData = data['list'][0]['components']
 
     // validate the data, script(s) will exit if data is invalid
-    const status = validateJson(airData)
+    const status = validateJson(airData, AirQualitySchema)
 
     if (status == 1) {
 
@@ -66,9 +68,10 @@ const writeData = (payload: any) => {
 
     try {
 
-        const writeClient = createInfluxClient(config.bucket)
+        const writeClient = createInfluxClient(config.bucket, config.url,
+            config.token, config.org)
     
-        let point = new Point(config.measurement)
+        const point = new Point(config.measurement)
                 .tag("OpenWeatherAPI", "Air Quality")
                 .floatField('carbon_monoxide', payload.carbon_monoxide) 
                 .floatField('pm_2', payload.pm_2)
@@ -95,7 +98,7 @@ const writeData = (payload: any) => {
         console.error(fullMessage);
 
         //send pipeline failure alert via Slack
-        sendSlackAlerts(fullMessage);
+        sendSlackAlerts(fullMessage, config.webHookUrl);
 
     }
   

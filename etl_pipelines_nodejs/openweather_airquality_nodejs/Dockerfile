@@ -2,15 +2,16 @@ FROM node:18-alpine3.18
 
 WORKDIR /app
 
-COPY package*.json ./
-COPY tsconfig.json ./
+COPY ./openweather_airquality_nodejs/package*.json ./
+COPY ./openweather_airquality_nodejs/tsconfig.json ./
 
 RUN npm ci
 
+COPY ./openweather_airquality_nodejs ./openweather_airquality_nodejs
+COPY ./openweather_airquality_nodejs/utils ./openweather_airquality_nodejs/utils
+COPY ./openweather_airquality_nodejs/src ./openweather_airquality_nodejs/src
+COPY ./common ./common 
 
-COPY ./utils ./utils
-COPY ./src ./src
+RUN npx tsc ./openweather_airquality_nodejs/src/index.ts
 
-RUN npx tsc ./src/index.ts
-
-CMD [ "node", "src/index.js" ]
+CMD [ "node", "/app/openweather_airquality_nodejs/src/index.js" ]
