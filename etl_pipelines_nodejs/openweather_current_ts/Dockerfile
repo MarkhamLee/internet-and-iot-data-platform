@@ -12,6 +12,6 @@ COPY ./openweather_current_ts/utils ./openweather_current_ts/utils
 COPY ./openweather_current_ts/src ./openweather_current_ts/src
 COPY ./common ./common 
 
-RUN npx tsc ./openweather_current_ts/src/src/index.ts
+RUN npx tsc ./openweather_current_ts/src/index.ts
 
 CMD [ "node", "/app/openweather_current_ts/src/index.js" ]
