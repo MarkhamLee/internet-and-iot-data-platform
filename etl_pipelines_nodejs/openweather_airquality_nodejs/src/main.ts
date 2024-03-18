@@ -89,7 +89,10 @@ const writeData = (payload: any) => {
     
               // flush InfluxDB client
               writeClient.flush()
+              console.log('InfluxDB Client flushed/cleared.')
           }, 1000)
+
+        return 0
 
     } catch (error: any) {
 
@@ -104,4 +107,4 @@ const writeData = (payload: any) => {
   
   }
 
-  export { getAirQualityData, parseData, writeData}
+  export { getAirQualityData, parseData, writeData }
