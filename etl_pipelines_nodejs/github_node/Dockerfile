@@ -7,7 +7,6 @@ COPY ./github_node/tsconfig.json ./
 
 RUN npm ci
 
-
 COPY ./github_node ./github_node
 COPY ./github_node/utils ./github_node/utils
 COPY ./github_node/src ./github_node/src
