@@ -15,4 +15,4 @@ COPY ./common ./common
 
 RUN npx tsc ./finnhub_nodejs/src/index.ts
 
-CMD [ "node", "src/index.js" ]
+CMD [ "node", "/finnhub_nodejs/src/index.js" ]
