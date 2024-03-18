@@ -2,13 +2,15 @@
 // productivity-music-stocks-weather-IoT-dashboard
 // https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
 // Testing for tracking GitHub actions at the repo level
-// Note: These tests will pass but there are a couple of async errors related to
-// tests finishing before logs can be written, also need to fix the tear down,
-// both are on my TODO, but for now, the tests work/that's the most important thing.
+// TODO: clean-up tear down, refactor main scripts to avoid daisy channing async
+// calls, E.g., API fails, then sends message to Slack API, simplify that flow.
 
-import { sendSlackAlerts, buildUrl } from "../utils/utilities";
-import { getGitHubActions, parseData, writeData } from "../src/main";
+import { buildUrl } from "../utils/utilities";
 import { config } from '../utils/gh_actions_config'
+import { getGitHubActions, parseData, writeData } from "../src/main";
+import {createInfluxClient, sendSlackAlerts, validateJson}
+from "../../common/etlUtilities"
+
 
 
 // End to End Test

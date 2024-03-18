@@ -2,10 +2,12 @@
 // productivity-music-stocks-weather-IoT-dashboard
 // https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
 // Testing for the Finnhub ETL 
+// TODO: clean-up tear down, refactor main scripts to avoid daisy channing async
+// calls, E.g., API fails, then sends message to Slack API, simplify that flow.
 
-import { strict } from 'assert';
-import { sendSlackAlerts, validateJson } from "../utils/utilities";
 import { getFinanceData } from "../src/main"
+import {sendSlackAlerts, validateJson} from "../../common/etlUtilities"
+import { config, FinnhubSchema } from "../utils/finnhub_config"
 
 // Test end to end
 // There will be a couple of logging errors, as the tests will complete before logging finishes. 
@@ -30,7 +32,7 @@ describe("Validate data format", () => {
         }
 
         //validate data
-        expect(validateJson(bad_data)).toEqual(1)
+        expect(validateJson(bad_data, FinnhubSchema)).toEqual(1)
 
     })
 
@@ -38,15 +40,15 @@ describe("Validate data format", () => {
 
 
 // Validate sending Slack Alert
-// This is just to generate a message, i.e., this test always passes
-// the tester will need to check their Slack messages to verify the message
-// went through.
+// This verifies that the proper env var is loaded for the Slack webbhook
+// beyond that, you will need to check your Slack channel to verify that
+// the message has gone through. 
 describe("Test Slack Alerts", () => {
     it("Slack Alert Sent Successfully", () => {
 
         const message = "Test Slack Alert"
 
-        sendSlackAlerts(message)
+        sendSlackAlerts(message, config.webHookUrl)
             .then(result => {
                 expect(result).toEqual(200)
 
