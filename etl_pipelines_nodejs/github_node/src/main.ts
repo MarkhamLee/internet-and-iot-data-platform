@@ -6,7 +6,7 @@
 import { Point } from '@influxdata/influxdb-client';
 import { Octokit } from 'octokit';
 import { config } from '../utils/gh_actions_config'
-import {createInfluxClient, sendSlackAlerts, validateJson}
+import {createInfluxClient, sendSlackAlerts}
 from "../../common/etlUtilities"
 
 
