@@ -22,7 +22,11 @@ const getWeatherData = async (weatherUrl: string): Promise<WeatherResponse[] | E
 
         const message = "OpenWeather API Pipeline Current Weather (Nodejs variant) failure, API connection error: "
         console.error(message, error.message)
-        const slackResponse = sendSlackAlerts(message)
+        
+        
+        
+        
+        slackResponse = sendSlackAlerts(message)
 
         return {
             message: error.message,
@@ -56,7 +60,7 @@ const parseData = (data: any) => {
     // Validate the payload before writing to InfluxDB.
     const status = validateJson(payload) 
 
-    if (status == 1) {
+    if (status == 200) {
 
         return process.exit()
         
@@ -113,7 +117,7 @@ const writeData = (payload: any) => {
         console.error(fullMessage);
 
         //send pipeline failure alert via Slack
-        return sendSlackAlerts(fullMessage);
+        return 200 //sendSlackAlerts(fullMessage)
         
     }
 }

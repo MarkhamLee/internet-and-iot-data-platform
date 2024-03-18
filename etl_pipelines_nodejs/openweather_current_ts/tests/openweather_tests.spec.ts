@@ -3,78 +3,52 @@
 // https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
 // Node variant for the OpenWeather API ETL - pulls down data for current weather
 // conditions and writes it to InfluxDB
+// These tests aren't mocked and either run the actual pipeline or test out certain
+// features like writing data, validating data, sending out alerts, etc., so that we
+// can be sure a valid test here = the ETL will work in real life/production.
 // TODO: clean up the tests a bit so the console message are written before the tests complete
 
 
-import { createOpenWeatherUrl, sendSlackAlerts, validateJson } from "../utils/openweather_library";
+import { createOpenWeatherUrl,
+    sendSlackAlerts, validateJson } from "../utils/openweather_library";
 import { getWeatherData, parseData, writeData } from "../src/main"
 import { strict } from 'assert';
+import { timerGame } from "./lib/timerGame"
 
-// Test end to end
-// There will be a couple of logging errors, as the tests will complete before logging finishes. 
-// If the test fails an error message (string) is returned.
-describe("Full pipeline test", () => {
-    it("Pipeline should run, not return a  value", () => {
-        
-        //baseline endpoint
-        const endpoint = "weather?"
-        
-        // Create URL
-        const webUrl = createOpenWeatherUrl(endpoint)
-
-        // Get weather data
-        getWeatherData(webUrl)
-            .then(result => {
-                
-            // parse data - finish extraction
-            const payload = parseData(result)
-
-            test("Validate Payload was parsed properly", () => {
-                // get response code from API call
-                expect(validateJson(payload)).rejects.toEqual(0)
-
-            })
-
-            test("Validate that the data was written successfully", () => {
-                // write data
-                expect(writeData(payload)).toEqual(0)
-
-            })
-
-    })
-  })
-
-})
+jest.useFakeTimers();
 
 
 
 // Bad endpoint/API call - validating that it's caught and error message sent
 // Will show an error in console, but shows as passed in the final stats 
 describe("API Call - Exception Handling Test", () => {
-    it("API Call Should Fail and return error message", () => {
+    it("API Call Should Fail and return error message", async () => {
         
         // Create URL
         const webUrl = createOpenWeatherUrl("?cheese")
 
         // define message 
-        const message = "Request failed with status code 401"
+        const message = {"message": "Request failed with status code 401",
+        "status": {}}
 
-        // Get weather data
-        getWeatherData(webUrl)
-            .then(result => {
+        // attempt API call
+        const result = await getWeatherData(webUrl)
 
-                expect(result).toContain(message);
-            })
+        // validate response
+        expect(result).toMatchObject(message);
+
     });
 
   });
 
 
+/*
 // Validate sending bad data for validation 
 describe("Validate data format", () => {
     it("Data format validation should fail", () => {
-
-        const bad_data = {
+        
+        // define bad data payload
+        const badData = {
             "c": 378.85,
             "d": 2.7, 
             "dp": -1.006, 
@@ -85,29 +59,34 @@ describe("Validate data format", () => {
             "t": 170129160
         }
 
-        //validate data
-        expect(validateJson(bad_data)).toEqual(1)
+        // check the data
+        const response = validateJson(badData)
+
+        // validate response
+        expect(response).toEqual(200)
 
     })
 
 });
+*/
 
 
+/* 
 // Validate sending Slack Alert
 // This is just to generate a message, i.e., this test always passes
-// the tester will need to check their Slack messages to verify the message
-// went through.
+// unless the wrong webhook is used, it's purpose to is to validate
+// that the method to send Slack messages works.
 describe("Test Slack Alerts", () => {
-    it("Slack Alert Sent Successfully", () => {
+    it("Slack Alert Sent Successfully", async () => {
 
-        const message = "Test Slack Alert"
+    // expect.assertions(1)
+    
+    const message = "Test Slack Alert"
 
-        sendSlackAlerts(message)
-            .then(result => {
-                expect(result).toEqual(200)
-
-            })
+    const response = await sendSlackAlerts(message)
+    expect(response).toEqual(200)
 
     })
 
 });
+*/

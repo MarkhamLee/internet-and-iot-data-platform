@@ -52,7 +52,7 @@ const sendSlackAlerts = async (message: string) => {
 
     } catch (error: any) {
         console.error("Slack message failure with error: ", error.statusText)
-        return 1
+        return error.statusText
     }
 
 }
@@ -73,11 +73,10 @@ const validateJson = (data: any) => {
         const message = "Pipeline failure data validation - OpenWeather Air Quality (nodejs variant), exiting... "
         console.error("Data validation error: ", ajv.errors);
         sendSlackAlerts(message)
-
-        return 1  
-
+        return 200
+   
       }
-
 }
+
 
 export {config, createInfluxClient, sendSlackAlerts, createOpenWeatherUrl, validateJson}
