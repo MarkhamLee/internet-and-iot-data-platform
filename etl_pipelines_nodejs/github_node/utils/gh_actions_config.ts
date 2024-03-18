@@ -1,4 +1,8 @@
-
+// (C) Markham Lee 2023 - 2024
+// productivity-music-stocks-weather-IoT-dashboard
+// https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
+// ETL that uses the GitHub Octokit node.js library to pull Actions data for 
+// a given repo from the GitHub API. 
 
 export interface VarConfig {
     bucket: string;

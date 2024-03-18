@@ -1,13 +1,13 @@
 // (C) Markham Lee 2023 - 2024
 // productivity-music-stocks-weather-IoT-dashboard
 // https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
-// Node.js - TypeScript version of the Finnhub ETL: pulling down daily stock price data 
-// and writing it to InfluxDB.
-
+// ETL that uses the GitHub Octokit node.js library to pull Actions data for 
+// a given repo from the GitHub API. 
 import { Point } from '@influxdata/influxdb-client';
 import { Octokit } from 'octokit';
-import {createInfluxClient, sendSlackAlerts} from "../utils/utilities"
 import { config } from '../utils/gh_actions_config'
+import {createInfluxClient, sendSlackAlerts, validateJson}
+from "../../common/etlUtilities"
 
 
 // retrieve data from tehe GitHub API using the Octokit library
@@ -36,7 +36,7 @@ const getGitHubActions = async (gitUrl: string) => {
         console.error(message, error.body)
 
         //send pipeline failure alert via Slack
-        return sendSlackAlerts(message)
+        return sendSlackAlerts(message, config.webHookUrl)
          
     }
 }
@@ -60,7 +60,8 @@ const writeData = (payload: any) => {
 
     try {
 
-        const writeClient = createInfluxClient(config.bucket)
+        const writeClient = createInfluxClient(config.bucket, config.url,
+            config.token, config.org)
   
         let point = new Point(config.measurement)
                 .tag("DevOps Data", "GitHub",)
@@ -71,7 +72,7 @@ const writeData = (payload: any) => {
         void setTimeout(() => {
       
             writeClient.writePoint(point);
-            console.log("Weather data successfully written to InfluxDB")
+            console.log("GitHub actions data successfully written to InfluxDB")
             }, 1000)
       
         // flush client
@@ -91,7 +92,7 @@ const writeData = (payload: any) => {
 
 
         //send pipeline failure alert via Slack
-        const slackResponse = sendSlackAlerts(message)
+        const slackResponse = sendSlackAlerts(message, config.webHookUrl)
         return slackResponse
 
     }    

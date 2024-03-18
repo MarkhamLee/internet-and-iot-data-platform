@@ -2,10 +2,7 @@
 // productivity-music-stocks-weather-IoT-dashboard
 // https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
 // ETL that uses the GitHub Octokit node.js library to pull Actions data for 
-// a given repo from the GitHub API. It can be used for most GitHub API
-// endpoints, you would just need to change the parse data method and the
-// write data method to grab those specific endpoints.
-
+// a given repo from the GitHub API. 
 import {getGitHubActions, parseData, writeData } from '../src/main'
 import { buildUrl } from '../utils/utilities'
 
