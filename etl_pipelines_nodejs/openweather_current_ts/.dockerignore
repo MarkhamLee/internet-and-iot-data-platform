@@ -1,0 +1,4 @@
+.eslinttrc.yml
+jest.config.js
+tests/*
+package-lock.json

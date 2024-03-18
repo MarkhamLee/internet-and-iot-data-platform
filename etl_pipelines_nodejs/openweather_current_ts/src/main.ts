@@ -6,8 +6,10 @@
 
 import axios from 'axios';
 import { Point } from '@influxdata/influxdb-client';
-import {config, WeatherResponse, ErrorMessage} from "../utils/openweather_config";
-import { createInfluxClient, sendSlackAlerts, validateJson, }from "../utils/openweather_library"
+import {config, WeatherResponse, ErrorMessage, openWeatherSchema}
+from "../utils/openweather_config";
+import {createInfluxClient, sendSlackAlerts, validateJson}
+from "../../common/etlUtilities"
 
 
 // Get OpenWeather data 
@@ -22,11 +24,7 @@ const getWeatherData = async (weatherUrl: string): Promise<WeatherResponse[] | E
 
         const message = "OpenWeather API Pipeline Current Weather (Nodejs variant) failure, API connection error: "
         console.error(message, error.message)
-        
-        
-        
-        
-        slackResponse = sendSlackAlerts(message)
+        const slackResponse = sendSlackAlerts(message, config.webHookUrl)
 
         return {
             message: error.message,
@@ -58,15 +56,15 @@ const parseData = (data: any) => {
         "wind": data.wind.speed }
 
     // Validate the payload before writing to InfluxDB.
-    const status = validateJson(payload) 
+    const status = validateJson(payload, openWeatherSchema) 
 
-    if (status == 200) {
+    if (status == 1) {
 
         return process.exit()
-        
     }
 
     console.log('DB payload ready: ', payload)
+
     return payload
 }
 
@@ -78,9 +76,10 @@ const writeData = (payload: any) => {
 
     try {
 
-        const writeClient = createInfluxClient(config.bucket)
+        const writeClient = createInfluxClient(config.bucket, config.url,
+            config.token, config.org)
 
-        let point = new Point(config.measurement)
+        const point = new Point(config.measurement)
                 .tag("OpenWeatherAPI", "current_weather")
                 .floatField('temp', payload.temp) 
                 .floatField('wind', payload.wind)
@@ -117,9 +116,9 @@ const writeData = (payload: any) => {
         console.error(fullMessage);
 
         //send pipeline failure alert via Slack
-        return 200 //sendSlackAlerts(fullMessage)
+        sendSlackAlerts(fullMessage, config.webHookUrl);
         
     }
 }
 
-export {getWeatherData, parseData, writeData}
+export { getWeatherData, parseData, writeData }
