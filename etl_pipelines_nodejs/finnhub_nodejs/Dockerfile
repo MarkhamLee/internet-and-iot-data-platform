@@ -2,14 +2,12 @@ FROM node:18-alpine3.18
 
 WORKDIR /app
 
-COPY package*.json ./
-COPY tsconfig.json ./
+COPY ./finnhub_nodejs/package*.json ./
+COPY ./finnhub_nodejs/tsconfig.json ./
 
 RUN npm ci
 
-
-COPY ./utils ./utils
-COPY ./src ./src
+COPY ./finnhub_nodejs ./
 
 RUN npx tsc ./src/index.ts
 

@@ -1,3 +1,8 @@
+// (C) Markham Lee 2023 - 2024
+// finance-productivity-IoT-weather-dashboard
+// https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
+// Common methods for Node.js ETL pipeliines
+
 import axios from 'axios';
 import Ajv from "ajv";
 import { InfluxDB } from '@influxdata/influxdb-client';
@@ -35,7 +40,7 @@ const sendSlackAlerts = async (message: string, webHookUrl: string) => {
 
 
 // validate json data
-const validateJson = (data: string, schema: string) => {
+const validateJson = (data: object, schema: object) => {
 
     const ajv = new Ajv()
 
@@ -54,3 +59,5 @@ const validateJson = (data: string, schema: string) => {
    
       }
 }
+
+export {createInfluxClient, sendSlackAlerts, validateJson}

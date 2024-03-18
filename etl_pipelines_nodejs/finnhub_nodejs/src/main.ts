@@ -1,12 +1,14 @@
 // (C) Markham Lee 2023 - 2024
-// productivity-music-stocks-weather-IoT-dashboard
+// finance-productivity-IoT-weather-dashboard
 // https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
 // Node.js - TypeScript version of the Finnhub ETL: pulling down daily stock price data 
 // and writing it to InfluxDB.
 
 const finnhub = require('finnhub')
 import { Point } from '@influxdata/influxdb-client';
-import {config, createInfluxClient, sendSlackAlerts, validateJson} from "../utils/utilities"
+import {createInfluxClient, sendSlackAlerts, validateJson}
+from "../../common/etlUtilities"
+import { config, FinnhubSchema } from '../utils/finnhub_config'
 
 
 const getFinanceData = () => {
@@ -16,14 +18,13 @@ const getFinanceData = () => {
     const finnhubClient = new finnhub.DefaultApi()
 
     // get data from the Finnhub API via the Official Finnhub JS library1
-    finnhubClient.quote(config.stock, (error: any, data: any, response: any) => {
+    finnhubClient.quote(config.stock, (error: string, data: string, response: unknown) => {
             
             if (error) {
                 const message = "Pipeline failure for Node.js version of Finnhub Stock Price ETL, with error:"
                 const fullMessage = message.concat(error)
                 console.error(fullMessage)
-                sendSlackAlerts(fullMessage)
-                // exit process
+                sendSlackAlerts(fullMessage, config.webHookUrl)
                 return process.exit()
 
             } else {
@@ -31,8 +32,7 @@ const getFinanceData = () => {
                 console.log("Finnhub data received")
                 const payload = parseData(data)
                 writeData(payload)
-                
-
+    
             }        
         });
     return 0
@@ -42,7 +42,7 @@ const getFinanceData = () => {
 const parseData = (data: any) => {
 
     // validate data
-    const status = validateJson(data)
+    const status = validateJson(data, FinnhubSchema)
 
     if (status == 1) {
 
@@ -69,8 +69,9 @@ const parseData = (data: any) => {
 // customized for each payload.
 const writeData = (payload: any) => {   
 
-    const bucket = config.bucket
-    const writeClient = createInfluxClient(bucket)
+  
+    const writeClient = createInfluxClient(config.bucket, config.url,
+        config.token, config.org)
   
     let point = new Point(config.measurement)
             .tag("Finnhub-API", "stock_prices",)
