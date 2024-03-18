@@ -68,16 +68,18 @@ def calculate_task_age(df: object) -> object:
     current_time = datetime.now(timezone.utc)
 
     # calculate the age of the alert in days
-    df['task_age(days)'] = round((current_time - df['created_at']) /
-                                 pd.Timedelta(days=1), 2)
+    df['task_age(days)'] = (current_time - df['created_at']) /\
+        pd.Timedelta(days=1)
 
     # calculate duration since last update in days
-    df['task_idle(days)'] = round((current_time - df['modified_at']) /
-                                  pd.Timedelta(days=1), 2)
+    df['task_idle(days)'] = (current_time - df['modified_at']) /\
+        pd.Timedelta(days=1)
 
     # adjust/clean-up date time columns
     df['created_at'] = df['created_at'].dt.strftime('%Y/%m/%d %H:%M')
     df['modified_at'] = df['modified_at'].dt.strftime('%Y/%m/%d %H:%M')
+
+    df = df.round({'task_age(days)': 2, 'task_idle(days)': 2})
 
     return df
 
