@@ -6,10 +6,11 @@
 
 import axios from 'axios';
 import { Point } from '@influxdata/influxdb-client';
-import {config, WeatherResponse, ErrorMessage, openWeatherSchema}
+import {config, WeatherResponse, ErrorMessage, openWeatherSchema,
+    CurrentWeather, ParsedData}
 from "../utils/openweather_config";
 import {createInfluxClient, sendSlackAlerts, validateJson}
-from "../../common/etlUtilities"
+from "../../common/etlUtilities";
 
 
 // Get OpenWeather data 
@@ -72,7 +73,7 @@ const parseData = (data: any) => {
 // the InfluxDB node.js library doesn't have a clean way of just
 // pushing json data to the DB. So, the write methods will have to 
 // live in the primary ETL code for now. 
-const writeData = (payload: any) => {  
+const writeData = (payload: ParsedData) => {  
 
     try {
 

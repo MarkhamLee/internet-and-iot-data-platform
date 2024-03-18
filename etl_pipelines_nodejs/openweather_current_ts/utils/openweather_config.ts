@@ -110,3 +110,17 @@ export const openWeatherSchema = {
     "required": ["barometric_pressure","description", "feels_like", "high", "humidity",
     "low", "temp", "time_stamp", "weather", "wind"],
     };
+
+export type ParsedData = {
+
+    barometric_pressure: number,
+    description: string,
+    feels_like: number,
+    high: number,
+    humidity: number,
+    low: number,
+    temp: number,
+    time_stamp: number,
+    weather: string,
+    wind: number,
+}
