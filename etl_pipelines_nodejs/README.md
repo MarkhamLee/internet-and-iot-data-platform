@@ -10,3 +10,5 @@ Regardless of the language being used, certain core tenants always apply:
 * Automated testing via unit testing libraries like jest (Node.js) and Unit Test (Python)
 * Alerts are sent via Slack if any problems occur 
 * Strict type checking and data validation of API response payloads, prior to the data being written to InfluxDB or PostgreSQL. In some cases the data is checked after the API response, and again once it has been parsed/transformed. 
+
+Note: the folders for the TypeScript ETLs only contain the source files, you will have to transpile them into JavaScript to run them. For that purpose I used npm as the package manager and "npx" to franspile the .ts files into .js ones.
