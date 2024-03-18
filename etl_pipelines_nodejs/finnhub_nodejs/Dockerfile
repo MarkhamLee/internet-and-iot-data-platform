@@ -7,7 +7,8 @@ COPY ./finnhub_nodejs/tsconfig.json ./
 
 RUN npm ci
 
-COPY ./finnhub_nodejs ./
+COPY ./finnhub_nodejs ./finnhub_nodejs
+COPY ./common ./common
 
 RUN npx tsc ./src/index.ts
 
