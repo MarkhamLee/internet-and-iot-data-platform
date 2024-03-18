@@ -5,10 +5,23 @@ For practice/experience building out Node.JS versions of most if not all of the 
 Regardless of the language being used, certain core tenants always apply:
 
 * All ETLs are built using Docker containers
-* Leverage shared libraries as much as possible, meaning files/classes/methods for things like validating json, writing to Postgres or InfluxDB, etc., can be shared among multiple ETLs 
+* Leverage shared libraries as much as possible, meaning files/classes/methods for things like validating json, writing to Postgres or InfluxDB, etc., can be shared among multiple ETLs. In this instance, the shared files are in the "common" folder.
 * Docker builds are automated via GitHub Actions, and all containers are built for both amd64 and arm64 architectures
 * Automated testing via unit testing libraries like jest (Node.js) and Unit Test (Python)
 * Alerts are sent via Slack if any problems occur 
 * Strict type checking and data validation of API response payloads, prior to the data being written to InfluxDB or PostgreSQL. In some cases the data is checked after the API response, and again once it has been parsed/transformed. 
 
-Note: the folders for the TypeScript ETLs only contain the source files, you will have to transpile them into JavaScript to run them. For that purpose I used npm as the package manager and "npx" to franspile the .ts files into .js ones.
+### Building & Transpiling
+
+* the folders for the TypeScript ETLs only contain the source files, you will have to transpile them into JavaScript to run them. For that purpose I used npm as the package manager and "npx" to franspile the .ts files into .js ones.
+* When cloning these folders, you will need to run the NPM install command in the "common" folder as well as the folder for an individual ETL
+* The following has to be added to the tsconfig.json for a given project/ETL folder so it can use the common files 
+
+~~~
+  "references": [
+    {
+      "path": "../common"
+    }
+  ]
+~~~
+
