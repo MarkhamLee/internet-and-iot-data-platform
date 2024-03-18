@@ -8,7 +8,8 @@ const finnhub = require('finnhub')
 import { Point } from '@influxdata/influxdb-client';
 import {createInfluxClient, sendSlackAlerts, validateJson}
 from "../../common/etlUtilities"
-import { config, FinnhubSchema } from '../utils/finnhub_config'
+import { config, FinnhubSchema,
+    finnhubPointData, finnhubData } from '../utils/finnhub_config'
 
 
 const getFinanceData = () => {
@@ -18,7 +19,8 @@ const getFinanceData = () => {
     const finnhubClient = new finnhub.DefaultApi()
 
     // get data from the Finnhub API via the Official Finnhub JS library1
-    finnhubClient.quote(config.stock, (error: string, data: string, response: unknown) => {
+    finnhubClient.quote(config.stock, (error: string, data: finnhubData,
+        response: unknown) => {
             
             if (error) {
                 const message = "Pipeline failure for Node.js version of Finnhub Stock Price ETL, with error:"
@@ -35,11 +37,11 @@ const getFinanceData = () => {
     
             }        
         });
-    return 0
+        return 0
 }
 
 // parse and validate the Finnhub data
-const parseData = (data: any) => {
+const parseData = (data: finnhubData) => {
 
     // validate data
     const status = validateJson(data, FinnhubSchema)
@@ -51,9 +53,9 @@ const parseData = (data: any) => {
     }
 
     const payload = {
-        "previous_close": Number(data['pc']),
+        "previousClose": Number(data['pc']),
         "open": Number(data['o']),
-        "last_price": Number(data['l']),
+        "lastPrice": Number(data['l']),
         "change": Number(data['dp'])
     }
 
@@ -67,33 +69,47 @@ const parseData = (data: any) => {
 // pushing json data to the DB. So, the write methods will have to 
 // live in the primary ETL code for now - as it will have to be
 // customized for each payload.
-const writeData = (payload: any) => {   
+const writeData = (pointData: finnhubPointData) => {   
 
-  
-    const writeClient = createInfluxClient(config.bucket, config.url,
-        config.token, config.org)
-  
-    let point = new Point(config.measurement)
-            .tag("Finnhub-API", "stock_prices",)
-            .floatField('change', payload.change) 
-            .floatField('last_price', payload.last_price)
-            .floatField('open', payload.open)
-            .floatField('previous_close', payload.previous_close)
-            
-    // write data to InfluxDB
-    void setTimeout(() => {
-  
-        writeClient.writePoint(point);
-        console.log("Finnhub stock price data successfully written to InfluxDB")
-        }, 1000)
-  
-    // flush client
-    void setTimeout(() => {
-  
-            // flush InfluxDB client
-            writeClient.flush()
-        }, 1000)
-    
+    try {
+
+        const writeClient = createInfluxClient(config.bucket, config.url,
+            config.token, config.org)
+      
+        let point = new Point(config.measurement)
+                .tag("Finnhub-API", "stock_prices",)
+                .floatField('change', pointData.change) 
+                .floatField('last_price', pointData.lastPrice)
+                .floatField('open', pointData.open)
+                .floatField('previous_close', pointData.previousClose)
+                
+        // write data to InfluxDB
+        void setTimeout(() => {
+      
+            writeClient.writePoint(point);
+            console.log("Finnhub stock price data successfully written to InfluxDB")
+            }, 1000)
+      
+        // flush client
+        void setTimeout(() => {
+      
+                // flush InfluxDB client
+                writeClient.flush()
+            }, 1000)
+        
+        return 0
+
+
+    } catch (error: any) {
+
+        const message = "OpenWeather API Pipeline Current Weather (Nodejs variant) failure, InfluxDB write error: "
+        const fullMessage = (message.concat(JSON.stringify(error.body)));
+        console.error(fullMessage);
+
+        //send pipeline failure alert via Slack
+        return sendSlackAlerts(fullMessage, config.webHookUrl);
+        }
+
     }
 
 export {getFinanceData, parseData, writeData}

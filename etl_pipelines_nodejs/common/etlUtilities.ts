@@ -1,7 +1,7 @@
 // (C) Markham Lee 2023 - 2024
 // finance-productivity-IoT-weather-dashboard
 // https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
-// Common methods for Node.js ETL pipeliinesf
+// Common methods for Node.js ETL pipelines
 
 import axios from 'axios';
 import Ajv from "ajv";
