@@ -181,3 +181,5 @@ etl_pipelines_nodejs/finnhub_nodejs/coverage/*
 etl_pipelines_nodejs/github_node/coverage/*
 etl_pipelines_nodejs/openweather_current_ts/coverage
 etl_pipelines_nodejs/openweather_airquality_nodejs/coverage/*.js
+etl_pipelines/finnhub_portfolio_view
+etl_pipelines/finnhub_portfolio_view/*
