@@ -7,9 +7,12 @@ COPY ./finnhub_nodejs/tsconfig.json ./
 
 RUN npm ci
 
-COPY ./finnhub_nodejs/ ./finnhub_nodejs/
-COPY ./common/ ./common/
+COPY ./finnhub_nodejs ./finnhub_nodejs
+COPY ./finnhub_nodejs/src ./finnhub_nodejs/src
+COPY ./finnhub_nodejs/utils ./finnhub_nodejs/utils
 
-RUN npx tsc ./src/index.ts
+COPY ./common ./common 
+
+RUN npx tsc ./finnhub_nodejs/src/index.ts
 
 CMD [ "node", "src/index.js" ]
