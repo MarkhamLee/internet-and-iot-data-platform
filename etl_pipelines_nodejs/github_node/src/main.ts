@@ -5,7 +5,7 @@
 // a given repo from the GitHub API. 
 import { Point } from '@influxdata/influxdb-client';
 import { Octokit } from 'octokit';
-import { config } from '../utils/gh_actions_config'
+import { config, gitHubActionsData, ghPointData, gitResponse } from '../utils/gh_actions_config'
 import {createInfluxClient, sendSlackAlerts}
 from "../../common/etlUtilities"
 
@@ -32,21 +32,28 @@ const getGitHubActions = async (gitUrl: string) => {
     
     } catch (error: any) {
         const message = "Pipeline failure alert - API Error GitHub Repo Actions"
-        // const fullMessage = (message.concat(JSON.stringify((error.response.data))));
         console.error(message, error.body)
 
         //send pipeline failure alert via Slack
-        return sendSlackAlerts(message, config.webHookUrl)
-         
+        sendSlackAlerts(message, config.webHookUrl)
+            .then(result => {
+                
+                return result
+            })
+        // this helps us avoid the return type being "type | undefined", which then
+        // creates havoc with all the downline methods using that data.
+        throw(message)
     }
 }
 
 // parse out data - TODO: add exception handling
-const parseData = (data: any) => {
+const parseData = (data: gitHubActionsData) => {
 
     return   {"status": Number(data['status']),
             "totalActions": Number(data['data']['total_count']),
-            "mostRecentAction": String(data['data']['workflow_runs'][0]['name'])
+            "mostRecentAction": String(data['data']['workflow_runs'][0]['name']),
+            "mostRecentActionStatus": String(data['data']['workflow_runs'][0]['status']),
+
     }
 
 }
@@ -55,7 +62,7 @@ const parseData = (data: any) => {
 // the InfluxDB node.js library doesn't have a clean way of just
 // pushing json data to the DB. So, the write methods will have to 
 // live in the primary ETL code for now. 
-const writeData = (payload: any) => {   
+const writeData = (payload: ghPointData) => {   
 
     try {
 
@@ -66,6 +73,8 @@ const writeData = (payload: any) => {
                 .tag("DevOps Data", "GitHub",)
                 .floatField('total_actions', payload.totalActions) 
                 .stringField('mostRecentActions', payload.mostRecentAction)
+                .stringField('last_action_status', payload.mostRecentAction
+                )
                 
         // write data to InfluxDB
         void setTimeout(() => {
@@ -91,10 +100,12 @@ const writeData = (payload: any) => {
 
 
         //send pipeline failure alert via Slack
-        const slackResponse = sendSlackAlerts(message, config.webHookUrl)
-        return slackResponse
-
-    }    
+        sendSlackAlerts(message, config.webHookUrl)
+            .then(result => {
+                
+                return result
+            })
+        }    
 }
 
 export {getGitHubActions, parseData, writeData}

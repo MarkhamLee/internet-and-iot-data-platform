@@ -5,7 +5,7 @@
 // a given repo from the GitHub API. 
 import {getGitHubActions, parseData, writeData } from '../src/main'
 import { buildUrl } from '../utils/utilities'
-
+import { config, gitHubActionsData, ghPointData } from '../utils/gh_actions_config'
 
 // base URL 
 const repo = 'finance-productivity-iot-informational-weather-dashboard/'
@@ -16,11 +16,11 @@ console.log(fullUrl)
 
 // get the raw data
 getGitHubActions(fullUrl)
-    .then(result => {
+    .then(result   => {
 
         // get the parsed data/
         const payload = parseData(result)
-        console.info('Data parsed successfully')
+        console.info('Data parsed successfully', payload)
 
         // write data
         writeData(payload)

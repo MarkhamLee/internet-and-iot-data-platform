@@ -29,3 +29,31 @@ export const config: VarConfig = {
     
   };
 
+
+// type for the data that gets written to InfluxDB
+export type ghPointData = {
+
+  totalActions: number;
+  mostRecentAction: string;
+  mostRecentActionStatus: string;
+
+}
+
+// interface for the data returned by the GH API
+// only the subset of the data that we actually use
+export interface gitHubActionsData {
+
+  status: number,
+  data: {
+    total_count: number,
+    workflow_runs: [
+        {name: string,
+         status: string}]
+    }
+}
+
+export interface gitResponse {
+  data: gitHubActionsData[]
+
+
+}
