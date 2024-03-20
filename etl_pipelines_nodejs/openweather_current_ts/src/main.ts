@@ -14,23 +14,24 @@ from "../../common/etlUtilities";
 
 
 // Get OpenWeather data 
-const getWeatherData = async (weatherUrl: string): Promise<WeatherResponse[] | ErrorMessage> => {
+const getWeatherData = async (weatherUrl: string): Promise<CurrentWeather> => {
 
     try {
     
-        const { data } = await axios.get<WeatherResponse[]>(weatherUrl)
+        const { data } = await axios.get<CurrentWeather>(weatherUrl)
         return data
 
     } catch (error: any){
 
         const message = "OpenWeather API Pipeline Current Weather (Nodejs variant) failure, API connection error: "
         console.error(message, error.message)
-        const slackResponse = sendSlackAlerts(message, config.webHookUrl)
+        sendSlackAlerts(message, config.webHookUrl)
+            .then(result => {
 
-        return {
-            message: error.message,
-            status: slackResponse
-        } 
+                return result
+
+            })
+        throw(error.message)
     }
 }
 
@@ -39,7 +40,7 @@ const getWeatherData = async (weatherUrl: string): Promise<WeatherResponse[] | E
 // TODO: figure out how to write json directly to InfluxDB, doesn't
 // seem to be possible with the Node.js library for InfluxDB, need to
 // investigate further.
-const parseData = (data: any) => {
+const parseData = (data: CurrentWeather) => {
 
       // split out the part of the json that contains the bulk of the data points
       const weather_data = data.main;
@@ -117,9 +118,11 @@ const writeData = (payload: ParsedData) => {
         console.error(fullMessage);
 
         //send pipeline failure alert via Slack
-        sendSlackAlerts(fullMessage, config.webHookUrl);
-        
-    }
+        sendSlackAlerts(fullMessage, config.webHookUrl)
+            .then(slackResponse => {
+                return slackResponse
+            })
+        }
 }
 
 export { getWeatherData, parseData, writeData }
