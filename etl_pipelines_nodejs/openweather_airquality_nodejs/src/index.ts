@@ -6,7 +6,8 @@
 
 import { getAirQualityData, parseData, writeData } from "./main";
 import { createAirqUrl } from "../utils/openweather_air_library"
-
+import { config, AirResponse, AirQualitySchema, ErrorMessage, AirQualityMetrics }
+from "../utils/openweather_air_config"
 
 // baseline endpoint
 const endpoint = "air_pollution?"
@@ -18,12 +19,15 @@ const airUrl = createAirqUrl(endpoint)
 getAirQualityData(airUrl)
     .then(result => { 
 
+      console.log('received data', result)
+
     // parsed data - i.e., finish the extraction step 
-    const parsedData = parseData(result)
+   const parsedData = parseData(result)
 
     // write data to InfluxDB
     writeData(parsedData)
 
   });
+
 
  

@@ -10,34 +10,35 @@
 export interface AirQualityMetrics {
     
     coord: {
-        lon: number,
-        lat: number
+        lon: number;
+        lat: number;
     },
-    list: [
+    list: [{
         main: {aqi: number},
         components: {
-            no: number,
-            no2: number,
-            temp: number,
-            o3: number,
-            so2: number,
-            pm2_5: number,
-            pm10: number,
-            nh3: number,
-            }],
-    dt: number}
+            co: number;
+            no: number;
+            no2: number;
+            temp: number;
+            o3: number;
+            so2: number;
+            pm2_5: number;
+            pm10: number;
+            nh3: number;
+            },
+        dt: number}]}
 
 // for using the Air Quality Metrics interface
 export interface AirResponse {
-    data: AirQualityMetrics[],
-    status: number
+    data: AirQualityMetrics[];
+    status: number;
 }
 
 // error message interface
 export interface ErrorMessage {
 
-    message: any
-    status: any
+    message: any;
+    status: any;
 
 }
 
@@ -86,7 +87,16 @@ export const config: VarConfig = {
         "so2": {"type": "number"},
         "pm2_5": {"type": "number"},
         "pm10": {"type": "number"},
-        "nnh3": {"type": "number"},
+        "nh3": {"type": "number"},
     },
     "required": ["co", "pm2_5", "pm10"],
 };
+
+// type for data that will be written to InfluxDB
+export type airPointData = {
+    
+    co: number;
+    pm2_5: number;
+    pm10: number;
+
+}
