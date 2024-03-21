@@ -25,7 +25,7 @@ etl_utilities = EtlUtilities()
 # instantiate Postgres writing class
 postgres_utilities = PostgresUtilities()
 
-PIPELINE_ALERT_WEBHOOK = os.environ['WEBHOOK_ETL_ALERTS']
+PIPELINE_ALERT_WEBHOOK = os.environ['ALERT_WEBHOOK']
 
 
 def build_rss_url(base: str, product: str, country: str):
@@ -35,6 +35,7 @@ def build_rss_url(base: str, product: str, country: str):
 
 # method to read the feed and convert to data frame
 def read_rss_convert(url: str) -> object:
+    
     # read feed
     rpi_feed = feedparser.parse(url)
     logger.info('Read Raspberry Pi Locator Feed')
@@ -176,7 +177,7 @@ def main():
 
     URL = os.environ.get('LOCATOR_URL')
 
-    BASE_URL = os.environ['BASE_URL']
+    BASE_URL = os.environ['RPI_BASE_URL']
     RPI_PRODUCT = os.environ['RPI_PRODUCT']
     RPI_COUNTRY = os.environ['RPI_COUNTRY']
 
