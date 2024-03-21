@@ -34,7 +34,7 @@ def build_rss_url(base: str, product: str, country: str):
 
 
 # method to read the feed and convert to data frame
-def read_rss_convert(url: str) -> object:
+def read_rss_data(url: str) -> object:
 
     # read feed
     rpi_feed = feedparser.parse(url)
@@ -175,8 +175,6 @@ def send_product_alert(data: object):
 
 def main():
 
-    URL = os.environ.get('LOCATOR_URL')
-
     BASE_URL = os.environ['RPI_BASE_URL']
     RPI_PRODUCT = os.environ['RPI_PRODUCT']
     RPI_COUNTRY = os.environ['RPI_COUNTRY']
@@ -184,7 +182,7 @@ def main():
     URL = build_rss_url(BASE_URL, RPI_PRODUCT, RPI_COUNTRY)
 
     # get raw feed data
-    data = read_rss_convert(URL)
+    data = read_rss_data(URL)
 
     # clean up/transform data
     cleaned_data = data_transformation(data)
