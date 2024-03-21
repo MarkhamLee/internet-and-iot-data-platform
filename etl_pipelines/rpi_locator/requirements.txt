@@ -20,3 +20,4 @@ Werkzeug
 slack_sdk
 psycopg2-binary
 feedparser
+jsonschema
