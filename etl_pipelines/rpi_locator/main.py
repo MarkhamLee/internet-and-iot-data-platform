@@ -35,7 +35,7 @@ def build_rss_url(base: str, product: str, country: str):
 
 # method to read the feed and convert to data frame
 def read_rss_convert(url: str) -> object:
-    
+
     # read feed
     rpi_feed = feedparser.parse(url)
     logger.info('Read Raspberry Pi Locator Feed')
