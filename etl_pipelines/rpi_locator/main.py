@@ -10,7 +10,6 @@ import requests
 import os
 import sys
 import pandas as pd
-from io import StringIO  # noqa: E402
 from datetime import datetime, timezone
 
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -24,9 +23,14 @@ from etl_library.general_utilities import EtlUtilities  # noqa: E402
 etl_utilities = EtlUtilities()
 
 # instantiate Postgres writing class
-utilities = PostgresUtilities()
+postgres_utilities = PostgresUtilities()
 
 PIPELINE_ALERT_WEBHOOK = os.environ['ALERT_WEBHOOK']
+
+
+def build_rss_url(base, product, country):
+
+    return base + country + '&cat=' + product
 
 
 # method to read the feed and convert to data frame
@@ -103,7 +107,7 @@ def get_postgres_connection() -> object:
     }
 
     # get connection client
-    connection = utilities.postgres_client(param_dict)
+    connection = postgres_utilities.postgres_client(param_dict)
 
     return connection
 
@@ -119,63 +123,30 @@ def no_data_cleanup():
     postgres_connection = get_postgres_connection()
 
     # clear table
-    utilities.clear_table(postgres_connection, TABLE)
+    postgres_utilities.clear_table(postgres_connection, TABLE)
 
-    exit()
-
-
-# strict enforcement of what columns are used ensures data quality
-# avoids issues where tab delimiting can create erroneous empty columns
-# in the data frame
-def prepare_payload(payload: object, columns: list) -> object:
-
-    buffer = StringIO()
-
-    # explicit column definitions + tab as the delimiter allow us to ingest
-    # text data with punctuation  without having situations where a comma
-    # in a sentence is treated as new column or causes a blank column to be
-    # created.
-    payload.to_csv(buffer, index=True, sep='\t', columns=columns, header=False)
-    buffer.seek(0)
-
-    return buffer
+    sys.exit()
 
 
-# write data to PostgreSQL
-def write_data(data: object):
+def write_data(connection, payload, table):
 
-    TABLE = os.environ.get('RPI5_TABLE')
+    status, response = postgres_utilities.write_data_raw(connection,
+                                                         payload, table)
 
-    # get dataframe columns for managing data quality
-    columns = list(data.columns)
+    if status == 1:
+        message = (f'Postgres write failed for AlphaVantage T-Bill ETL with error: {response}')  # noqa: E501
+        response = etl_utilities.send_slack_webhook(PIPELINE_ALERT_WEBHOOK, message)  # noqa: E501
+        return status, response
 
-    # count rows
-    row_count = len(data)
-
-    # get connection and clear the table
-    postgres_connection = get_postgres_connection()
-
-    # clear table
-    utilities.clear_table(postgres_connection, TABLE)
-
-    # prepare payload
-    buffer = prepare_payload(data, columns)
-
-    try:
-        # write data
-        response = utilities.write_data(postgres_connection, buffer, TABLE)
-        logger.info(f"PostgreSQL write complete, {row_count} rows written to database with response: {response}")  # noqa: E501
-
-    except Exception as e:
-        message = (f'Failure on RPI locator pipeline with error: {e}')  # noqa: E501
-        logger.debug(message)
-        etl_utilities.send_slack_webhook(PIPELINE_ALERT_WEBHOOK, message)
+    else:
+        logger.info(f"Postgres write successfull, {response} rows written to database")  # noqa: E501
+        return status, response
 
 
 def send_product_alert(data: object):
 
     # get webhook link
-    WEBHOOK_URL = os.environ.get('WEBHOOK')
+    PRODUCT_WEBHOOK = os.environ.get('PRODUCT_WEBHOOK')
 
     # convert to json
     alert_json = data.to_json(orient="values")
@@ -191,7 +162,7 @@ def send_product_alert(data: object):
 
     }
 
-    response = requests.post(WEBHOOK_URL, headers=headers, json=payload)
+    response = requests.post(PRODUCT_WEBHOOK, headers=headers, json=payload)
 
     if response.status_code != 200:
         logger.info(f'Slack alert send attempt failed with error code: {response.status_code}')  # noqa: E501
@@ -205,7 +176,12 @@ def send_product_alert(data: object):
 def main():
 
     URL = os.environ.get('LOCATOR_URL')
-    MAX_AGE = int(os.environ.get('MAX_AGE'))
+
+    BASE_URL = os.environ['BASE_URL']
+    RPI_PRODUCT = os.environ['RPI_PRODUCT']
+    RPI_COUNTRY = os.environ['RPI_COUNTRY']
+
+    URL = build_rss_url(BASE_URL, RPI_PRODUCT, RPI_COUNTRY)
 
     # get raw feed data
     data = read_rss_convert(URL)
@@ -213,14 +189,23 @@ def main():
     # clean up/transform data
     cleaned_data = data_transformation(data)
 
+    # Load max age env var
+    MAX_AGE = int(os.environ['MAX_AGE'])
+
     # update data frame to show age of each entry & filter out newest
     updated_data = alert_age(cleaned_data, MAX_AGE)
 
     # send Slack alert
     response = send_product_alert(updated_data)  # noqa: F841
 
+    # get Postgres connection
+    connection = get_postgres_connection()
+
+    # get table for RPI data
+    TABLE = os.environ.get('RPI5_TABLE')
+
     # write data to Postgres
-    write_data(updated_data)
+    status, write_response = write_data(connection, updated_data, TABLE)
 
 
 if __name__ == "__main__":
