@@ -25,10 +25,10 @@ etl_utilities = EtlUtilities()
 # instantiate Postgres writing class
 postgres_utilities = PostgresUtilities()
 
-PIPELINE_ALERT_WEBHOOK = os.environ['ALERT_WEBHOOK']
+PIPELINE_ALERT_WEBHOOK = os.environ['WEBHOOK_ETL_ALERTS']
 
 
-def build_rss_url(base, product, country):
+def build_rss_url(base: str, product: str, country: str):
 
     return base + country + '&cat=' + product
 
@@ -88,11 +88,10 @@ def alert_age(data: object, MAX_AGE: int):
 
     if len(data) > 0:
         logger.info(f'{len(data)} fresh product alerts available')
+        return data
     else:
         logger.info('no fresh product alerts available... exiting')
         no_data_cleanup()
-
-    return data
 
 
 def get_postgres_connection() -> object:
