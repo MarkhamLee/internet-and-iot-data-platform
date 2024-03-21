@@ -32,13 +32,18 @@ WEBHOOK_URL = os.environ['ALERT_WEBHOOK']
 postgres_utilities = PostgresUtilities()
 
 
-def get_asana_data(PROJECT_GID: str) -> object:
+def get_asana_client(key: str):
 
     # get Asana client
-    asana_client = utilities.get_asana_client(os.environ['ASANA_KEY'])
+    asana_client = utilities.asana_client(key)
+
+    return asana_client
+
+
+def get_asana_data(asana_client: object, PROJECT_GID: str) -> object:
 
     extra_params = {'completed_since': 'now',
-                    "opt_fields": "name, modified_at, created_at"}
+                    'opt_fields': 'name, modified_at, created_at'}
 
     # retrieve data from Asana API
     try:
@@ -51,8 +56,7 @@ def get_asana_data(PROJECT_GID: str) -> object:
         message = (f'Pipeline failure: Asana data read unsuccessful with error: {e}')  # noqa: E501
         logger.debug(message)
         response = etl_utilities.send_slack_webhook(WEBHOOK_URL, message)
-        logger.debug(f'Slack pipeline failure alert sent with code: {response}')  # noqa: E501
-        return 1, response
+        return response
 
 
 # calculate age and days since last update for each task
@@ -125,11 +129,13 @@ def write_data(connection, payload, table):
 
 def main():
 
-    # get project ID
-    PROJECT_GID = os.environ['GID']
+    key = os.environ['ASANA_KEY']
+
+    # get Asana client
+    asana_client = get_asana_client(key)
 
     # get project data
-    response = get_asana_data(PROJECT_GID)
+    response = get_asana_data(asana_client, os.environ['GID'])
 
     # parse data
     payload, total_rows = utilities.transform_asana_data(response)

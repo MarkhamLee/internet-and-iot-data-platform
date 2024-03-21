@@ -1,6 +1,6 @@
 # (C) Markham Lee 2023 - 2024
 # https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
-# Test Script for OpenWeather API for Air Pollution Data
+# Test Script for the Asana ETL container
 
 import os
 import sys
@@ -16,7 +16,7 @@ from etl_library.logging_util import logger  # noqa: E402
 from etl_library.postgres_client import PostgresUtilities  # noqa: E402
 
 
-class OpenWeatherAirPollutionTesting(unittest.TestCase):
+class AsanaTasksEtlTesting(unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
@@ -32,13 +32,16 @@ class OpenWeatherAirPollutionTesting(unittest.TestCase):
     # End to end test, retrieving the data, parsing the pagination
     # object, calculating the age of task and then writing the data
     # to PostgreSQL.
-    def test_asana_end_to_end(self):
+    def asana_end_to_end(self):
 
-        # get project ID
+        # Get project ID
         PROJECT_GID = os.environ['GID']
 
+        # Get Asana client
+        asana_client = main.get_asana_client(os.environ['ASANA_KEY'])
+
         # get the raw data
-        raw_data = main.get_asana_data(PROJECT_GID)
+        raw_data = main.get_asana_data(asana_client, PROJECT_GID)
 
         # now we pull the data out of the pagination object from the
         # above and turn it into a data frame.
@@ -73,28 +76,29 @@ class OpenWeatherAirPollutionTesting(unittest.TestCase):
         self.assertEqual(clear_response, 0, "Failed to clear Postgres Table")
         self.assertEqual(write_response, 0, "Postgres write unsuccessful")
 
-    # inactive for now, as errors like the below aren't caught by the
-    # Asana library's "API Exception" class. TODO: extend the Asana
-    # library's rest.py class to catch a wider variety of errors.
+    # Not the best test as the Asana library doesn't catch the error
+    # of a successful API but bad GID. The test will validate that the
+    # Slack alert gets sent when parsing the paginagion object fails as
+    # a result the API containing a bad GID.
     def bad_project_gid(self):
 
         BAD_GID = "2345546463415"
 
-        # get project data, should fail due to the bad GID and generate a
-        # a pipeline failure alert delivered by Slack.
-        status, slack_response = main.get_asana_data(BAD_GID)
+        # get project data, even with the bad GID the request will succeed
+        # and all the error data will be in the pagination object
+        data = main.get_asana_data(BAD_GID)
 
-        # logger.debug(f"API attempt status {status}, Slack response is: {slack_response}")  # noqa: E501
+        # attempt to pull out the data from the pagination object,
+        # this should fail
+        slack_response = self.asana_utils.transform_asana_data(data)
 
-        self.assertEquals(status, 1,
-                          "API Connection was successful, should've failed")
         self.assertEquals(slack_response, 200,
                           "Failed to send Slack message")
 
     # test exception handling for the data write by intentionally using
     # a table that will throw an error, and checking to see if the Slack
     # alert was sent properly
-    def test_data_write_exceptions(self):
+    def data_write_exceptions(self):
 
         # get project ID
         PROJECT_GID = os.environ['GID']

@@ -25,7 +25,7 @@ class AsanaUtilities():
         pass
 
     @staticmethod
-    def get_asana_client(key: str) -> object:
+    def asana_client(key: str) -> object:
 
         try:
 
@@ -42,6 +42,7 @@ class AsanaUtilities():
             logger.debug(message)
             response = etl_utilities.send_slack_webhook(WEBHOOK_URL, message)
             logger.debug(f'Slack alert sent with code: {response}')
+            return response
 
     # data validation & parsing - the Asana pagination object takes a few more
     # steps than usual compared to most public APIs.
@@ -66,8 +67,8 @@ class AsanaUtilities():
 
             return df, total_rows
 
-        except Exception as e:
-            message = (f'Pipeline failure: Asana data extraction failed with error, likely data corruption: {e}')  # noqa: E501
+        except Exception as e:  # noqa: F841
+            message = ('Pipeline failure: Asana data extraction failed with error, likely data corruption')  # noqa: E501
             logger.debug(message)
             response = etl_utilities.send_slack_webhook(WEBHOOK_URL, message)
-            logger.info(f'Slack alert published successfully with code: {response}')  # noqa: E501
+            return response
