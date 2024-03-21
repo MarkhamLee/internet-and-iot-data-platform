@@ -105,7 +105,7 @@ class AsanaTasksEtlTesting(unittest.TestCase):
 
         # get project ID
         PROJECT_GID = os.environ['GID']
-        
+
         # Get Asana client
         asana_client = main.get_asana_client(os.environ['ASANA_KEY'])
 
