@@ -32,7 +32,7 @@ class AsanaTasksEtlTesting(unittest.TestCase):
     # End to end test, retrieving the data, parsing the pagination
     # object, calculating the age of task and then writing the data
     # to PostgreSQL.
-    def asana_end_to_end(self):
+    def test_asana_end_to_end(self):
 
         # Get project ID
         PROJECT_GID = os.environ['GID']
@@ -80,13 +80,16 @@ class AsanaTasksEtlTesting(unittest.TestCase):
     # of a successful API but bad GID. The test will validate that the
     # Slack alert gets sent when parsing the paginagion object fails as
     # a result the API containing a bad GID.
-    def bad_project_gid(self):
+    def test_bad_project_gid(self):
 
         BAD_GID = "2345546463415"
 
+        # Get Asana client
+        asana_client = main.get_asana_client(os.environ['ASANA_KEY'])
+
         # get project data, even with the bad GID the request will succeed
         # and all the error data will be in the pagination object
-        data = main.get_asana_data(BAD_GID)
+        data = main.get_asana_data(asana_client, BAD_GID)
 
         # attempt to pull out the data from the pagination object,
         # this should fail
@@ -98,13 +101,16 @@ class AsanaTasksEtlTesting(unittest.TestCase):
     # test exception handling for the data write by intentionally using
     # a table that will throw an error, and checking to see if the Slack
     # alert was sent properly
-    def data_write_exceptions(self):
+    def test_data_write_exceptions(self):
 
         # get project ID
         PROJECT_GID = os.environ['GID']
+        
+        # Get Asana client
+        asana_client = main.get_asana_client(os.environ['ASANA_KEY'])
 
         # get the raw data
-        raw_data = main.get_asana_data(PROJECT_GID)
+        raw_data = main.get_asana_data(asana_client, PROJECT_GID)
 
         # now we pull the data out of the pagination object from the
         # above and turn it into a data frame.
