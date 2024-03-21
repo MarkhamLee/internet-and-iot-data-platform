@@ -134,7 +134,7 @@ def write_data(connection, payload, table):
                                                          payload, table)
 
     if status == 1:
-        message = (f'Postgres write failed for AlphaVantage T-Bill ETL with error: {response}')  # noqa: E501
+        message = (f'Postgres write failed for Rasperry Pi Locator: {response}')  # noqa: E501
         response = etl_utilities.send_slack_webhook(PIPELINE_ALERT_WEBHOOK, message)  # noqa: E501
         return status, response
 
@@ -170,7 +170,7 @@ def send_product_alert(data: object):
     else:
         logger.info(f'Slack alert sent successfully with status code: {response.status_code}')  # noqa: E501
 
-    return response
+    return response.status_code
 
 
 def main():
