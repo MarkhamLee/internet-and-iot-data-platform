@@ -15,20 +15,19 @@ const getGitHubActions = async (gitUrl: string) => {
 
     try {
 
-        // 
+        // create Octokit object 
         const octokit = new Octokit({
             auth: config.ghToken
           })
 
         const data = await octokit.request(gitUrl, { owner: 'MarkhamLee',
-        repo: 'finance-productivity-iot-informational-weather-dashboard',
-            headers: {
-            'X-GitHub-Api-Version': '2022-11-28'
-            }
+        repo: 'finance-productivity-iot-informational-weather-dashboard', 
+        headers: {'X-GitHub-Api-Version': '2022-11-28'}
         })
 
         console.info('Data received from GitHub')
         return data
+        
     
     } catch (error: any) {
         const message = "Pipeline failure alert - API Error GitHub Repo Actions"
@@ -49,11 +48,27 @@ const getGitHubActions = async (gitUrl: string) => {
 // parse out data - TODO: add exception handling
 const parseData = (data: gitHubActionsData) => {
 
-    return   {"status": Number(data['status']),
-            "totalActions": Number(data['data']['total_count']),
-            "mostRecentAction": String(data['data']['workflow_runs'][0]['name']),
-            "mostRecentActionStatus": String(data['data']['workflow_runs'][0]['status']),
+    try {
 
+        return {"status": Number(data['status']),
+        "totalActions": Number(data['data']['total_count']),
+        "mostRecentAction": String(data['data']['workflow_runs'][0]['name']),
+        "mostRecentActionStatus": String(data['data']['workflow_runs'][0]['status']),
+        }
+        
+    } catch (error: any) {
+
+        const message = "GitHub Actions pipeline failure"
+        console.error(message)
+        
+        //send pipeline failure alert via Slack
+        sendSlackAlerts(message, config.webHookUrl)
+            .then(result => {
+                
+                return result
+            })
+        throw(message)
+    
     }
 
 }
@@ -95,7 +110,6 @@ const writeData = (payload: ghPointData) => {
     } catch (error: any) {
 
         const message = "GitHub Repo actions pipeline failure - data dashboard, InfluxDB write failure"
-        // const fullMessage = (message.concat(JSON.stringify(error.body)))
         console.error(message, error)
 
 
@@ -105,6 +119,9 @@ const writeData = (payload: ghPointData) => {
                 
                 return result
             })
+
+        throw(message)
+
         }    
 }
 

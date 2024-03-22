@@ -12,7 +12,6 @@ const repo = 'finance-productivity-iot-informational-weather-dashboard/'
 
 // get full URL
 const fullUrl = buildUrl(repo)
-console.log(fullUrl)
 
 // get the raw data
 getGitHubActions(fullUrl)
