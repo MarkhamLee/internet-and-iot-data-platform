@@ -6,8 +6,6 @@
 import axios from 'axios';
 import Ajv from "ajv";
 import { InfluxDB } from '@influxdata/influxdb-client';
-import { pointData, influx } from "./etl_configs"
-
 
 // create InfluxDB client
 const createInfluxClient = (bucket: string, url: string,
