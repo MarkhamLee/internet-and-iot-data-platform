@@ -17,12 +17,12 @@ const weatherUrl = createOpenWeatherUrl(endpoint)
 
 // get & write data
 getWeatherData(weatherUrl)
-    .then(result => { //unpack value from Axios/API call 
+    .then(result => { //unpack value from Axios API call 
 
         //parse data - finish extraction
         const parsedData = parseData(result)
 
-        //validate the data - if the data is invalid
+        //validate the data - shutdown if the data is invalid
         const validationStatus = validateJson(parsedData, openWeatherSchema)
 
         if (validationStatus == 1) {

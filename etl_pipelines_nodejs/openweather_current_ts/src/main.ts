@@ -42,7 +42,7 @@ const parseData = (data: CurrentWeather) => {
 
     try {
 
-        // split out the part of the json that contains the bulk of the data points
+        // split out the part of the json that contains the data we need
       const weather_data = data.main;
         
       // parse out individual fields 
