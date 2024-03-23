@@ -7,7 +7,7 @@
 import axios from 'axios';
 import { Point } from '@influxdata/influxdb-client';
 import {config, WeatherResponse, ErrorMessage, openWeatherSchema,
-    CurrentWeather, ParsedData}
+    CurrentWeather, parsedData}
 from "../utils/openweather_config";
 import {createInfluxClient, sendSlackAlerts, validateJson}
 from "../../common/etlUtilities";
@@ -19,6 +19,7 @@ const getWeatherData = async (weatherUrl: string): Promise<CurrentWeather> => {
     try {
     
         const { data } = await axios.get<CurrentWeather>(weatherUrl)
+        console.log("OpenWeather API call successful", data)
         return data
 
     } catch (error: any){
@@ -27,9 +28,7 @@ const getWeatherData = async (weatherUrl: string): Promise<CurrentWeather> => {
         console.error(message, error.message)
         sendSlackAlerts(message, config.webHookUrl)
             .then(result => {
-
                 return result
-
             })
         throw(error.message)
     }
@@ -42,11 +41,13 @@ const getWeatherData = async (weatherUrl: string): Promise<CurrentWeather> => {
 // investigate further.
 const parseData = (data: CurrentWeather) => {
 
-      // split out the part of the json that contains the bulk of the data points
+    try {
+
+        // split out the part of the json that contains the bulk of the data points
       const weather_data = data.main;
         
       // parse out individual fields 
-        const payload = {"barometric_pressure": weather_data.pressure,
+        const payload =  {"barometric_pressure": weather_data.pressure,
         "description": data.weather[0].description,
         "feels_like": weather_data.feels_like,
         "high": weather_data.temp_max,
@@ -57,24 +58,31 @@ const parseData = (data: CurrentWeather) => {
         "weather": data.weather[0].main,
         "wind": data.wind.speed }
 
-    // Validate the payload before writing to InfluxDB.
-    const status = validateJson(payload, openWeatherSchema) 
+        console.log("Data parsed successfully: ", payload)
+        return payload
 
-    if (status == 1) {
+    } catch (error: any) {
 
-        return process.exit()
+        const message = "Openweather pipeline failure: data parsing failed"
+        console.error(message)
+        
+        //send pipeline failure alert via Slack
+        sendSlackAlerts(message, config.webHookUrl)
+            .then(slackResponse => {
+                    
+                return slackResponse
+        })
+
+        throw(error)
+        
     }
-
-    console.log('DB payload ready: ', payload)
-
-    return payload
 }
 
 //method to write data to InfluxDB
 // the InfluxDB node.js library doesn't have a clean way of just
 // pushing json data to the DB. So, the write methods will have to 
 // live in the primary ETL code for now. 
-const writeData = (payload: ParsedData) => {  
+const writeData = (payload: parsedData) => {  
 
     try {
 
@@ -94,20 +102,10 @@ const writeData = (payload: ParsedData) => {
                 .stringField('description', payload.description)
                 .stringField('weather', payload.weather)
                 
-        // write data to InfluxDB
-        void setTimeout(() => {
-
-            writeClient.writePoint(point);
-            console.log("Weather data successfully written to InfluxDB")
-            }, 1000)
-
-        // flush client
-        void setTimeout(() => {
-
-                // flush InfluxDB client
-                writeClient.flush()
-                console.log('InfluxDB Client flushed/cleared.')
-            }, 1000)
+        writeClient.writePoint(point)
+        writeClient.close().then(() => {
+            console.log('Weather data successfully written to InfluxDB')
+          })
         
         return 0
 

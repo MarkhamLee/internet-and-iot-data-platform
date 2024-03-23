@@ -10,50 +10,50 @@
 export interface CurrentWeather {
     
     coord: {
-        lon: number,
-        lat: number
+        lon: number;
+        lat: number;
     },
     weather: [
-        {id: number,
-         main: string,
-         description: string,
-         icon: string
+        {id: number;
+         main: string;
+         description: string;
+         icon: string;
         }],
-    base: string,
+    base: string;
     main: {
-        temp: number,
-        description: string,
-        feels_like: number,
-        temp_min: number,
-        temp_max: number,
-        pressure: number,
-        humidity: number,
-        speed: number,
+        temp: number;
+        description: string;
+        feels_like: number;
+        temp_min: number;
+        temp_max: number;
+        pressure: number;
+        humidity: number;
+        speed: number;
     },
-    visibility: number,
+    visibility: number;
     wind: {
-        speed: number,
-        deg: number,
+        speed: number;
+        deg: number;
     },
     clouds: {
-        all: number
+        all: number;
     },
-    dt: number,
+    dt: number;
     sys: {
-        type: number,
-        id: number,
-        country: string,
-        sunrise: number,
-        sunset: number,}
-        timezone: number,
-        id: number,
-        name: string,
-        cod: number,
+        type: number;
+        id: number;
+        country: string;
+        sunrise: number;
+        sunset: number},
+        timezone: number;
+        id: number;
+        name: string;
+        cod: number;
 }
 
 export interface WeatherResponse {
-    data: CurrentWeather[],
-    status: number,
+    data: CurrentWeather[];
+    status: number;
 }
 
 // error message interface
@@ -61,8 +61,8 @@ export interface WeatherResponse {
 // so the API response interface doesn't error message issues.
 export interface ErrorMessage {
 
-    message: any
-    status: any
+    message: string;
+    status: number;
 
 }
 
@@ -111,16 +111,16 @@ export const openWeatherSchema = {
     "low", "temp", "time_stamp", "weather", "wind"],
     };
 
-export type ParsedData = {
+export type parsedData = {
 
-    barometric_pressure: number,
-    description: string,
-    feels_like: number,
-    high: number,
-    humidity: number,
-    low: number,
-    temp: number,
-    time_stamp: number,
-    weather: string,
-    wind: number,
+    barometric_pressure: number;
+    description: string;
+    feels_like: number;
+    high: number;
+    humidity: number;
+    low: number;
+    temp: number;
+    time_stamp: number;
+    weather: string;
+    wind: number;
 }
