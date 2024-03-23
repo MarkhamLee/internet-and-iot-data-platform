@@ -10,7 +10,7 @@ import {createInfluxClient, sendSlackAlerts}
 from "../../common/etlUtilities"
 
 
-// retrieve data from tehe GitHub API using the Octokit library
+// retrieve data from the GitHub API using the Octokit library
 const getGitHubActions = async (gitUrl: string) => {
 
     try {
@@ -91,20 +91,12 @@ const writeData = (payload: ghPointData) => {
                 .stringField('last_action_status', payload.mostRecentAction
                 )
                 
-        // write data to InfluxDB
-        void setTimeout(() => {
-      
-            writeClient.writePoint(point);
-            console.log("GitHub actions data successfully written to InfluxDB")
-            }, 1000)
-      
-        // flush client
-        void setTimeout(() => {
-      
-                // flush InfluxDB client
-                writeClient.flush()
-            }, 1000)
-
+        // write data to InfluxDB          
+        writeClient.writePoint(point)
+        writeClient.close().then(() => {
+            console.log('Weather data successfully written to InfluxDB')
+          })
+        
         return 0
         
     } catch (error: any) {

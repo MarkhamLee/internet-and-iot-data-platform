@@ -7,7 +7,7 @@ import {getGitHubActions, parseData, writeData } from '../src/main'
 import { buildUrl } from '../utils/utilities'
 import { config, gitHubActionsData, ghPointData } from '../utils/gh_actions_config'
 
-// base URL 
+// Repo name
 const repo = 'finance-productivity-iot-informational-weather-dashboard/'
 
 // get full URL

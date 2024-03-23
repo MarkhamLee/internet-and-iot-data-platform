@@ -43,17 +43,16 @@ export type ghPointData = {
 // only the subset of the data that we actually use
 export interface gitHubActionsData {
 
-  status: number,
+  status: number;
   data: {
-    total_count: number,
+    total_count: number;
     workflow_runs: [
-        {name: string,
-         status: string}]
+        {name: string;
+         status: string;}]
     }
 }
 
 export interface gitResponse {
   data: gitHubActionsData[]
-
 
 }
