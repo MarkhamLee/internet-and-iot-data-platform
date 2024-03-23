@@ -51,8 +51,9 @@ const validateJson = (data: object, schema: object) => {
 
       } else {
         
-        const message = "Pipeline failure data validation - OpenWeather Air Quality (nodejs variant), exiting... "
+        const message = "Pipeline failure data validation exiting... "
         console.error("Data validation error: ", ajv.errors);
+
         return 1
    
       }
