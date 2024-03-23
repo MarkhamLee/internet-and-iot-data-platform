@@ -6,7 +6,8 @@
 
 import { createOpenWeatherUrl } from "../utils/openweather_library";
 import { getWeatherData, parseData, writeData } from "../src/main"
-
+import { sendSlackAlerts,  validateJson} from "../../common/etlUtilities";
+import { config, openWeatherSchema } from "../utils/openweather_config";
 
 //baseline endpoint
 const endpoint = "weather?"
@@ -20,6 +21,17 @@ getWeatherData(weatherUrl)
 
         //parse data - finish extraction
         const parsedData = parseData(result)
+
+        //validate the data - if the data is invalid
+        const validationStatus = validateJson(parsedData, openWeatherSchema)
+
+        if (validationStatus == 1) {
+
+            const message = "OpenWeather pipeline failure: data validation"
+
+            sendSlackAlerts(message, config.webHookUrl)
+            process.exit()
+        }
 
         //write data to InfluxDB
         writeData(parsedData)

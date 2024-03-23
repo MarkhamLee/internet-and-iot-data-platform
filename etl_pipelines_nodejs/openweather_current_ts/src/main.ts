@@ -6,10 +6,9 @@
 
 import axios from 'axios';
 import { Point } from '@influxdata/influxdb-client';
-import {config, WeatherResponse, ErrorMessage, openWeatherSchema,
-    CurrentWeather, parsedData}
+import {config, CurrentWeather, parsedData}
 from "../utils/openweather_config";
-import {createInfluxClient, sendSlackAlerts, validateJson}
+import {createInfluxClient, sendSlackAlerts}
 from "../../common/etlUtilities";
 
 
