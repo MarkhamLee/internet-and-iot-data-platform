@@ -1,8 +1,8 @@
 # Markham Lee (C) 2023
 # productivity-music-stocks-weather-IoT-dashboard
 # https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
-# This pipeline retrieves t-bill rates for the last six days and then writes it
-# Postgres.
+# This pipeline retrieves t-bill rates for a given number of days and then
+# writes it to a Postgres database.
 import os
 import sys
 import requests
@@ -75,6 +75,7 @@ def parse_tbill_data(data: dict) -> object:
     # this also serves as our data validation step, the below steps won't work
     # if the data format is incorrect, fields are missing, etc.
 
+    # Get # of days of data to retrieve
     COUNT = int(os.environ['COUNT'])
 
     return utilities.bond_data_parser_entries(data, COUNT)
@@ -96,8 +97,7 @@ def write_data(connection: object, data: object,  table: str):
 
     else:
         logger.info(f"Postgres write successfuly, {response} rows written to database")  # noqa: E501
-
-    return status
+        return status
 
 
 def main():

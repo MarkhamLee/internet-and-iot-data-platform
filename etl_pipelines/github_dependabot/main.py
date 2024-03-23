@@ -112,10 +112,10 @@ def main():
     MEASUREMENT = os.environ['GITHUB_ALERTS_MEASUREMENT']
     BUCKET = os.environ['DEVOPS_BUCKET']
 
-    tag_name = "Dependabot Alerts"
+    TAG_NAME = "Dependabot Alerts"
 
     # write data
-    github_utilities.write_github_data(count, MEASUREMENT, BUCKET, tag_name)
+    github_utilities.write_github_data(count, MEASUREMENT, BUCKET, TAG_NAME)
 
 
 if __name__ == "__main__":

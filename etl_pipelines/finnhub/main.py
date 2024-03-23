@@ -1,6 +1,6 @@
 # (C) Markham Lee 2023 - 2024
 # https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
-# Retrieves current stock price for a given security and then writes the
+# Retrieves the current stock price for a given security and then writes the
 # data to InfluxDB.
 
 import os
@@ -31,7 +31,7 @@ def get_prices(symbol: str, *args):
 
     try:
         data = finn_util.get_stock_data(symbol, *args)
-        logger.info('stock price data retrieved')
+        logger.info(f'stock price data retrieved: {data}')
         return data
 
     except Exception as e:

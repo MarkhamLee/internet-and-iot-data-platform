@@ -1,7 +1,6 @@
 # (C) Markham Lee 2023 - 2024
 # https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
-# Test script for the pulling data from the GitHub Dependabot Alerts for
-# this repo
+# Test script for the pulling dependabot security alerts from the GitHub API
 
 import os
 import sys
@@ -69,7 +68,7 @@ class GitHubDependabotTesting(unittest.TestCase):
                              "Alert counting and data parsing failed")
         self.assertEqual(response, 0, "InfluxDB write unsuccessful")
 
-    # Check the response of the API call if the wrong key is passed
+    # Check the response of the API call if the wrong key is passed,
     # expected response is a 200 code from a successful Slack alert being
     # sent. I.e. you already know the bad key won't work, so what you want to
     # happen is the successful triggering of the Slack message.
@@ -83,6 +82,8 @@ class GitHubDependabotTesting(unittest.TestCase):
 
         self.assertEqual(data, 200, 'Bad API Key')
 
+    # Testing exception handling for sending bad data to
+    # InfluxDB.
     def test_db_write_exception_handlingl(self):
 
         # purposely send bad data that will fail InfluxDB's
