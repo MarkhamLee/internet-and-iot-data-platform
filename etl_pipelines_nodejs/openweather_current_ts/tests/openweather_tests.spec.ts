@@ -17,7 +17,7 @@ import { config, openWeatherSchema } from "../utils/openweather_config"
 // Test the API call: getting data from OpenWeather and validating
 // that it contains the right fields.
 describe("Validate OpenWeather API call", () => {
-    it("API call should succeed", () => {
+    test("API call should succeed", () => {
         
     //baseline endpoint
     const endpoint = "weather?"
@@ -45,7 +45,7 @@ describe("Validate OpenWeather API call", () => {
 
 // Test the data validation step with good data
 describe("Validate good data format", () => {
-    it("Data format validation should be successfull", () => {
+    test("Data format validation should be successfull", () => {
         
         // define good data payload
          const goodData= {

@@ -62,7 +62,7 @@ const parseData = (data: CurrentWeather) => {
 
     } catch (error: any) {
 
-        const message = "Openweather pipeline failure: data parsing failed"
+        const message = "OpenWeather pipeline failure: data parsing failed"
         console.error(message)
         
         //send pipeline failure alert via Slack
@@ -100,7 +100,9 @@ const writeData = (payload: parsedData) => {
                 .intField('time_stamp', payload.time_stamp)
                 .stringField('description', payload.description)
                 .stringField('weather', payload.weather)
-                
+        
+
+        // write data to InfluxDB          
         writeClient.writePoint(point)
         writeClient.close().then(() => {
             console.log('Weather data successfully written to InfluxDB')
