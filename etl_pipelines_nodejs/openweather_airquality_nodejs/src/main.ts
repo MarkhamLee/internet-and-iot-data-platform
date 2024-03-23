@@ -34,7 +34,7 @@ const getAirQualityData = async (airUrl: string): Promise<AirQualitySubset> => {
             .then(result => {
                 return result
             })
-        throw(error.message)
+        throw(error)
 
     }
 }
