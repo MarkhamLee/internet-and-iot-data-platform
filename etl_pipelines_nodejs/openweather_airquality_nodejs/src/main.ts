@@ -6,30 +6,33 @@
 
 import axios from 'axios'
 import { Point } from '@influxdata/influxdb-client';
-import { config, AirResponse, AirQualitySchema, ErrorMessage, AirQualityMetrics,
-airPointData }
+import { config, AirQualityMetrics, AirQualitySubset, AirQualitySchema, airPointData }
 from "../utils/openweather_air_config"
 import {createInfluxClient, sendSlackAlerts, validateJson}
 from "../../common/etlUtilities"
 
 
 // Get OpenWeather data 
-const getAirQualityData = async (airUrl: string): Promise<AirQualityMetrics> => {
+const getAirQualityData = async (airUrl: string): Promise<AirQualitySubset> => {
 
     try {
         
         const { data } = await axios.get<AirQualityMetrics>(airUrl)
-        return data
+
+        // split out the part of the json that contains the bulk of the data points
+        const airData = data['list'][0]['components']
+
+        console.log("OpenWeather Air Pollution API call successful", airData)
+
+        return airData
 
     } catch (error: any){
 
-        const message = "OpenWeather API Pipeline Current Weather (Nodejs variant) failure, API connection error: "
+        const message = "OpenWeather API Pipeline Air Pollution (Nodejs variant) failure, API connection error: "
         console.error(message, error.message);
         sendSlackAlerts(message, config.webHookUrl)
             .then(result => {
-
                 return result
-                
             })
         throw(error.message)
 
@@ -38,29 +41,34 @@ const getAirQualityData = async (airUrl: string): Promise<AirQualityMetrics> => 
 
 // parse out the desired fields
 // TODO: update to calculate AQI - may need all the fields for that 
-const parseData = (data: AirQualityMetrics) => {
+const parseData = (data: AirQualitySubset) => {
 
-    // split out the part of the json that contains the bulk of the data points
-    const airData = data['list'][0]['components']
+    try {
 
-    // validate the data, script(s) will exit if data is invalid
-    const status = validateJson(airData, AirQualitySchema)
+        // parse out individual fields 
+        const payload = {"co": data['co'],
+        "pm2_5": data['pm2_5'],
+        "pm10": data['pm10']}
 
-    if (status == 1) {
-    
-        return process.exit()
+        console.log('DB payload ready:', payload)
+        return payload
+
+
+    } catch (error: any) {
+
+        const message = "OpenWeather air pollution pipeline error: parsing failed"
+        console.error(message)
+
+        //send pipeline failure alert via Slack
+        sendSlackAlerts(message, config.webHookUrl)
+            .then(slackResponse => {
+                    
+                return slackResponse
+        })
+
+        throw(error)
+
     }
-
-    // parse out individual fields 
-   const payload = {"carbon_monoxide": airData['co'],
-                     "pm_2": airData['pm2_5'],
-                     "pm_10": airData['pm10']}
-
-    console.log('DB payload ready:', payload)
-    
-
-    return airData
-
 }
 
 //method to write data to InfluxDB
@@ -80,21 +88,11 @@ const writeData = (payload: airPointData) => {
                 .floatField('pm_2', payload.pm2_5)
                 .floatField('pm_10', payload.pm10)
                 
-        // write data to InfluxDB
-        void setTimeout(() => {
-    
-            writeClient.writePoint(point);
-            console.log("Weather data successfully written to InfluxDB")
-            }, 1000)
-    
-        // flush client
-        void setTimeout(() => {
-    
-              // flush InfluxDB client
-              writeClient.flush()
-              console.log('InfluxDB Client flushed/cleared.')
-          }, 1000)
 
+        writeClient.writePoint(point)
+        writeClient.close().then(() => {
+            console.log('Weather data successfully written to InfluxDB')
+          })
         return 0
 
     } catch (error: any) {

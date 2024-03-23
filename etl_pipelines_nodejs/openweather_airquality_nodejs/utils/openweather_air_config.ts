@@ -28,6 +28,20 @@ export interface AirQualityMetrics {
             },
         dt: number}]}
 
+export interface AirQualitySubset {
+
+    co: number;
+    no: number;
+    no2: number;
+    temp: number;
+    o3: number;
+    so2: number;
+    pm2_5: number;
+    pm10: number;
+    nh3: number;
+    
+}
+
 // for using the Air Quality Metrics interface
 export interface AirResponse {
     data: AirQualityMetrics[];

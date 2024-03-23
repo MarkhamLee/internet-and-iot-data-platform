@@ -6,7 +6,8 @@
 
 import { getAirQualityData, parseData, writeData } from "./main";
 import { createAirqUrl } from "../utils/openweather_air_library"
-import { config, AirResponse, AirQualitySchema, ErrorMessage, AirQualityMetrics }
+import { sendSlackAlerts,  validateJson} from "../../common/etlUtilities";
+import { config, AirQualitySchema }
 from "../utils/openweather_air_config"
 
 // baseline endpoint
@@ -19,10 +20,20 @@ const airUrl = createAirqUrl(endpoint)
 getAirQualityData(airUrl)
     .then(result => { 
 
-      console.log('received data', result)
+      // parsed data - i.e., finish the extraction step 
+      const parsedData = parseData(result)
 
-    // parsed data - i.e., finish the extraction step 
-   const parsedData = parseData(result)
+      //validate the data - if the data is invalid
+      const validationStatus = validateJson(parsedData, AirQualitySchema)
+
+      if (validationStatus == 1) {
+
+        const message = "OpenWeather pipeline failure: data validation"
+
+        sendSlackAlerts(message, config.webHookUrl)
+        process.exit()
+     
+          }
 
     // write data to InfluxDB
     writeData(parsedData)
