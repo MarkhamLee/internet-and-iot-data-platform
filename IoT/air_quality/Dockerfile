@@ -4,7 +4,7 @@ COPY ./iot_libraries ./iot_libraries
 
 WORKDIR /iot_sensors
 
-COPY ./airquality ./
+COPY ./air_quality ./
 
 RUN pip install -r /iot_sensors/requirements.txt
 
