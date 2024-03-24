@@ -6,7 +6,7 @@ import os
 import uuid
 import requests
 from paho.mqtt import client as mqtt
-from logging_util import logger
+from iot_libraries.logging_util import logger
 
 
 class IoTCommunications():
