@@ -5,36 +5,40 @@
 // and writing it to InfluxDB.
 
 const finnhub = require('finnhub')
-import { Point } from '@influxdata/influxdb-client';
+import { Point, InfluxDB, HttpError } from '@influxdata/influxdb-client';
 import {createInfluxClient, sendSlackAlerts, validateJson}
 from "../../common/etlUtilities"
 import { config, FinnhubSchema,
     finnhubPointData, finnhubData } from '../utils/finnhub_config'
 
 
-const getFinanceData = () => {
+const getFinnhubData = async () => {
 
     const apiKey = finnhub.ApiClient.instance.authentications['api_key']
     apiKey.apiKey = config.finnhubKey 
     const finnhubClient = new finnhub.DefaultApi()
 
     // get data from the Finnhub API via the Official Finnhub JS library1
-    finnhubClient.quote(config.stock, (error: string, data: finnhubData,
+   finnhubClient.quote(config.stock, (error: string, data: finnhubData,
         response: unknown) => {
             
             if (error) {
-                const message = "Pipeline failure for Node.js version of Finnhub Stock Price ETL, with error:"
+                const message = "Pipeline failure for Finnub ETL (nodejs variant), API failure"
                 const fullMessage = message.concat(error)
                 console.error(fullMessage)
+                //send pipeline failure alert via Slack
                 sendSlackAlerts(fullMessage, config.webHookUrl)
-                return process.exit()
+                .then(result => {
+                    return result 
+                })
 
             } else {
-
-                console.log("Finnhub data received")
-                const payload = parseData(data)
-                writeData(payload)
-    
+                console.log("Finnhub data received", data)
+                return data
+                
+                // const payload = parseData(data)
+                // const resp = writeData(payload)
+                // return 0
             }        
         });
         return 0
@@ -75,7 +79,7 @@ const writeData = (pointData: finnhubPointData) => {
 
         const writeClient = createInfluxClient(config.bucket, config.url,
             config.token, config.org)
-      
+
         let point = new Point(config.measurement)
                 .tag("Finnhub-API", "stock_prices",)
                 .floatField('change', pointData.change) 
@@ -83,22 +87,13 @@ const writeData = (pointData: finnhubPointData) => {
                 .floatField('open', pointData.open)
                 .floatField('previous_close', pointData.previousClose)
                 
-        // write data to InfluxDB
-        void setTimeout(() => {
-      
-            writeClient.writePoint(point);
-            console.log("Finnhub stock price data successfully written to InfluxDB")
-            }, 1000)
-      
-        // flush client
-        void setTimeout(() => {
-      
-                // flush InfluxDB client
-                writeClient.flush()
-            }, 1000)
+        // write data to InfluxDB          
+        writeClient.writePoint(point)
+        writeClient.close().then(() => {
+            console.log('Finnhub stock price data successfully written to InfluxDB')
+          })
         
         return 0
-
 
     } catch (error: any) {
 
@@ -107,9 +102,12 @@ const writeData = (pointData: finnhubPointData) => {
         console.error(fullMessage);
 
         //send pipeline failure alert via Slack
-        return sendSlackAlerts(fullMessage, config.webHookUrl);
-        }
-
+        sendSlackAlerts(fullMessage, config.webHookUrl)
+            .then(result => {
+                return result 
+            })
     }
 
-export {getFinanceData, parseData, writeData}
+}
+
+export {getFinnhubData, parseData, writeData}

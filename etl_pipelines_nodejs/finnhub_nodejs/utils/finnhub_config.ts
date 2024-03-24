@@ -50,14 +50,14 @@ export const FinnhubSchema = {
 
 export type finnhubData = {
 
-  c: number,
-  d: number,
-  dp: number,
-  h: number,
-  l: number,
-  o: number,
-  pc: number,
-  t: number
+  c: number;
+  d: number;
+  dp: number;
+  h: number;
+  l: number;
+  o: number;
+  pc: number;
+  t: number;
 
 };
 
@@ -71,3 +71,9 @@ export type finnhubPointData = {
 
 }
 
+export type finnhubApiError = {
+
+  code: number;
+  message: string;
+
+}
