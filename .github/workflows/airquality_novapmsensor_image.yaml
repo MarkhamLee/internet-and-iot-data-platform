@@ -5,7 +5,8 @@ on:
     branches:
       - "main"
     paths:
-      - "IoT/air_quality/container/*"
+      - "IoT/air_quality/*"
+      - "IoT/iot_libraries/*"
 
 jobs:
   docker:
@@ -25,8 +26,8 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: ./IoT/air_quality/container/
-          file: ./IoT/air_quality/container/Dockerfile
+          context: ./IoT/
+          file: ./IoT/air_quality/Dockerfile
           platforms: linux/arm64,linux/amd64
           push: true
           tags: markhamlee/airquality:latest
