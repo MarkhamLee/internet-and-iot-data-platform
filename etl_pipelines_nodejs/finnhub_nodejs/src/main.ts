@@ -5,7 +5,7 @@
 // and writing it to InfluxDB.
 
 const finnhub = require('finnhub')
-import { Point, InfluxDB, HttpError } from '@influxdata/influxdb-client';
+import { Point } from '@influxdata/influxdb-client';
 import {createInfluxClient, sendSlackAlerts, validateJson}
 from "../../common/etlUtilities"
 import { config, FinnhubSchema,
@@ -34,14 +34,13 @@ const getFinnhubData = async () => {
 
             } else {
                 console.log("Finnhub data received", data)
-                return data
                 
-                // const payload = parseData(data)
-                // const resp = writeData(payload)
-                // return 0
+                const payload = parseData(data)
+                const resp = writeData(payload)
+                return 0
             }        
         });
-        return 0
+        
 }
 
 // parse and validate the Finnhub data
