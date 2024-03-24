@@ -8,10 +8,16 @@
 import json
 import gc
 import os
+import sys
 from time import sleep
 from air_quality import AirQuality
-from logging_util import logger
-from communications_utilities import IoTCommunications
+
+parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(parent_dir)
+
+from iot_libraries.logging_util import logger  # noqa: E402
+from iot_libraries.communications_utilities\
+    import IoTCommunications  # noqa: E402
 
 com_utilities = IoTCommunications()
 DEVICE_FAILURE_CHANNEL = os.environ['DEVICE_FAILURE_CHANNEL']

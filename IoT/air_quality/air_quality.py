@@ -7,9 +7,15 @@
 # via an MQTT Broker
 import serial
 import os
+import sys
 from time import sleep
-from logging_util import logger
-from communications_utilities import IoTCommunications
+
+parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(parent_dir)
+
+from iot_libraries.logging_util import logger  # noqa: E402
+from iot_libraries.communications_utilities\
+    import IoTCommunications  # noqa: E402
 
 
 class AirQuality:
@@ -32,6 +38,7 @@ class AirQuality:
 
         self.com_utilities = IoTCommunications()
 
+    # connect to sensor, send Slack alert if there is an issue
     def connect_to_sensor(self):
 
         USB = os.environ['USB_ADDRESS']
@@ -48,9 +55,10 @@ class AirQuality:
             # back-off limits/pod restart patterns are hard-coded into K8s,
             # SO... we put the container to sleep for an hour to provide
             # enough time to fix the physical issue w/o being spammed with
-            # restart and container back-off alerts
+            # constant restart and container back-off alerts
             sleep(3600)
 
+    # get air quality data, use bit shifting to isolate data
     def getAirQuality(self):
 
         try:
@@ -74,6 +82,8 @@ class AirQuality:
             # back off cycle/alerts
             sleep(3600)
 
+    # utility function that uses bit shifting to parse out
+    # air quality data.
     def parse_value(self, message, start_byte, num_bytes=2,
                     byte_order='little', scale=None):
 
