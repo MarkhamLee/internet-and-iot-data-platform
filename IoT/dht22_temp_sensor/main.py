@@ -3,8 +3,8 @@
 # https://github.com/MarkhamLee/automated-resource_efficient-greenhouse
 # the script gathers data from a DHT22 temperature sensor and then
 # publishes that data to a MQTT topic.
-import adafruit_dht  
-import board  
+import adafruit_dht
+import board
 import json
 import time
 import gc
