@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: airflow-ingress
+  namespace: airflow
+  annotations:
+    kubernetes.io/ingress.class: traefik
+spec:
+  rules:
+    - host: airflow.local.example.com # replace example with the domain of your homelab
+      http:
+        paths:
+          - backend:
+              service:
+                name: airflow
+                port:
+                  number: 8080
+            path: /
+            pathType: ImplementationSpecific
+  tls:
+  - hosts: # update this with your own domains and tls secret names
+    - local.example.com 
+    secretName: airflow-local-example-com-tls
