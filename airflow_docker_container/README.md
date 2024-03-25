@@ -1,0 +1,3 @@
+### Extended Docker File + Docker Compose for standalone Airflow Deployment
+
+This folder contains the Dockerfile and Docker Compose file I used to deploy a stand-alone instance of Airflow on my dev box and on my "beta server", for testing DAGs prior to deploying them to my production instance. Since moving away from using the Celery and/or Kubernetes executor to the Airflow Kubernetes Pod Operator I no longer use this setup, as I can test the ETL containers anywhere and the Pod Operator DAGs only work for an Airflow instance deployed on Kubernetes. That being said, I'm leaving this here as it's still quite useful for people deploying Airflow with Docker and/or outside of Kubernetes.
