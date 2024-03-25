@@ -5,7 +5,8 @@ on:
     branches:
       - "main"
     paths:
-      - "IoT/dht22/container/*"
+      - "IoT/dht22_temp_sensor/*"
+      - "IoT/iot_libraries/*"
 
 jobs:
   docker:
@@ -25,8 +26,8 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: ./IoT/dht22/container/
-          file: ./IoT/dht22/container/Dockerfile
+          context: ./IoT/
+          file: ./IoT/dht22_temp_sensor/Dockerfile
           platforms: linux/arm64
           push: true
           tags: markhamlee/dht22_monitoring:latest
