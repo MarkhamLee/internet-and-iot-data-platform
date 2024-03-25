@@ -4,7 +4,6 @@
 # This script retrieves air quality data from a Nova PM SDS011
 # Air Quality sensor connected via USB and then sends the data off
 # to an MQTT broker
-
 import json
 import gc
 import os
