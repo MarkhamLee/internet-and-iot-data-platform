@@ -1,4 +1,3 @@
-jedi
 lxml
 python-dateutil 
 pyzmq

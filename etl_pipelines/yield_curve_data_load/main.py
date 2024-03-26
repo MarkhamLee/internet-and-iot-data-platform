@@ -82,8 +82,7 @@ def write_data(connection: object, data: object,  table: str):
 def main():
 
     # load url to download csv from US Treasury
-    # YIELD_CURVE_URL = os.environ['YIELD_CURVE_URL']
-    YIELD_CURVE_URL = 'https://home.treasury.gov/resource-center/data-chart-center/interest-rates/daily-treasury-rates.csv/2022/all?type=daily_treasury_yield_curve&field_tdr_date_value=2022&page&_format=csv'  # noqa: E501
+    YIELD_CURVE_URL = os.environ['YIELD_CURVE_URL']
 
     # get yield curve data
     data = get_yield_curve_data(YIELD_CURVE_URL)
@@ -94,9 +93,7 @@ def main():
     # get Postgres connection
     connection = postgres_connection()
 
-    # TABLE = os.environ['RAW_YIELD_CURVE_TABLE']
-
-    TABLE = 'raw_yield_curve_data'
+    TABLE = os.environ['RAW_YIELD_CURVE_TABLE']
 
     # write data
     write_data(connection, cleaned_data, TABLE)

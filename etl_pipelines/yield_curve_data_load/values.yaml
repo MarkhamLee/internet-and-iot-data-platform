@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: load-historical-yield-curve-data
+  namespace: et-pipelines
+spec:
+  selector:
+    matchLabels: 
+      app: load-historical-yield-curve-data
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: load-historical-yield-curve-data
+    spec:
+      containers:
+        - name: historical-yield-curve-load
+          image: markhamlee/yieldcurve_load:latest
+          imagePullPolicy: Always
+          resources:
+            limits:
+              cpu: 200m
+              memory: 512Mi
+            requests:
+              cpu: 100m
+              memory: 256Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            privileged: false
+            readOnlyRootFilesystem: false
+            runAsNonRoot: false
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  key: POSTGRES_USER
+                  name: postgres-secrets
+                  optional: false
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: POSTGRES_PASSWORD
+                  name: postgres-secrets
+                  optional: false
+            - name: DASHBOARD_DB
+              valueFrom:
+                configMapKeyRef:
+                  key: POSTGRES_DASHBOARD_DB
+                  name: key-etl-variables
+                  optional: false
+            - name: DB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  key: POSTGRES_DB_HOST
+                  name: key-etl-variables
+                  optional: false
+            - name: POSTGRES_PORT
+              valueFrom:
+                configMapKeyRef:
+                  key: POSTGRES_PORT
+                  name: key-etl-variables
+                  optional: false
+            - name: YIELD_CURVE_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: YIELD_CURVE_2023
+                  name: key-etl-variables
+                  optional: false
+            - name: RAW_YIELD_CURVE_TABLE
+              valueFrom:
+                configMapKeyRef:
+                  key:  RAW_YIELD_CURVE_TABLE
+                  name: key-etl-variables
+                  optional: false
+      imagePullSecrets: 
+        - name: docker-creds
+    restartPolicy: Never
