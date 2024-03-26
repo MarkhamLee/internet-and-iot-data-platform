@@ -42,6 +42,12 @@ spec:
                   key: POSTGRES_PASSWORD
                   name: postgres-secrets
                   optional: false
+            - name: ALERT_WEBHOOK
+              valueFrom:
+                secretKeyRef:
+                  key: WEBHOOK_ETL_ALERTS
+                  name: slack-webhook-pipeline-failures
+                  optional: false
             - name: DASHBOARD_DB
               valueFrom:
                 configMapKeyRef:
