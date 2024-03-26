@@ -4,7 +4,7 @@ COPY ./etl_library ./etl_library
 
 WORKDIR /etl
 
-COPY ./yield_curve_data ./
+COPY ./yield_curve_data_load ./
 
 RUN pip install -r /etl/requirements.txt
 

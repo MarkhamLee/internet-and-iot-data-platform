@@ -1,7 +1,6 @@
 # (C) Markham Lee 2023 - 2024
 # https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
-# Pulls down the treasury yield curve data for the last five days from the
-# US Treasury.
+# container for loading historical yield curve data from the US Treasury
 import os
 import sys
 import pandas as pd
@@ -40,6 +39,7 @@ def get_yield_curve_data(url: str) -> object:
     try:
 
         df = pd.read_csv(url)
+        logger.info(f'Yield curve data received, {df}')
         return df
 
     except Exception as e:
@@ -49,8 +49,15 @@ def get_yield_curve_data(url: str) -> object:
         # shutdown ETL process
         sys.exit()
 
-# TODO: add step to validate the data, i.e, make sure all the fields contain
-# numbers in the form of x.xx
+
+def clean_yield_curve_data(data: object) -> object:
+
+    # drop any rows with missing values. We "could" just ignore in our
+    # plots, but then we're not comparing "like vs like" so we'll just not
+    # use the days that have incomplete data.
+    df = data.dropna()
+
+    return df
 
 
 # write data to PostgreSQL
@@ -76,23 +83,23 @@ def main():
 
     # load url to download csv from US Treasury
     # YIELD_CURVE_URL = os.environ['YIELD_CURVE_URL']
-    YIELD_CURVE_URL = 'https://home.treasury.gov/resource-center/data-chart-center/interest-rates/daily-treasury-rates.csv/all/202403?type=daily_treasury_yield_curve&field_tdr_date_value_month=202403&page&_format=csv'  # noqa: E501
+    YIELD_CURVE_URL = 'https://home.treasury.gov/resource-center/data-chart-center/interest-rates/daily-treasury-rates.csv/2022/all?type=daily_treasury_yield_curve&field_tdr_date_value=2022&page&_format=csv'  # noqa: E501
 
     # get yield curve data
     data = get_yield_curve_data(YIELD_CURVE_URL)
 
-    print(data)
+    # clean up data/remove missing fields, etc.
+    cleaned_data = clean_yield_curve_data(data)
 
     # get Postgres connection
     connection = postgres_connection()
 
-    TABLE = os.environ['YIELD_CURVE_TABLE']
+    # TABLE = os.environ['RAW_YIELD_CURVE_TABLE']
 
-    # clear table
-    postgres_utilities.clear_table(connection, TABLE)
+    TABLE = 'raw_yield_curve_data'
 
     # write data
-    write_data(connection, data, TABLE)
+    write_data(connection, cleaned_data, TABLE)
 
 
 if __name__ == '__main__':
