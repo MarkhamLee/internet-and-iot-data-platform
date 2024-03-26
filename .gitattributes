@@ -2,3 +2,4 @@
 * text=auto
 
 *.ipynb linguist-documentation
+*.sql linguist-language=sql
