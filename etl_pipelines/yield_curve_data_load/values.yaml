@@ -1,35 +1,23 @@
-apiVersion: apps/v1
+apiVersion: batch/v1
 kind: Job
 metadata:
-  name: load-historical-yield-curve-data
-  namespace: et-pipelines
+  name: yield-curve-load-2024
+  annotations:
+    batch.kubernetes.io/job-tracking: ''
+  namespace: etl-pipelines
 spec:
-  selector:
-    matchLabels: 
-      app: load-historical-yield-curve-data
-  replicas: 1
+  backoffLimit: 2
+  completionMode: NonIndexed
   template:
     metadata:
       labels:
-        app: load-historical-yield-curve-data
+        job-name: yield-curve-load-2024
+      namespace: etl-pipelines
     spec:
+      nodeSelector:
+        node_type: arm64_worker
       containers:
-        - name: historical-yield-curve-load
-          image: markhamlee/yieldcurve_load:latest
-          imagePullPolicy: Always
-          resources:
-            limits:
-              cpu: 200m
-              memory: 512Mi
-            requests:
-              cpu: 100m
-              memory: 256Mi
-          securityContext:
-            allowPrivilegeEscalation: false
-            privileged: false
-            readOnlyRootFilesystem: false
-            runAsNonRoot: false
-          env:
+        - env:
             - name: POSTGRES_USER
               valueFrom:
                 secretKeyRef:
@@ -69,15 +57,28 @@ spec:
             - name: YIELD_CURVE_URL
               valueFrom:
                 configMapKeyRef:
-                  key: YIELD_CURVE_2023
+                  key: YIELD_CURVE_2024
                   name: key-etl-variables
                   optional: false
             - name: RAW_YIELD_CURVE_TABLE
               valueFrom:
                 configMapKeyRef:
-                  key:  RAW_YIELD_CURVE_TABLE
+                  key: RAW_YIELD_CURVE_TABLE
                   name: key-etl-variables
                   optional: false
-      imagePullSecrets: 
+          image: markhamlee/yieldcurve_load:latest
+          imagePullPolicy: Always
+          name: container-0
+          resources: {}
+          securityContext:
+            allowPrivilegeEscalation: false
+            privileged: false
+            readOnlyRootFilesystem: false
+            runAsNonRoot: false
+      dnsPolicy: ClusterFirst
+      imagePullSecrets:
         - name: docker-creds
-    restartPolicy: Never
+      restartPolicy: Never
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
