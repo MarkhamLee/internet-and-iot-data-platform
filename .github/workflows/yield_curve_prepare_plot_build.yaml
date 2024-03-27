@@ -7,6 +7,7 @@ on:
     paths:
       - "etl_pipelines/etl_library/*"
       - "etl_pipelines/yield_curve_prepare/*"
+      - "etl_pipelines/yield_curve_library/*"
 
 jobs:
   docker:
