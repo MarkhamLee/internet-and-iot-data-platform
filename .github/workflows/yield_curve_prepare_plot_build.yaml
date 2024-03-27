@@ -1,4 +1,4 @@
-name: yield_curve_raw_data_image_build
+name: yield_curve_prepare_plot_data_build
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - "main"
     paths:
       - "etl_pipelines/etl_library/*"
-      - "etl_pipelines/yield_curve_data_load/*"
+      - "etl_pipelines/yield_curve_prepare/*"
 
 jobs:
   docker:
@@ -27,7 +27,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./etl_pipelines/
-          file: ./etl_pipelines/yield_curve_data_load/Dockerfile
+          file: ./etl_pipelines/yield_curve_prepare/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: markhamlee/yieldcurve_load:latest
+          tags: markhamlee/yieldcurve_plot:latest
