@@ -1,6 +1,6 @@
 # (C) Markham Lee 2023 - 2024
 # https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
-# container for loading historical yield curve data from the US Treasury
+# Daily load for yield curve data.
 import os
 import sys
 import pandas as pd
