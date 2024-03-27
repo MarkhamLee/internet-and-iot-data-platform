@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS raw_yield_curve_data (
-  "Date" date,
+  "date" date,
   "1_mo" numeric,
   "2_mo" numeric,
   "3_mo" numeric,
