@@ -13,8 +13,10 @@ from etl_library.logging_util import logger  # noqa: E402
 from etl_library.general_utilities import EtlUtilities  # noqa: E402
 from etl_library.postgres_client import PostgresUtilities  # noqa: E402
 
+
 postgres_utilities = PostgresUtilities()
 etl_utilities = EtlUtilities()
+
 
 WEBHOOK_URL = os.environ['ALERT_WEBHOOK']
 
@@ -133,8 +135,6 @@ def write_data(connection: object, data: object,  table: str):
 
 
 def main():
-
-    # columns = ['TTM', 'YTM']
 
     # get Postgres connection
     connection = postgres_connection()

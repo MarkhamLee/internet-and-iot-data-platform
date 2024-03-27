@@ -3,7 +3,6 @@
 # container for loading historical yield curve data from the US Treasury
 import os
 import sys
-import pandas as pd
 
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(parent_dir)
@@ -11,9 +10,12 @@ sys.path.append(parent_dir)
 from etl_library.logging_util import logger  # noqa: E402
 from etl_library.general_utilities import EtlUtilities  # noqa: E402
 from etl_library.postgres_client import PostgresUtilities  # noqa: E402
+from yield_curve_library.yield_curve_utilities\
+    import YieldCurveUtilities  # noqa: E402
 
 postgres_utilities = PostgresUtilities()
 etl_utilities = EtlUtilities()
+yield_utilities = YieldCurveUtilities()
 
 WEBHOOK_URL = os.environ['ALERT_WEBHOOK']
 
@@ -31,33 +33,6 @@ def postgres_connection():
 
     # get Postgres connection
     return postgres_utilities.postgres_client(param_dict)
-
-
-def get_yield_curve_data(url: str) -> object:
-
-    # read data from US Treasury Dept
-    try:
-
-        df = pd.read_csv(url)
-        logger.info(f'Yield curve data received, {df}')
-        return df
-
-    except Exception as e:
-        message = (f'Failed to download yield curve CSV with error: {e}')
-        etl_utilities.send_slack_webhook(WEBHOOK_URL, message)
-
-        # shutdown ETL process
-        sys.exit()
-
-
-def clean_yield_curve_data(data: object) -> object:
-
-    # drop any rows with missing values. We "could" just ignore in our
-    # plots, but then we're not comparing "like vs like" so we'll just not
-    # use the days that have incomplete data.
-    df = data.dropna()
-
-    return df
 
 
 # write data to PostgreSQL
@@ -85,10 +60,10 @@ def main():
     YIELD_CURVE_URL = os.environ['YIELD_CURVE_URL']
 
     # get yield curve data
-    data = get_yield_curve_data(YIELD_CURVE_URL)
+    data = yield_utilities.get_yield_curve_data(YIELD_CURVE_URL)
 
     # clean up data/remove missing fields, etc.
-    cleaned_data = clean_yield_curve_data(data)
+    cleaned_data = yield_utilities.clean_yield_curve_data(data)
 
     # get Postgres connection
     connection = postgres_connection()
