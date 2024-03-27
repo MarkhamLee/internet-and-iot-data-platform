@@ -1,6 +1,8 @@
 # (C) Markham Lee 2023 - 2024
 # https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
-# Pulls down
+# Queries Postgres to pull down the most recent yield curve data and
+# re-organize it to populate the table used to generate the yield curve plot
+# in Grafana.
 import os
 import sys
 import pandas as pd
@@ -141,14 +143,21 @@ def main():
 
     TABLE = os.environ['RAW_YIELD_CURVE_TABLE']
 
+    query_file = os.environ['QUERY_FILE']
+
+    query_file_path = (f'db_files/{query_file}')
+
     # get data
-    with open('db_files/todays_curve.sql', 'r') as q:
+    with open(query_file_path, 'r') as q:
         query = q.read()
 
     data = query_postgres(connection, query, TABLE)
     cleaned_data = build_dataframe(data)
 
     WRITE_TABLE = "yield_curve_plot"
+
+    # clear out table, we only want the most recent data
+    postgres_utilities.clear_table(connection, WRITE_TABLE)
 
     # write data
     write_data(connection, cleaned_data, WRITE_TABLE)
