@@ -56,8 +56,6 @@ def get_air_quality(serial_con, pm2_bytes, pm10_bytes):
         pm2 = round((parse_value(message, pm2_bytes) * 0.1), 4)
         pm10 = round((parse_value(message, pm10_bytes) * 0.1), 4)
 
-        logger.info(pm2)
-
         payload = {
             "pm2.5": pm2,
             "pm10": pm10
