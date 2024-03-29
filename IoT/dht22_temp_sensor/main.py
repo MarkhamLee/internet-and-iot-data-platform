@@ -1,15 +1,15 @@
 # Markham Lee 2023
 # Efficient, automated greenhouse
 # https://github.com/MarkhamLee/automated-resource_efficient-greenhouse
-# the script gathers data from a DHT22 temperature sensor and then
-# publishes that data to a MQTT topic.
+# This script gathers data from a DHT22 temperature sensor and then
+# publishes it to a MQTT topic.
 import adafruit_dht
 import board
 import json
-import time
 import gc
 import os
 import sys
+from time import sleep
 
 
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -22,7 +22,7 @@ from iot_libraries.communications_utilities\
 com_utilities = IoTCommunications()
 
 
-def getTemps(client: object, topic: str, interval: int):
+def get_temps(client: object, topic: str, interval: int):
 
     # The use pulseio parameter is suggested parameter for a Raspberry Pi
     # may not need to use it with other types of SBCs
@@ -65,7 +65,7 @@ def getTemps(client: object, topic: str, interval: int):
             del temp, humidity, payload
             gc.collect()
 
-        time.sleep(interval)
+        sleep(interval)
 
 
 def send_message(client: object, payload: dict, topic: str):
@@ -96,16 +96,16 @@ def main():
     MQTT_PORT = int(os.environ['MQTT_PORT'])
 
     # get unique client ID
-    clientID = com_utilities.getClientID()
+    CLIENT_ID = com_utilities.getClientID()
 
     # get mqtt client
-    client, code = com_utilities.mqttClient(clientID, MQTT_USER,
+    client, code = com_utilities.mqttClient(CLIENT_ID, MQTT_USER,
                                             MQTT_SECRET, MQTT_BROKER,
                                             MQTT_PORT)
 
     # start data monitoring
     try:
-        getTemps(client, TOPIC, INTERVAL)
+        get_temps(client, TOPIC, INTERVAL)
 
     finally:
         client.loop_stop()
