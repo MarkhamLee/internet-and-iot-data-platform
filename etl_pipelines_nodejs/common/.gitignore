@@ -2,3 +2,4 @@ node_modules
 /lib/*.js
 /openweather/*.js
 etlUtilities.js
+*.js
