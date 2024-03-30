@@ -68,12 +68,20 @@ spec:
                   key: SLACK_ALERT_ENDPOINT
                   name: slack-service-endpoint
                   optional: false
+            - name: CLIMATE_ALERT_WEBHOOK
+              valueFrom:
+                secretKeyRef:
+                  key: CLIMATE_ALERT_WEBHOOK
+                  name: climate-alert-secret
+                  optional: false           
             - name: DEVICE_FAILURE_CHANNEL
               value: '#iot_device_failures'
             - name: INTERVAL
               value: '5'
-            - name: DEVICE_ID_DATA
-              value: rpi_node2_airquality_novapm
+            - name: DEVICE_ID
+              value: rpinode0
+            - name: SENSOR_ID
+              value: office_airquality_sensor_novapm
             - name: ALERT_THRESHOLD
               value: '25'
             - name: USB_ADDRESS
