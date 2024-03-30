@@ -22,7 +22,7 @@ com_utilities = IoTCommunications()
 DEVICE_FAILURE_CHANNEL = os.environ['DEVICE_FAILURE_CHANNEL']
 
 DEVICE_ID = os.environ['DEVICE_ID']
-# SENSOR_ID = os.environ['SENSOR_ID']
+SENSOR_ID = os.environ['SENSOR_ID']
 
 
 def air(client: object, quality: object, topic: str, interval: int) -> str:
@@ -33,6 +33,9 @@ def air(client: object, quality: object, topic: str, interval: int) -> str:
     while True:
 
         pm2, pm10 = quality.getAirQuality()
+
+        if pm2 > 25 or pm10 > 50:
+            send_threshold_alert(pm2, pm10)
 
         payload = {
             "pm2": pm2,
@@ -63,6 +66,16 @@ def air(client: object, quality: object, topic: str, interval: int) -> str:
         gc.collect()
 
         sleep(interval)
+
+
+def send_threshold_alert(pm2, pm10):
+
+    # load threshold alert webhook
+    AIR_ALERT_WEBHOOK = os.environ['CLIMATE_ALERT_WEBHOOK']
+
+    message = (f"{SENSOR_ID} reporting air quality above threshold, open window/ventilate room. PM2_5 level: {pm2}, PM10 level: {pm10} ")  # noqa: E501
+
+    com_utilities.send_slack_alert(message, AIR_ALERT_WEBHOOK)
 
 
 def main():
