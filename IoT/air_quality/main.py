@@ -75,7 +75,7 @@ def send_threshold_alert(pm2, pm10):
 
     message = (f"{SENSOR_ID} reporting air quality above threshold, open window/ventilate room. PM2_5 level: {pm2}, PM10 level: {pm10} ")  # noqa: E501
 
-    com_utilities.send_slack_alert(message, AIR_ALERT_WEBHOOK)
+    com_utilities.send_slack_webhook(AIR_ALERT_WEBHOOK, message)
 
 
 def main():

@@ -60,3 +60,32 @@ class IoTCommunications():
 
         response = requests.post(ALERT_ENDPOINT, json=payload, headers=headers)
         logger.info(f'Device failure alert sent with code: {response.text}')
+
+    @staticmethod
+    def send_slack_webhook(url: str, message: str):
+
+        headers = {
+            'Content-type': 'application/json'
+
+        }
+
+        payload = {
+            "text": message
+        }
+
+        response = requests.post(url, headers=headers, json=payload)
+        logger.debug(f'Slack pipeline failure alert published succesfully with code: {response.status_code}')  # noqa: E501
+
+        return IoTCommunications.evaluate_slack_response(response.status_code,
+                                                         'webhook')
+
+    @staticmethod
+    def evaluate_slack_response(code: int, type: str):
+
+        if code == 200:
+            logger.info(f'Publishing of alert to Slack {type} was successful')
+
+        else:
+            logger.debug(f'Publishing of alert to Slack {type} failed, with error code {code}')  # noqa: E501
+
+        return code
