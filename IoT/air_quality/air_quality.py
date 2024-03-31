@@ -76,8 +76,8 @@ class AirQuality:
             # sensor's precision as it returns integers that are actually
             # decimals I.e. 15 is really 1.5
 
-            pm2 = round((self.parse_value(message, self.pm2Bytes) * 0.1), 4)
-            pm10 = round((self.parse_value(message, self.pm10Bytes) * 0.1), 4)
+            pm2 = round((self.parse_value(message, self.pm2_bytes) * 0.1), 4)
+            pm10 = round((self.parse_value(message, self.pm10_bytes) * 0.1), 4)
 
             # flush buffer - should help avoid issues where we get
             # anomolous readings
