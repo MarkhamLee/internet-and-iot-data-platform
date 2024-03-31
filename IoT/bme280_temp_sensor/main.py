@@ -57,7 +57,7 @@ def get_bme280_data(client, topic, interval):
             com_utilities.send_slack_alert(message, DEVICE_FAILURE_CHANNEL)
             sleep_duration = 3600
 
-        del temp, humidity, payload
+        del data, payload
         gc.collect()
 
         sleep(sleep_duration)

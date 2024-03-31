@@ -56,7 +56,7 @@ spec:
                   key: MQTT_PORT
                   name: mqtt-data
                   optional: false
-            - name: TOPIC
+            - name: OFFICE_TEMP_BME280_TEST
               valueFrom:
                 configMapKeyRef:
                   key: OFFICE_TEMP_BME_TEST
