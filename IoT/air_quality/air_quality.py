@@ -17,23 +17,29 @@ from iot_libraries.logging_util import logger  # noqa: E402
 from iot_libraries.communications_utilities\
     import IoTCommunications  # noqa: E402
 
+# TODO: elegant way of shutting of sensor/activating sleep mode
+# code examples I've found are 5+ years old and don't work with
+# current serial library. Solution is probably to use GPIO pins
+# and/or C++
+
 
 class AirQuality:
 
     def __init__(self):
 
         # create variables
-        self.defineVariables()
+        self.define_variables()
         self.connect_to_sensor()
 
-    def defineVariables(self):
+    def define_variables(self):
 
         self.pid = 1
-        self.pm2Bytes = 2
-        self.pm10Bytes = 4
-        self.deviceID = 6
-        self.error_count = 0
-        self.NODE_DEVICE_ID = os.environ['DEVICE_ID_DATA']
+        self.pm2_bytes = 2
+        self.pm10_bytes = 4
+        self.device_id = 6
+        self.read_error_count = 0
+        self.usb_error_count = 0
+        self.NODE_DEVICE_ID = os.environ['DEVICE_ID']
         self.DEVICE_FAILURE_CHANNEL = os.environ['DEVICE_FAILURE_CHANNEL']
 
         self.com_utilities = IoTCommunications()
@@ -44,7 +50,7 @@ class AirQuality:
         USB = os.environ['USB_ADDRESS']
 
         try:
-            self.serialConnection = serial.Serial(USB)
+            self.serial_connection = serial.Serial(USB)
             logger.info(f'connected to Nova PM SDS011 Air Quality sensor at: {USB}')  # noqa: E501
 
         except Exception as e:
@@ -56,10 +62,11 @@ class AirQuality:
             # SO... we put the container to sleep for an hour to provide
             # enough time to fix the physical issue w/o being spammed with
             # constant restart and container back-off alerts
-            sleep(3600)
+            self.usb_error_count += 1
+            sleep(3600 * self.usb_error_count)
 
     # get air quality data, use bit shifting to isolate data
-    def getAirQuality(self):
+    def get_air_quality(self):
 
         try:
 
@@ -71,6 +78,11 @@ class AirQuality:
 
             pm2 = round((self.parse_value(message, self.pm2Bytes) * 0.1), 4)
             pm10 = round((self.parse_value(message, self.pm10Bytes) * 0.1), 4)
+
+            # flush buffer - should help avoid issues where we get
+            # anomolous readings
+            self.serialConnection.reset_input_buffer()
+
             return pm2, pm10
 
         except Exception as e:
@@ -78,9 +90,10 @@ class AirQuality:
             logger.debug(message)
             self.com_utilities.send_slack_alert(message,
                                                 self.DEVICE_FAILURE_CHANNEL)
-            # put container to sleep for an hour to delay the continuous
-            # back off cycle/alerts
-            sleep(3600)
+            # put container to sleep to avoid getting continuous container
+            # creation back off alerts
+            self.error_count += 1
+            sleep(3600 * self.read_error_count)
 
     # utility function that uses bit shifting to parse out
     # air quality data.

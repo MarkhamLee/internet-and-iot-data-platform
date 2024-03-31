@@ -77,13 +77,17 @@ spec:
             - name: DEVICE_FAILURE_CHANNEL
               value: '#iot_device_failures'
             - name: INTERVAL
-              value: '5'
+              value: '600'
             - name: DEVICE_ID
               value: rpinode0
             - name: SENSOR_ID
               value: office_airquality_sensor_novapm
             - name: ALERT_THRESHOLD
               value: '25'
+            - name: PM2_THRESHOLD
+              value: '50'
+            - name: PM10_THRESHOLD
+              value: '75'
             - name: USB_ADDRESS
               # ideally you'd create a name mapping but with the NovaPM this 
               # doesn't seem to work like it does with other USB devices 

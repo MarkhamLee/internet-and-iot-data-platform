@@ -61,6 +61,10 @@ def get_air_quality(serial_con, pm2_bytes, pm10_bytes):
             "pm10": pm10
         }
 
+        # flush input buffer this "should" reduce instances of
+        # anomalous readings
+        serial_con.reset_input_buffer()
+
         return payload
 
     except Exception as e:

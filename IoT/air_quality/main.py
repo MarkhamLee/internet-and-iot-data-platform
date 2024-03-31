@@ -1,9 +1,8 @@
 # Markham Lee (C) 2023 - 2024
 # Productivity, Weather, Personal, et al dashboard:
 # https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
-# This script retrieves air quality data from a Nova PM SDS011
-# Air Quality sensor connected via USB and then sends the data off
-# to an MQTT broker
+# This script retrieves air quality data from a Nova PM SDS011 Air Quality
+# sensor connected via USB and then sends the data off to an MQTT broker
 import json
 import gc
 import os
@@ -21,20 +20,23 @@ from iot_libraries.communications_utilities\
 com_utilities = IoTCommunications()
 DEVICE_FAILURE_CHANNEL = os.environ['DEVICE_FAILURE_CHANNEL']
 
+
 DEVICE_ID = os.environ['DEVICE_ID']
 SENSOR_ID = os.environ['SENSOR_ID']
 
 
 def air(client: object, quality: object, topic: str, interval: int) -> str:
 
-    mqtt_error_count = 0
-    base_sleep = 900
+    error_n = 1
+    PM2_THRESHOLD = int(os.environ['PM2_THRESHOLD'])
+    PM10_THRESHOLD = int(os.environ['PM10_THRESHOLD'])
 
     while True:
 
         pm2, pm10 = quality.getAirQuality()
 
-        if pm2 > 25 or pm10 > 50:
+        if pm2 > PM2_THRESHOLD or pm10 > PM10_THRESHOLD:
+
             send_threshold_alert(pm2, pm10)
 
         payload = {
@@ -45,19 +47,15 @@ def air(client: object, quality: object, topic: str, interval: int) -> str:
         payload = json.dumps(payload)
         result = client.publish(topic, payload)
         status = result[0]
-        base_sleep = 300
+
+        sleep_duration = interval
 
         if status != 0:
             message = (f'Air quality MQTT publish failure on {DEVICE_ID}, status code: {status}')  # noqa: E501
             logger.debug(message)  # noqa: E501
             com_utilities.send_slack_alert(message, DEVICE_FAILURE_CHANNEL)
-            mqtt_error_count += 1
-
-            if mqtt_error_count == 5:
-                # put container to sleep if broker is down
-                # calculate sleep duration
-                message = (f'10 consecutive MQTT broker failures, going to sleep for {base_sleep/60} minutes')  # noqa: E501
-                sleep(base_sleep)
+            sleep_duration = error_n * interval
+            error_n = (2 * error_n)
 
         # given that this is a RAM constrained device, let's delete
         # everything and do some garbage collection, watching things
@@ -65,7 +63,7 @@ def air(client: object, quality: object, topic: str, interval: int) -> str:
         del payload, result, status, pm2, pm10
         gc.collect()
 
-        sleep(interval)
+        sleep(sleep_duration)
 
 
 def send_threshold_alert(pm2, pm10):
@@ -90,7 +88,7 @@ def main():
         message = (f'Air Quality Class failed to instantiate, with error {e}, going to sleep....')  # noqa: E501
         logger.debug(message)
         com_utilities.send_slack_alert(message, DEVICE_FAILURE_CHANNEL)
-        sleep(900)
+        sleep(1800)
 
     # Load parameters
     INTERVAL = int(os.environ['INTERVAL'])
