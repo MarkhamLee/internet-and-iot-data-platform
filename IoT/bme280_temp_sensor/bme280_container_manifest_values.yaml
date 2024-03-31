@@ -1,0 +1,87 @@
+# Deployment Manifest for Kubernetes
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bme280-test
+  namespace: iot-devices
+spec:
+  selector:
+    matchLabels: 
+      app: bme280-test
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: bme280-test
+    spec:
+      nodeName: rpinode2
+      containers:
+        - name: bme280-mki
+          image: markhamlee/bme280_temp:latest
+          imagePullPolicy: Always
+          resources:
+            limits:
+              cpu: 200m
+              memory: 256Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+          securityContext:
+            allowPrivilegeEscalation: true
+            privileged: true
+            readOnlyRootFilesystem: false
+            runAsNonRoot: false
+          env:
+            - name: MQTT_USER
+              valueFrom:
+                secretKeyRef:
+                  key: MQTT_USER
+                  name: mqtt-creds
+                  optional: false
+            - name: MQTT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  key: MQTT_SECRET
+                  name: mqtt-creds
+                  optional: false
+            - name: MQTT_BROKER
+              valueFrom:
+                configMapKeyRef:
+                  key: MQTT_BROKER
+                  name: mqtt-data
+                  optional: false
+            - name: MQTT_PORT
+              valueFrom:
+                configMapKeyRef:
+                  key: MQTT_PORT
+                  name: mqtt-data
+                  optional: false
+            - name: TOPIC
+              valueFrom:
+                configMapKeyRef:
+                  key: OFFICE_TEMP_BME_TEST
+                  name: mqtt-data
+                  optional: false
+            - name: ALERT_ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                  key: SLACK_ALERT_ENDPOINT
+                  name: slack-service-endpoint
+                  optional: false
+            - name: CLIMATE_ALERT_WEBHOOK
+              valueFrom:
+                secretKeyRef:
+                  key: CLIMATE_ALERT_WEBHOOK
+                  name: climate-alert-secret
+                  optional: false           
+            - name: DEVICE_FAILURE_CHANNEL
+              value: '#iot_device_failures'
+            - name: INTERVAL
+              value: '5'
+            - name: DEVICE_ID
+              value: rpinode2
+            - name: SENSOR_ID
+              value: bme280_temp_test
+      imagePullSecrets: 
+        - name: docker-creds
+      restartPolicy: Always
