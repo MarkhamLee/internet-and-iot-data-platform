@@ -6,3 +6,4 @@ RPi.GPIO
 adafruit-circuitpython-dht
 requests
 smbus2
+RPi.bme280
