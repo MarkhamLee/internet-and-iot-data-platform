@@ -17,7 +17,7 @@ spec:
       nodeName: rpinode0
       containers:
         - name: air-quality-office-mkiii
-          image: markhamlee/airquality:arm64
+          image: markhamlee/airquality:latest
           imagePullPolicy: Always
           resources:
             limits:
@@ -94,4 +94,4 @@ spec:
               value: /dev/ttyUSB0 
       imagePullSecrets: 
         - name: docker-creds
-    restartPolicy: Always
+      restartPolicy: Always

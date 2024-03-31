@@ -81,7 +81,7 @@ class AirQuality:
 
             # flush buffer - should help avoid issues where we get
             # anomolous readings
-            self.serialConnection.reset_input_buffer()
+            self.serial_connection.reset_input_buffer()
 
             return pm2, pm10
 
