@@ -22,7 +22,7 @@ def get_sensor_data(total_count: int, sleep_interval: int):
 
         # define key variables
         port = 1
-        address = 0x76
+        address = 0x77
         bus = smbus2.SMBus(port)
 
         calibration_params = bme280.load_calibration_params(bus, address)
