@@ -92,7 +92,7 @@ class AirQuality:
                                                 self.DEVICE_FAILURE_CHANNEL)
             # put container to sleep to avoid getting continuous container
             # creation back off alerts
-            self.error_count += 1
+            self.read_error_count += 1
             sleep(3600 * self.read_error_count)
 
     # utility function that uses bit shifting to parse out
