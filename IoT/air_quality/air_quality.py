@@ -70,7 +70,7 @@ class AirQuality:
 
         try:
 
-            message = self.serialConnection.read(10)
+            message = self.serial_connection.read(10)
 
             # outputs have to be scaled by 0.1 to properly capture the
             # sensor's precision as it returns integers that are actually
