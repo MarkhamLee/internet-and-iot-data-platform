@@ -21,11 +21,11 @@ logger.addHandler(handler)
 
 def get_variables():
 
-    pm2Bytes = 2
-    pm10Bytes = 4
-    # self.deviceID = 6
+    pm2_bytes = 2
+    pm10_bytes = 4
+    # self.device_id = 6
 
-    return pm2Bytes, pm10Bytes
+    return pm2_bytes, pm10_bytes
 
 
 def connect_to_device():
