@@ -33,7 +33,7 @@ def air(client: object, quality: object, topic: str, interval: int) -> str:
 
     while True:
 
-        pm2, pm10 = quality.getAirQuality()
+        pm2, pm10 = quality.get_air_quality()
 
         if pm2 > PM2_THRESHOLD or pm10 > PM10_THRESHOLD:
 
