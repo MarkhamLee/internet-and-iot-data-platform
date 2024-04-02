@@ -1,4 +1,20 @@
-FROM python:alpine as build
+# Build Stage
+
+FROM python:alpine as builder
+
+WORKDIR /app
+
+COPY /openweather_library/requirements.txt .
+
+RUN pip wheel --no-cache-dir --no-deps --wheel-dir /app/wheels -r requirements.txt
+
+# Final Stage 
+FROM python:alpine
+
+COPY --from=builder /app/wheels /wheels
+COPY --from=builder /app/requirements.txt .
+
+RUN pip install --no-cache /wheels/*
 
 COPY ./etl_library ./etl_library
 COPY ./openweather_library ./openweather_library
@@ -7,6 +23,4 @@ WORKDIR /etl
 
 COPY ./openweather_air_quality ./
 
-RUN pip install -r /openweather_library/requirements.txt
-
-CMD python3 /etl/main.py
+ENTRYPOINT ["python3", "/etl/main.py"]

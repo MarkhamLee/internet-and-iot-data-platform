@@ -18,6 +18,8 @@ class EtlUtilities():
 
         pass
 
+    # validates a given json vs previously defined schema - i.e., verify that
+    # the data is in the desired format.
     @staticmethod
     def validate_json(data: dict, schema: dict) -> int:
 
@@ -33,6 +35,7 @@ class EtlUtilities():
             logger.debug(f'Slack pipeline failure alert sent with code: {response}')  # noqa: E501
             return 1, response
 
+    # send data directly to a Slack incoming webhook
     @staticmethod
     def send_slack_webhook(url: str, message: str):
 
@@ -51,6 +54,8 @@ class EtlUtilities():
         return EtlUtilities.evaluate_slack_response(response.status_code,
                                                     'webhook')
 
+    # evaluates the response code and writes the appropriate message
+    # to the logs
     @staticmethod
     def evaluate_slack_response(code: int, type: str):
 
@@ -62,6 +67,7 @@ class EtlUtilities():
 
         return code
 
+    # generic post requuest to a given URL
     @staticmethod
     def generic_post_request(payload: dict, url: str):
 

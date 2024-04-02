@@ -1,7 +1,7 @@
 ### Finnhub ETL container 
 
 #### What's here?
-A container for pulling stock price data from the Finnhub API and then writing that data to InfluxDB. 
+An ETL container for pulling stock price data from the Finnhub API and then writing that data to InfluxDB. 
 
 #### The Data 
 The Finnhub API provides the folowing data points:

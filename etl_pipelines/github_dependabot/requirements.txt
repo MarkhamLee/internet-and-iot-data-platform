@@ -1,4 +1,0 @@
-jsonschema
-influxdb-client
-slack_sdk
-requests

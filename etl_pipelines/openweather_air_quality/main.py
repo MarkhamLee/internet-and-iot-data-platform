@@ -1,3 +1,8 @@
+# (C) Markham Lee 2023 - 2024
+# https://github.com/MarkhamLee/finance-productivity-iot-informational-weather-dashboard
+# Finance, Productivity, IoT, Informational, Weather, Dashboard
+# ETL for ingesting Air Pollution data from the OpenWeather API and writing it
+# to InfluxDB.
 import os
 import sys
 import json
@@ -19,6 +24,7 @@ etl_utilities = EtlUtilities()
 WEBHOOK_URL = os.environ['ALERT_WEBHOOK']
 
 
+# Get pollution data from the OpenWeather API
 def get_air_quality_data():
 
     # key for OpenWeather API
@@ -37,6 +43,7 @@ def get_air_quality_data():
     return data['list'][0]['components']
 
 
+# validate the data
 def validate_air_data(data: object) -> int:
 
     with open('air_quality.json') as file:
@@ -46,11 +53,13 @@ def validate_air_data(data: object) -> int:
     return etl_utilities.validate_json(data, SCHEMA)
 
 
+# pull the desired fields out of the json
 def parse_data(data: dict) -> dict:
 
     return utilities.parse_air_data(data)
 
 
+# write the data to InfluxDB
 def write_data(data: dict):
 
     MEASUREMENT = os.environ['AIR_QUALITY_MEASUREMENT']

@@ -4,7 +4,6 @@
 # ETL bot for monitoring the Raspberry Pi Locator: https://rpilocator.com/
 # RSS feed and sending out alerts when selected items are available for
 # purchase.
-
 import feedparser
 import requests
 import os

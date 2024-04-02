@@ -2,7 +2,6 @@
 # https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
 # Retrieves the current stock price for a given security and then writes the
 # data to InfluxDB.
-
 import os
 import sys
 import json

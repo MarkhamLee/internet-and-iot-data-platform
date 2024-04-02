@@ -1,6 +1,7 @@
 # (C) Markham Lee 2023 - 2024
 # https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
-# Test script for the pulling dependabot security alerts from the GitHub API
+# Test script for the ETL that pulls dependabot security alerts from the GitHub
+# API.
 
 import os
 import sys
