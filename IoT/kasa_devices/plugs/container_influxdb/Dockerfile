@@ -1,4 +1,4 @@
-FROM python:3.11-slim as build
+FROM python:alpine as build
 
 COPY requirements.txt main.py logging_util.py influx_client.py /
 
