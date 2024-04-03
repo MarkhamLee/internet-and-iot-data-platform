@@ -24,4 +24,4 @@ WORKDIR /iot_sensors
 
 COPY ./bme280_temp_sensor ./
 
-ENTRYPOINT ["python3" "/iot_sensors/main.py"]
+ENTRYPOINT ["python3", "/iot_sensors/main.py"]
