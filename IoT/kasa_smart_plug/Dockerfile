@@ -18,6 +18,6 @@ COPY ./iot_libraries ./iot_libraries
 
 WORKDIR /iot_sensors
 
-COPY COPY kasa_smart_plug ./
+COPY COPY ./kasa_smart_plug ./
 
 ENTRYPOINT ["python3", "/iot_sensors/main.py"]
