@@ -5,12 +5,20 @@
 # Kasa TP25P4 smart plug and writing the data to InfluxDB.
 
 import asyncio
-import os
-import json
 import gc
+import json
+import os
+import sys
 from kasa import SmartPlug
-from kasa_utilities import DeviceUtilities
-from logging_util import logger
+
+parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(parent_dir)
+
+from iot_libraries.logging_util import logger  # noqa: E402
+from iot_libraries.communications_utilities\
+    import IoTCommunications  # noqa: E402
+
+com_utilities = IoTCommunications()
 
 
 async def get_plug_data(client: object, topic: str,
@@ -59,9 +67,6 @@ async def get_plug_data(client: object, topic: str,
 
 def main():
 
-    # instantiate utilities class
-    deviceUtilities = DeviceUtilities()
-
     # Load operating parameters
     INTERVAL = int(os.environ['INTERVAL'])
     DEVICE_IP = os.environ['DEVICE_IP']
@@ -74,12 +79,12 @@ def main():
     MQTT_PORT = int(os.environ['MQTT_PORT'])
 
     # get unique client ID
-    clientID = deviceUtilities.getClientID()
+    clientID = com_utilities.getClientID()
 
     # get mqtt client
-    client, code = deviceUtilities.mqttClient(clientID, MQTT_USER,
-                                              MQTT_SECRET, MQTT_BROKER,
-                                              MQTT_PORT)
+    client, code = com_utilities.mqttClient(clientID, MQTT_USER,
+                                            MQTT_SECRET, MQTT_BROKER,
+                                            MQTT_PORT)
 
     # start device monitoring
     try:

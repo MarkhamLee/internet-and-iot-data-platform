@@ -7,7 +7,7 @@
 
 from influxdb_client import InfluxDBClient # noqa E402
 from influxdb_client.client.write_api import SYNCHRONOUS # noqa E402
-from logging_util import logger
+from iot_libraries.logging_util import logger
 
 
 class InfluxClient():
