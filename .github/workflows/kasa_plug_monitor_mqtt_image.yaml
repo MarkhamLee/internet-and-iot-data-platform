@@ -5,8 +5,8 @@ on:
     branches:
       - "main"
     paths:
-      - "IoT/kasa_devices/plugs/container/*"
-
+    - "IoT/iot_libraries/*"
+    - "IoT/kasa_smart_plug_mqtt/*"
 jobs:
   docker:
     runs-on: ubuntu-latest
@@ -25,8 +25,8 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: ./IoT/kasa_devices/plugs/container
-          file: ./IoT/kasa_devices/plugs/container/Dockerfile
+          context: ./IoT/
+          file: ./IoT/kasa_smart_plug_mqtt/Dockerfile
           platforms: linux/arm64,linux/amd64
           push: true
           tags: markhamlee/kasa_plugs:latest

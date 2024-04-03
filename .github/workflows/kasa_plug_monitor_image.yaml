@@ -5,7 +5,8 @@ on:
     branches:
       - "main"
     paths:
-      - "IoT/kasa_devices/plugs/container_influxdb/*"
+    - "IoT/iot_libraries/*"
+    - "IoT/kasa_smart_plug/*"
 
 jobs:
   docker:
@@ -25,8 +26,8 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: ./IoT/kasa_devices/plugs/container_influxdb
-          file: ./IoT/kasa_devices/plugs/container_influxdb/Dockerfile
+          context: ./IoT/
+          file: ./IoT/kasa_smart_plug/Dockerfile
           platforms: linux/arm64,linux/amd64
           push: true
           tags: markhamlee/kasaplugs_influx:latest
