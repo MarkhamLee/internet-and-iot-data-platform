@@ -1,0 +1,3 @@
+### Raspberry Pi 4B - Monitoring Container
+
+You can find the code for monitoring a Raspberry Pi 4B [here](https://github.com/MarkhamLee/kubernetes-k3s-data-and-IoT-platform/tree/main/hardware_monitoring/raspberrypi_4b), the container pulls CPU and RAM utilization, plus temperature data and the transmit it via MQTT. It's suitable for use in monitoring a RPI 4B deployed as an edge or as part of an IoT device/use case, or for gathering extra data from a device being used as a server or deployed as part of a Kubernetes cluster.
