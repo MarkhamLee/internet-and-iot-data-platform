@@ -4,7 +4,7 @@
 # https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
 # Python script for receiving Air Quality data from
 # a Nova PM SDS011 air quality sensor and sending it to InfluxDB
-# via an MQTT Broker
+# via Node-RED and MQTT.
 import serial
 import os
 import sys
