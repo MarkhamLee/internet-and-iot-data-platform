@@ -6,7 +6,7 @@ on:
       - "main"
     paths:
       - "hardware_telemetry/orangepi_3b/*"
-
+      - "hardware_telemetry/hw_library/*"
 jobs:
   docker:
     runs-on: ubuntu-latest
@@ -25,7 +25,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: ./hardware_telemetry/orangepi_3b/
+          context: ./hardware_telemetry/
           file: ./hardware_telemetry/orangepi_3b/Dockerfile
           platforms: linux/arm64
           push: true
