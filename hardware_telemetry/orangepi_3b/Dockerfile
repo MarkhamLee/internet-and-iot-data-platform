@@ -18,6 +18,6 @@ RUN pip install --no-cache /wheels/*
 
 WORKDIR /hw_telemetry
 
-COPY main.py orangepi3b_data.py  /
+COPY ./orangepi_3b ./
 
 ENTRYPOINT ["python3", "/hw_telemetry/main.py"] 

@@ -18,6 +18,6 @@ RUN pip install --no-cache /wheels/*
 
 WORKDIR /hw_telemetry
 
-COPY main.py linux_lepotato.py  /
+COPY ./libre_lepotato ./
 
 ENTRYPOINT ["python3", "/hw_telemetry/main.py"] 
