@@ -24,7 +24,7 @@ com_utils = Communications()
 
 def monitor(client: object, get_data: object, TOPIC: str):
 
-    INTERVAL = os.environ['INTERVAL']
+    INTERVAL = int(os.environ['INTERVAL'])
     DEVICE_ID = os.environ['DEVICE_ID']
 
     logger.info(f'Starting HW monitoring for {DEVICE_ID}')
