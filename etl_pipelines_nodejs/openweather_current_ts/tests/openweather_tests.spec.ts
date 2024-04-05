@@ -1,12 +1,12 @@
 // (C) Markham Lee 2023 - 2024
 // productivity-music-stocks-weather-IoT-dashboard
 // https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
-// Tests for Node variant for the OpenWeather API ETL - pulls down data for current weather
-// conditions and writes it to InfluxDB
-// The API calls aren't mocked, as I wanted be sure that the tests exactly replicate 
+// Tests for Node variant for the OpenWeather API ETL - pulls down data for 
+// current weather conditions and writes it to InfluxDB. The API calls aren't 
+// mocked, because I wanted be sure that the tests exactly replicate 
 // production.
-// There may be a couple of warnings of tests completing before logging can complete,
-// but it doesn't impact the tests.
+// Note: There may be a couple of warnings of tests completing before logging
+// can complete, but it doesn't impact the tests.
 
 import { createOpenWeatherUrl } from "../utils/openweather_library";
 import { getWeatherData, parseData, writeData } from "../src/main"

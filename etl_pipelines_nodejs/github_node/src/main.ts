@@ -26,6 +26,7 @@ const getGitHubActions = async (gitUrl: string) => {
         })
 
         console.info('Data received from GitHub')
+
         return data
         
     
@@ -58,7 +59,7 @@ const parseData = (data: gitHubActionsData) => {
         
     } catch (error: any) {
 
-        const message = "GitHub Actions pipeline failure"
+        const message = "GitHub Actions pipeline failureb - data parsing"
         console.error(message)
         
         //send pipeline failure alert via Slack
@@ -101,7 +102,7 @@ const writeData = (payload: ghPointData) => {
         
     } catch (error: any) {
 
-        const message = "GitHub Repo actions pipeline failure - data dashboard, InfluxDB write failure"
+        const message = "GitHub Repo actions pipeline failure - InfluxDB write failure"
         console.error(message, error)
 
 
