@@ -14,6 +14,8 @@ FROM python:slim-bookworm
 COPY --from=builder /app/wheels /wheels
 COPY --from=builder /app/requirements.txt .
 
+COPY ./hw_library ./hw_library
+
 RUN pip install --no-cache /wheels/*
 
 WORKDIR /hw_telemetry
