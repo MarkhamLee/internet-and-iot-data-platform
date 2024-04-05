@@ -5,7 +5,7 @@ on:
     branches:
       - "main"
     paths:
-      - "IoT/air_quality/*"
+      - "IoT/sds011_air_quality_sensor/*"
       - "IoT/iot_libraries/*"
 
 jobs:
