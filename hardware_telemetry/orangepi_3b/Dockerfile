@@ -1,8 +1,23 @@
-FROM python:3.11-slim as build
+FROM python:slim-bookworm as builder
+
+WORKDIR /app
 
 RUN apt-get update -y && apt-get install -y gcc  python3-dev
 
-COPY requirements.txt orangepi3b_data.py main.py /
-RUN pip install -r /requirements.txt
+COPY /orangepi_3b/requirements.txt  .
 
-CMD python3 main.py 
+RUN pip wheel --no-cache-dir --no-deps --wheel-dir /app/wheels -r requirements.txt
+
+
+FROM python:slim-bookworm
+
+COPY --from=builder /app/wheels /wheels
+COPY --from=builder /app/requirements.txt .
+
+RUN pip install --no-cache /wheels/*
+
+WORKDIR /hw_telemetry
+
+COPY main.py orangepi3b_data.py  /
+
+ENTRYPOINT ["python3", "/hw_telemetry/main.py"] 

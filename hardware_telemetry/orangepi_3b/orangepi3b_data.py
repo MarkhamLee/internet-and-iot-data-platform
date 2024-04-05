@@ -2,17 +2,7 @@
 # Class with data retrieval and utility methods to support pulling hardware
 # data from an Orange Pi 3B
 # https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
-
-
 import psutil
-import uuid
-from paho.mqtt import client as mqtt
-import logging
-
-# setup logging for static methods
-logging.basicConfig(filename='hardwareData.log', level=logging.DEBUG,
-                    format='%(asctime)s %(levelname)s %(name)s %(threadName)s\
-                        : %(message)s')
 
 
 class OrangePi3BData():
@@ -24,7 +14,7 @@ class OrangePi3BData():
         self.coreCount = psutil.cpu_count(logical=False)
 
     # get average clock speed for all cores
-    def getFreq(self, all_cpu=False):
+    def get_freq(self, all_cpu=False):
 
         allFreq = psutil.cpu_freq(percpu=all_cpu)[0]
         allFreq = round(allFreq, 1)
@@ -32,7 +22,7 @@ class OrangePi3BData():
         return allFreq, self.coreCount
 
     # CPU load/utilization
-    def getCPUData(self):
+    def get_cpu_data(self):
 
         cpuUtil = (psutil.cpu_percent(interval=1))
         cpuUtil = round(cpuUtil, 1)
@@ -40,7 +30,7 @@ class OrangePi3BData():
         return cpuUtil
 
     # get current RAM used
-    def getRamData(self):
+    def get_ram_data(self):
 
         ramUse = (psutil.virtual_memory()[3]) / 1073741824
         ramUse = round(ramUse, 2)
@@ -54,39 +44,3 @@ class OrangePi3BData():
 
         return psutil.sensors_temperatures()['cpu_thermal'][0].current, \
             psutil.sensors_temperatures()['gpu_thermal'][0].current
-
-    # generates unique ID for MQTT broker, serves no purpose other
-    # than allowing the broker to differentiate connections between devices
-    @staticmethod
-    def getClientID():
-
-        clientID = str(uuid.uuid4())
-
-        return clientID
-
-    # Generates MQTT connection client
-    @staticmethod
-    def mqttClient(clientID: str, username: str, pwd: str,
-                   host: str, port: int):
-
-        def connectionStatus(client, userdata, flags, code):
-
-            if code == 0:
-                print('connected')
-
-            else:
-                print(f'connection error: {code} retrying...')
-                logging.DEBUG(f'connection error occured, return code: {code}')
-
-        client = mqtt.Client(clientID)
-        client.username_pw_set(username=username, password=pwd)
-        client.on_connect = connectionStatus
-
-        code = client.connect(host, port)
-
-        # this is so that the client will attempt to reconnect automatically/
-        # no need to add reconnect
-        # logic.
-        client.loop_start()
-
-        return client, code

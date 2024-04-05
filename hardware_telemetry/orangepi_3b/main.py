@@ -6,64 +6,79 @@
 # pulls CPU temps, utilization and clock speed, as well as GPU temp and RAM use
 
 import json
-import time
 import gc
 import os
-import logging
-from sys import stdout
+import sys
+from time import sleep
 from orangepi3b_data import OrangePi3BData
 
-# set up/configure logging with stdout so it can be picked up by K8s
-logger = logging.getLogger('Orange_Pi_3B_Telemetry')
-logger.setLevel(logging.DEBUG)
 
-handler = logging.StreamHandler(stdout)
-handler.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(filename)s - %(message)s')  # noqa: E501
-handler.setFormatter(formatter)
-logger.addHandler(handler)
+parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(parent_dir)
+
+from hw_library.logging_util import logger  # noqa: E402
+from hw_library.communications import Communications  # noqa: E402
+
+com_utils = Communications()
 
 
-def monitor(client: object, getData: object, topic: str):
+def monitor(client: object, get_data: object, TOPIC: str):
 
+    INTERVAL = os.environ['INTERVAL']
     DEVICE_ID = os.environ['DEVICE_ID']
+
+    logger.info(f'Starting HW monitoring for {DEVICE_ID}')
 
     while True:
 
-        time.sleep(1)
+        try:
 
-        # get CPU utilization
-        cpu_util = getData.getCPUData()
+            # get CPU utilization
+            cpu_util = get_data.get_cpu_data()
 
-        # get current RAM use
-        ram_use = getData.getRamData()
+            # get current RAM use
+            ram_use = get_data.get_ram_data()
 
-        # get per CPU frequencies
-        cpu_freq, core = getData.getFreq()
+            # get per CPU frequencies
+            cpu_freq, core = get_data.get_freq()
 
-        # get system temperatures
-        cpu_temp, gpu_temp = getData.rockchip_3566_temps()
+            # get system temperatures
+            cpu_temp, gpu_temp = get_data.rockchip_3566_temps()
 
-        payload = {
-           "cpu_utilization": cpu_util,
-           "ram_utilization": ram_use,
-           "cpu_freq": cpu_freq,
-           "cpu_temp": cpu_temp,
-           "gpu_temp": gpu_temp
-        }
+            payload = {
+                "cpu_utilization": cpu_util,
+                "ram_utilization": ram_use,
+                "cpu_freq": cpu_freq,
+                "cpu_temp": cpu_temp,
+                "gpu_temp": gpu_temp
+                }
 
-        payload = json.dumps(payload)
+            payload = json.dumps(payload)
+            send_message(client, TOPIC, payload)
 
-        result = client.publish(topic, payload)
+            del payload, cpu_util, ram_use, cpu_freq, cpu_temp, gpu_temp
+            gc.collect()
+
+        except Exception as e:
+            logger.debug(f'failed to read data from {DEVICE_ID} with error: {e}')  # noqa: E501
+
+        sleep(INTERVAL)
+
+
+def send_message(client: object, TOPIC: str, payload: dict):
+
+    try:
+        result = client.publish(TOPIC, payload)
         status = result[0]
+
+        # scenarios where the broker is working as expected, but the message
+        # failed to end.
         if status != 0:
+            print(f'Failed to send {payload} to: {TOPIC}')
+            logger.debug(f'MQTT publishing failure, return code: {status}')
 
-            print(f'Failed to send {payload} to: {topic}')
-            logger.debug(f'MQTT publishing failure for hardware monitoring on: {DEVICE_ID}, return code: {status}')  # noqa: E501
-
-        del payload, cpu_util, ram_use, cpu_freq, cpu_temp, gpu_temp, \
-            status, result
-        gc.collect()
+    except Exception as e:
+        logger.debug(f"MQTT Broker error: {e}")
 
 
 def main():
@@ -80,12 +95,12 @@ def main():
     MQTT_PORT = int(os.environ['MQTT_PORT'])
 
     # get unique client ID
-    clientID = opi_data.getClientID()
+    client_id = com_utils.get_client_id()
 
     # get mqtt client
-    client, code = opi_data.mqttClient(clientID, MQTT_USER,
-                                       MQTT_SECRET, MQTT_BROKER,
-                                       MQTT_PORT)
+    client, code = com_utils.mqtt_client(client_id, MQTT_USER,
+                                         MQTT_SECRET, MQTT_BROKER,
+                                         MQTT_PORT)
 
     # start monitoring
     try:

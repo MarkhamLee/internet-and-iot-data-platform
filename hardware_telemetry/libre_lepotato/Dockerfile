@@ -1,9 +1,23 @@
-FROM python:3.12.2-slim as build
+FROM python:slim-bookworm as builder
 
-COPY main.py linux_lepotato.py requirements.txt  /
+WORKDIR /app
 
 RUN apt-get update -y && apt-get install -y gcc  python3-dev
 
-RUN pip install -r /requirements.txt
+COPY /libre_lepotato/requirements.txt  .
 
-CMD python3 main.py 
+RUN pip wheel --no-cache-dir --no-deps --wheel-dir /app/wheels -r requirements.txt
+
+
+FROM python:slim-bookworm
+
+COPY --from=builder /app/wheels /wheels
+COPY --from=builder /app/requirements.txt .
+
+RUN pip install --no-cache /wheels/*
+
+WORKDIR /hw_telemetry
+
+COPY main.py linux_lepotato.py  /
+
+ENTRYPOINT ["python3", "/hw_telemetry/main.py"] 
