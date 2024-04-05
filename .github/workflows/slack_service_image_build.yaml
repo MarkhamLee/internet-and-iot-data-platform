@@ -5,7 +5,7 @@ on:
     branches:
       - "main"
     paths:
-      - "k3s_kubernetes_deployment_manifests/custom_micro_services/slack_service/container/*"
+      - "operations/slack_service/container/*"
 
 jobs:
   docker:
