@@ -27,7 +27,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./IoT/
-          file: ./IoT/air_quality/Dockerfile
+          file: ./IoT/sds011_air_quality_sensor/Dockerfile
           platforms: linux/arm64,linux/amd64
           push: true
           tags: markhamlee/airquality:latest
