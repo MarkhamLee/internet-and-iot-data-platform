@@ -3,3 +3,4 @@ node_modules
 /openweather/*.js
 etlUtilities.js
 *.js
+etl_configs.ts
