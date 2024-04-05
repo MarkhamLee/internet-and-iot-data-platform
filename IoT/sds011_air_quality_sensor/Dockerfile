@@ -2,7 +2,7 @@ FROM python:alpine as builder
 
 WORKDIR /app
 
-COPY ./air_quality/requirements.txt . 
+COPY ./sds011_air_quality_sensor/requirements.txt . 
 
 RUN pip install -r requirements.txt
 
@@ -20,6 +20,6 @@ COPY ./iot_libraries ./iot_libraries
 
 WORKDIR /iot_sensors
 
-COPY ./air_quality ./
+COPY ./sds011_air_quality_sensor ./
 
 ENTRYPOINT ["python3", "/iot_sensors/main.py"]
