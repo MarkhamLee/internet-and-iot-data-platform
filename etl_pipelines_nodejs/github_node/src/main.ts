@@ -85,7 +85,7 @@ const writeData = (payload: ghPointData) => {
         const writeClient = createInfluxClient(config.bucket, config.url,
             config.token, config.org)
   
-        let point = new Point(config.measurement)
+        const point = new Point(config.measurement)
                 .tag("DevOps Data", "GitHub",)
                 .floatField('total_actions', payload.totalActions) 
                 .stringField('mostRecentActions', payload.mostRecentAction)
@@ -95,7 +95,7 @@ const writeData = (payload: ghPointData) => {
         // write data to InfluxDB          
         writeClient.writePoint(point)
         writeClient.close().then(() => {
-            console.log('Weather data successfully written to InfluxDB')
+            console.log('Github Actions data successfully written to InfluxDB')
           })
         
         return 0
@@ -103,18 +103,14 @@ const writeData = (payload: ghPointData) => {
     } catch (error: any) {
 
         const message = "GitHub Repo actions pipeline failure - InfluxDB write failure"
+        const fullMessage = (message.concat(JSON.stringify(error.body)));
         console.error(message, error)
-
 
         //send pipeline failure alert via Slack
         sendSlackAlerts(message, config.webHookUrl)
             .then(result => {
-                
                 return result
             })
-
-        throw(message)
-
         }    
 }
 

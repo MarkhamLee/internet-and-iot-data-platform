@@ -81,7 +81,6 @@ describe("Validate data write", () => {
         // define good data payload
          const goodData = { co: 320.44, pm2_5: 2.64, pm10: 4.15 }
 
-        const response = writeData(goodData);
         expect(writeData(goodData)).toEqual(0)
     })
 
@@ -94,8 +93,6 @@ describe("Validate data write", () => {
 // the message has gone through. 
 describe("Test Slack Alerts", () => {
     it("Slack Alert Sent Successfully", async () => {
-
-    // expect.assertions(1)
     
     const message = "Test Slack Alert"
 
