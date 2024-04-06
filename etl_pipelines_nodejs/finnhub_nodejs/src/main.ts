@@ -35,15 +35,6 @@ const getFinnhubData = async (finnhubUrl: string): Promise<finnhubData> => {
 // parse and validate the Finnhub data
 const parseData = (data: finnhubData) => {
 
-    // validate data
-    const status = validateJson(data, FinnhubSchema)
-
-    if (status == 1) {
-
-        return process.exit()
-        
-    }
-
     const payload = {
         "previousClose": Number(data['pc']),
         "open": Number(data['o']),
