@@ -3,7 +3,8 @@
 // https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
 // Node.js - TypeScript version of the Finnhub ETL: pulling down daily stock price data 
 // and writing it to InfluxDB.
-import axios from 'axios';
+
+const finnhub = require('finnhub')
 import { Point } from '@influxdata/influxdb-client';
 import {createInfluxClient, sendSlackAlerts, validateJson}
 from "../../common/etlUtilities"
@@ -11,26 +12,36 @@ import { config, FinnhubSchema,
     finnhubPointData, finnhubData } from '../utils/finnhub_config'
 
 
-const getFinnhubData = async (finnhubUrl: string): Promise<finnhubData> => {
+const getFinnhubData = async () => {
 
-        try {
-        
-            const { data } = await axios.get<finnhubData>(finnhubUrl)
-            console.log("OpenWeather API call successful", data)
-            return data
-    
-        } catch (error: any){
-    
-            const message = "OpenWeather API Pipeline Current Weather (Nodejs variant) failure, API connection error: "
-            console.error(message, error.message)
-            sendSlackAlerts(message, config.webHookUrl)
-                .then(result => {
-                    return result
-                })
-            throw(error.message)
-        }
+    const apiKey = finnhub.ApiClient.instance.authentications['api_key']
+    apiKey.apiKey = config.finnhubKey 
+    const finnhubClient = new finnhub.DefaultApi()
+
+    // get data from the Finnhub API via the Official Finnhub JS library1
+   finnhubClient.quote(config.stock, (error: string, data: finnhubData,
+        response: unknown) => {
             
-    }
+            if (error) {
+                const message = "Pipeline failure for Finnub ETL (nodejs variant), API failure"
+                const fullMessage = message.concat(error)
+                console.error(fullMessage)
+                //send pipeline failure alert via Slack
+                sendSlackAlerts(fullMessage, config.webHookUrl)
+                .then(result => {
+                    return result 
+                })
+
+            } else {
+                console.log("Finnhub data received", data)
+                
+                const payload = parseData(data)
+                const resp = writeData(payload)
+                return resp
+            }        
+        });
+        
+}
 
 // parse and validate the Finnhub data
 const parseData = (data: finnhubData) => {

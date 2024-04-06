@@ -1,4 +1,4 @@
-     // (C) Markham Lee 2023 - 2024
+// (C) Markham Lee 2023 - 2024
 // productivity-music-stocks-weather-IoT-dashboard
 // https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
 // Config file for Finnhub ETL
@@ -60,6 +60,8 @@ export type finnhubData = {
   t: number;
 
 };
+
+
 
 
 export type finnhubPointData = {
