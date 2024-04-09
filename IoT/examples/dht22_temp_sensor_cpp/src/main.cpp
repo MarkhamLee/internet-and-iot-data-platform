@@ -15,7 +15,6 @@ DHT dht_sensor(DHT_SENSOR_PIN, DHT_SENSOR_TYPE);
 
 void setup() {  
 
-
     // DHT22 Sensor Setup 
     Serial.begin(9600);
     dht_sensor.begin(); 

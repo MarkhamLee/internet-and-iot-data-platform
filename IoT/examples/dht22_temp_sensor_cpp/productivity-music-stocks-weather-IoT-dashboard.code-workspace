@@ -1,0 +1,12 @@
+{
+	"folders": [
+		{
+			"path": "../../.."
+		},
+		{
+			"name": "esp32_dht22",
+			"path": "esp32_dht22"
+		}
+	],
+	"settings": {}
+}
