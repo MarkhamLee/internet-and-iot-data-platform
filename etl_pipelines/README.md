@@ -1,6 +1,8 @@
 ## ETL Containers & Scripts
 
-![ETL Workflow](images/ETL_workflow.png)  
+
+### Typical End-to-End ETL Workflow
+![ETL Workflow](images/ETL_workflow_v1.1.png)  
 
 All the ETL pipelines have been built as Docker containers for a couple of reasons:
 
