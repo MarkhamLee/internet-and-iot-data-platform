@@ -7,9 +7,12 @@ deploy the code.
 #include <Adafruit_Sensor.h>
 #include <DHT.h>
 #include <DHT_U.h>
+#include <ArduinoJson.h>
+
 #define DHT_SENSOR_PIN 21 
 #define DHT_SENSOR_TYPE DHT22
-#include <ArduinoJson.h>
+#define LED 2
+
 
 DHT dht_sensor(DHT_SENSOR_PIN, DHT_SENSOR_TYPE);
 
@@ -26,7 +29,7 @@ void setup() {
 
 void loop() {
 
-
+  digitalWrite(LED,HIGH); // blink on when reading data to show activity, blink off when finished
    // read humidity
   float humi  = dht_sensor.readHumidity();
   // read temperature in Celsius
@@ -52,6 +55,7 @@ void loop() {
 
     serializeJsonPretty(payload, Serial);
     Serial.println();
+    digitalWrite(LED,LOW);
 
   }
 
