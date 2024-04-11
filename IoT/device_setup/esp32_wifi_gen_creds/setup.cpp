@@ -46,23 +46,31 @@ void setup() {
     // bool res;
     // res = wm.autoConnect("esp32_node1_s5003","password");
 
-    // setup preferences to save the data 
-    Preferences prefs;
 
-    prefs.begin("credentials", false);
+    // Use preferences + "getenv" to load environmental variables and save
+    // to the device. In this case, we're loading and saving MQTT creds. 
+    // Comment out after saving the data to the device, it won't be needed
+    // for subsequent code updates unless you change the creds.
 
-    // I have the MQTT creds on my dev box as env vars - this allows me to 
-    // quickly and easy load them on the ESP32. Comment out after you've
-    // loaded the creds.
-    //String mqtt_user =  getenv ("MQTT_USER");
-    //String mqtt_secret = getenv ("MQTT_SECRET");
-    //String mqtt_host = getenv ("MQTT_HOST");
+    // Instantiate the preferences class
+    // Preferences prefs;
 
-    //prefs.putString("mqtt_user", mqtt_user);
-    //prefs.putString("mqtt_secret", mqtt_secret);
-    //prefs.putString("mqtt_host", mqtt_host);
+    // prefs.begin("credentials", false);
 
-    //Serial.println("MQTT credentials saved");
+    // Comment out after you've saved the creds. Note: you can apply
+    // the below to any vars you want to store on the device. Just be
+    // mindful of the limited space.
+    // const char* mqtt_user =  getenv ("MQTT_USER");
+    // const char* mqtt_secret = getenv ("MQTT_SECRET");
+    // const char* mqtt_host = getenv ("MQTT_HOST");
+
+    // prefs.putString("mqtt_user", mqtt_user);
+    // prefs.putString("mqtt_secret", mqtt_secret);
+    // prefs.putString("mqtt_host", mqtt_host);
+
+    // Serial.println("MQTT credentials saved");
+
+    // prefs.end();
 
     prefs.end();
       

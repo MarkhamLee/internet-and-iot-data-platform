@@ -62,6 +62,33 @@ void setup() {
 
     // end Wi-Fi Manager setup 
 
+    // One time setup item (like Wi-Fi manager) for loading
+    // MQTT creds from environmental variables and saving them
+    // the device. IF you use this without having run the setup
+    // sketch, run the below, then comment out as it won't be
+    // needed again unless you change the MQTT creds.
+
+    // Instantiate the preferences class
+    // Preferences prefs;
+
+    // prefs.begin("credentials", false);
+
+    // Comment out after you've saved the creds. Note: you can apply
+    // the below to any vars you want to store on the device. Just be
+    // mindful of the limited space.
+    // const char* mqtt_user =  getenv ("MQTT_USER");
+    // const char* mqtt_secret = getenv ("MQTT_SECRET");
+    // const char* mqtt_host = getenv ("MQTT_HOST");
+
+    // prefs.putString("mqtt_user", mqtt_user);
+    // prefs.putString("mqtt_secret", mqtt_secret);
+    // prefs.putString("mqtt_host", mqtt_host);
+
+    // Serial.println("MQTT credentials saved");
+
+    // prefs.end();
+
+
     // DHT22 Sensor Setup 
     Serial.begin(9600);
     dht_sensor.begin(); 
