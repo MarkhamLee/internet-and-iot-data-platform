@@ -93,10 +93,8 @@ void setup() {
     Serial.begin(9600);
     dht_sensor.begin(); 
 
-    // I use a separate process to store the MQTT creds directly to the device
-    // via the Preferences library. I.e., all of my ESP32s communicate via MQTT
-    // so I just store Wi-Fi and MQTT creds as part of a "provisioning process"
-    // and the add the code for the specific sensor.
+    // load MQTT creds from device storage via the Preferences library
+    // and then use them to setup the MQTT client.
     Preferences preferences;
 
     preferences.begin("credentials", false);
@@ -152,11 +150,11 @@ void loop() {
     auto publish = mqtt.begin_publish(topic, measureJson(payload));
     serializeJson(payload, publish);
     publish.send();
-    digitalWrite(LED,LOW);
+    digitalWrite(LED,LOW); // if ou don't see blue led flashing for activity, something is wrong.
 
     // output payload in json format - uncomment for testing
-    serializeJsonPretty(payload, Serial);
-    Serial.println();
+    // serializeJsonPretty(payload, Serial);
+    // Serial.println();
 
   }
 

@@ -21,15 +21,14 @@ without having to worry about loading Wi-Fi credentials, MQTT creds, etc.
 
 PicoMQTT::Client mqtt("");
 
-String topic = "/embedded/esp32_S5003_airquality";
+String topic = "<Insert MQTT Topic Name Here>";
 
 
 void setup() {  
 
-    // start setup for Wi-Fi manager & collecting MQTT parametrs 
+    // start setup for Wi-Fi manager
     WiFi.mode(WIFI_STA); 
  
-  
     Serial.begin(115200);
     
     WiFiManager wm;
@@ -44,9 +43,30 @@ void setup() {
     // parameters for Wi-Fi setup 
     // comment out after you've loaded creds
     // bool res;
-    // res = wm.autoConnect("esp32_node1_s5003","password");
+    // res = wm.autoConnect("esp32_node1","password");
+      
+    // Auto Connect esp32_node1 will be part of the device name on your WiFi network
+    // this block of code is for auto connecting to Wi-Fi
+    if (!wm.autoConnect("esp32_node1", "password")) {
+        // Did not connect, print error message
+        Serial.println("failed to connect and hit timeout");
+    
+        // try again
+        ESP.restart();
+        delay(1000);
 
+    } else {
 
+      // Connection Message
+      Serial.println("WiFi connected");
+      Serial.print("IP address: ");
+      Serial.println(WiFi.localIP());
+
+    }
+
+    // end Wi-Fi Manager setup 
+
+    // MQTT creds - saving to device
     // Use preferences + "getenv" to load environmental variables and save
     // to the device. In this case, we're loading and saving MQTT creds. 
     // Comment out after saving the data to the device, it won't be needed
@@ -72,31 +92,6 @@ void setup() {
 
     // prefs.end();
 
-    prefs.end();
-      
-    // Auto Connect esp32_node will be part of the device name on your WiFi network
-    if (!wm.autoConnect("esp32_node1_s5003", "password")) {
-        // Did not connect, print error message
-        Serial.println("failed to connect and hit timeout");
-    
-        // try again
-        ESP.restart();
-        delay(1000);
-
-    } else {
-
-      // Connection Message
-      Serial.println("WiFi connected");
-      Serial.print("IP address: ");
-      Serial.println(WiFi.localIP());
-
-    }
-
-    // end Wi-Fi Manager setup 
-
-    // Plantower S5003 Setup
-
-
     // load MQTT creds and setup the MQTT client
     Preferences preferences;
 
@@ -118,6 +113,8 @@ void setup() {
     // setup pin to flash on activity
     pinMode(LED, OUTPUT);
 
+    // setup for external devices connected to the ESP32, e.g., climate sensors
+
 
 }
 
@@ -132,6 +129,8 @@ void loop() {
 
 
   // build JSON message for MQTT 
+  // This is just a sample payload to test/verify that everything is
+  // working properly.
 
   JsonDocument payload; // define json document 
 
@@ -144,14 +143,14 @@ void loop() {
   auto publish = mqtt.begin_publish(topic, measureJson(payload));
   serializeJson(payload, publish);
   publish.send();
-  digitalWrite(LED,LOW);
+  digitalWrite(LED,LOW); // if the LED isn't blinking, the above isn't working properly
 
-  // output payload in json format - uncomment for testing
+  // output payload in json format - comment out post testing
   serializeJsonPretty(payload, Serial);
   Serial.println();
 
 
-  // sleep interval of five seconds 
-  delay(5000);
+  // sleep interval of two seconds
+  delay(2000);
  
 }
