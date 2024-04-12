@@ -77,7 +77,7 @@ spec:
             - name: DEVICE_FAILURE_CHANNEL
               value: '#iot_device_failures'
             - name: INTERVAL
-              value: '600'
+              value: '500'
             - name: DEVICE_ID
               value: rpinode0
             - name: SENSOR_ID
