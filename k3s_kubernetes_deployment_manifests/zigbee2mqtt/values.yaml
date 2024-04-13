@@ -18,7 +18,7 @@ spec:
       labels:
         app: zigbee2mqtt
     spec:    
-      nodeName: orangepi3b
+      nodeName: node0
       containers:
         - name: zigbee2mqtt
           image: koenkk/zigbee2mqtt:latest
@@ -72,15 +72,15 @@ spec:
               containerPort: 8080
               protocol: TCP
           volumeMounts:
-            - name: zigbee2mqtt-data
-              mountPath: /data
-            - name: zigbee2mqtt-config
-              mountPath: /app/configuration.yaml
+            - mountPath: /data
+              name: zigbee2mqtt-data
+            - mountPath: /app/configuration.yaml
+              name: zigbee2mqtt-config
               subPath: configuration.yaml
-            - name: zigbee2mqtt-udev
-              mountPath: /run/udev
-            - name: ttyusb
-              mountPath: /dev/zigbee
+            - mountPath: /run/udev
+              name: zigbee2mqtt-udev
+            - mountPath: /dev/zigbee
+              name: ttyusb
           livenessProbe:
             tcpSocket:
               port: 8080
@@ -103,18 +103,21 @@ spec:
             timeoutSeconds: 1
             periodSeconds: 5
       volumes:
-        - name: zigbee2mqtt-data
-          persistentVolumeClaim:
-            claimName: zigbee2mqtt-data
-        - name: zigbee2mqtt-udev
-          hostPath:
-            path: /run/udev
-        - name: ttyusb
-          hostPath:
-            path: /dev/zigbee
-        - name: zigbee2mqtt-config
-          configMap:
-            name: zigbee2mqtt-config
+      - name: zigbee2mqtt-data
+        persistentVolumeClaim:
+          claimName: zigbee2mqtt-data
+      - hostPath:
+          path: /run/udev
+          type: ''
+        name: zigbee2mqtt-udev
+      - hostPath:
+          path: /dev/zigbee
+          type: ''
+        name: ttyusb
+      - configMap:
+          defaultMode: 420
+          name: zigbee2mqtt-config
+        name: zigbee2mqtt-config
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -128,7 +131,7 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 100Mi
+      storage: 12Gi
 status: {}
 ---
 apiVersion: v1
@@ -148,3 +151,23 @@ spec:
     app: zigbee2mqtt
   type:
     ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: zigbee2mqtt
+  namespace: zigbee2mqtt
+  annotations:
+    kubernetes.io/ingress.class: traefik
+spec:
+  rules:
+    - host: zigbee.local.example.com
+      http:
+        paths:
+          - backend:
+              service:
+                name: zigbee2mqtt
+                port:
+                  number: 8080
+            path: /
+            pathType: ImplementationSpecific
