@@ -15,8 +15,9 @@ Nearly all ETL pipelines are built as Docker containers so that they can be larg
 
 ### Continuously Running Services 
 
-* Unlike the ETL pipelines that build a new container each time the pipeline runs, continuously running services (E.g., monitoring air quality) only pull down an image/build a container when they're first deployed and won't rebuild the container unless a node fails, there is a configuration change, etc. I.e., there needs to be a mechanism to rebuild the container when a new image is available.
-* Currently testing a couple of approaches, the winning solution will likely leverage Argo CD and GitHub actions to regularly check the repo for a new Docker image and then re-deploy all relevant services.
+* **ArgoCD: ** is used to maintain the state of all apps whether 3rd party or custom made, you can think of CICD for the deployment manfiests, Kubernetes configurations, Infrastructure as Code, etc. This is also a fail-safe against "click-ops" changing something it shouldn't, as ArgoCD will "fix" configurations in the cluster that "drift" away from what's in the Repo. 
+* As with ETL containers, GitHub Actions is used to automatically build the Docker images when new code is pushed to Github.
+* Unlike the ETL pipelines that build a new container each time the pipeline runs, continuously running services (E.g., monitoring air quality) only pull down an image/build a container when they're first deployed and won't rebuild the container unless a node fails, there is a configuration change, etc. Additionally, Argo CD only redeploys apps if there is a configuration change. Currently experimenting with methods of automatically deploying selected apps when Docker images update. "Selected", because while an automatic redeploy of an IoT container is nearly always the desired result, this is often not the case for things like InfluxDB as the newer image may cause compatibility issues, have significant changes, is a 3rd party app outside of my control, etc. 
 
 
 ### Future items & Ideas
