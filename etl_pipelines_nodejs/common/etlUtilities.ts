@@ -26,7 +26,6 @@ const sendSlackAlerts = async (message: string, webHookUrl: string) => {
     
     try {
         const response = await axios.post(webHookUrl, payload)
-        console.log("Slack message sent successfully with code:", response.status);
         return response.status
 
     } catch (error: any) {

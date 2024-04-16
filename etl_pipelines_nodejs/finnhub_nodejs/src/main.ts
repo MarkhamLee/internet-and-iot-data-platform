@@ -5,10 +5,9 @@
 // and writing it to InfluxDB.
 import axios from 'axios';
 import { Point } from '@influxdata/influxdb-client';
-import {createInfluxClient, sendSlackAlerts, validateJson}
+import {createInfluxClient, sendSlackAlerts }
 from "../../common/etlUtilities"
-import { config, FinnhubSchema,
-    finnhubPointData, finnhubData } from '../utils/finnhub_config'
+import { config, finnhubData } from '../utils/finnhub_config'
 
 
 const getFinnhubData = async (finnhubUrl: string): Promise<finnhubData> => {

@@ -6,14 +6,14 @@
 import { buildUrl } from "../utils/utilities";
 import { config } from '../utils/gh_actions_config'
 import { getGitHubActions, parseData, writeData } from "../src/main";
-import {createInfluxClient, sendSlackAlerts }
+import { sendSlackAlerts }
 from "../../common/etlUtilities"
 
 describe("GitHub API Data Retrieval Test", () => {
     it("Succesful API and a data payload that parses successfully", () => {
 
         // base URL 
-        const repo = 'finance-productivity-iot-informational-weather-dashboard/'
+        const repo = config.repoName
         // get full URL
         const fullUrl = buildUrl(repo)
 
@@ -24,16 +24,16 @@ describe("GitHub API Data Retrieval Test", () => {
             const payload = parseData(result)
 
             // validate response
-            expect(payload).not.toEqual(200)
+            expect(payload).not.toEqual(1)
     
         })          
     })
-})
+});
 
-// Test that data writes properly to InfluxDB, the test passes as it's supposed to, 
-// but throws a few warnings over tests finishing before logs be written.
+
+// Test that "good data" writes properly to InfluxDB
 describe("Validate data write", () => {
-    test("The data should write to InfluxDB successfully", () => {
+    test("The data should write to InfluxDB successfully", async () => {
         
         // define good data payload
          const goodData= {
@@ -41,11 +41,35 @@ describe("Validate data write", () => {
             mostRecentAction: "ETL Testing",
             mostRecentActionStatus: "Complete"
           }
-        
-        expect(writeData(goodData)).toEqual(0)
+
+        const response = await writeData(goodData)
+        expect(response).toEqual(0)
 
     })
 });
+
+
+// Test InfluxDB type checking, data write should fail and generate a 
+// failure alert that's sent via Slack
+describe("Validate InfluxDB type checking", () => {
+    test("Data write should fail due to data being the wrong type", async () => {
+        
+        // Cause the test to fail by putting a string in a field expected to be a float
+        // note: putting a float in quotes will stil be seen as a float by InfluxDB
+
+        // define bad data payload
+         const badData= {
+            totalActions: "string", 
+            mostRecentAction: "ETL Testing",
+            mostRecentActionStatus: "Complete"
+          }
+
+        const response = await writeData(badData)
+        expect(response).toEqual(200)
+
+    })
+});
+
 
 // Validate sending Slack Alert
 // This verifies that the proper env var is loaded for the Slack webbhook

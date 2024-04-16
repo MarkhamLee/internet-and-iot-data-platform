@@ -9,6 +9,7 @@ export interface VarConfig {
     ghToken: string;
     measurement: string;
     org: string; 
+    repoName: string;
     token: string;
     url: string;
     webHookUrl: string;
@@ -24,6 +25,7 @@ export const config: VarConfig = {
     token: process.env.INFLUX_KEY as string,
     url: process.env.INFLUX_URL as string,
     webHookUrl: process.env.ALERT_WEBHOOK as string,
+    repoName: process.env.REPO_NAME as string,
     
   };
 

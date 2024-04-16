@@ -5,10 +5,9 @@
 // a given repo from the GitHub API. 
 import { Point } from '@influxdata/influxdb-client';
 import { Octokit } from 'octokit';
-import { config, gitHubActionsData, ghPointData, gitResponse } from '../utils/gh_actions_config'
+import { config, gitHubActionsData, ghPointData } from '../utils/gh_actions_config'
 import {createInfluxClient, sendSlackAlerts}
 from "../../common/etlUtilities"
-
 
 // retrieve data from the GitHub API using the Octokit library
 const getGitHubActions = async (gitUrl: string) => {
@@ -21,7 +20,7 @@ const getGitHubActions = async (gitUrl: string) => {
           })
 
         const data = await octokit.request(gitUrl, { owner: 'MarkhamLee',
-        repo: 'finance-productivity-iot-informational-weather-dashboard', 
+        repo: config.repoName, 
         headers: {'X-GitHub-Api-Version': '2022-11-28'}
         })
 
@@ -32,17 +31,14 @@ const getGitHubActions = async (gitUrl: string) => {
     
     } catch (error: any) {
         const message = "Pipeline failure alert - API Error GitHub Repo Actions"
-        console.error(message, error.body)
+        const fullMessage = message.concat(error)
+        console.error(fullMessage)
 
         //send pipeline failure alert via Slack
-        sendSlackAlerts(message, config.webHookUrl)
-            .then(result => {
-                
-                return result
-            })
-        // this helps us avoid the return type being "type | undefined", which then
-        // creates havoc with all the downline methods using that data.
-        throw(message)
+        const result = await sendSlackAlerts(fullMessage, config.webHookUrl)
+        console.error("Slack alert sent for GitHub Actions Pipeline with code:", result)
+        return result
+
     }
 }
 
@@ -59,16 +55,10 @@ const parseData = (data: gitHubActionsData) => {
         
     } catch (error: any) {
 
-        const message = "GitHub Actions pipeline failureb - data parsing"
+        const message = "GitHub Actions pipeline failure - data parsing"
         console.error(message)
-        
-        //send pipeline failure alert via Slack
-        sendSlackAlerts(message, config.webHookUrl)
-            .then(result => {
-                
-                return result
-            })
-        throw(message)
+
+        return 1
     
     }
 
@@ -78,7 +68,7 @@ const parseData = (data: gitHubActionsData) => {
 // the InfluxDB node.js library doesn't have a clean way of just
 // pushing json data to the DB. So, the write methods will have to 
 // live in the primary ETL code for now. 
-const writeData = (payload: ghPointData) => {   
+const writeData = async (payload: any) => {   
 
     try {
 
@@ -102,15 +92,15 @@ const writeData = (payload: ghPointData) => {
         
     } catch (error: any) {
 
-        const message = "GitHub Repo actions pipeline failure - InfluxDB write failure"
-        const fullMessage = (message.concat(JSON.stringify(error.body)));
-        console.error(message, error)
+        const message = "GitHub Repo actions pipeline failure - InfluxDB "
+        const fullMessage = message.concat(error)
+        console.error(fullMessage)
 
         //send pipeline failure alert via Slack
-        sendSlackAlerts(message, config.webHookUrl)
-            .then(result => {
-                return result
-            })
+        const result = await sendSlackAlerts(message, config.webHookUrl)
+        console.error("Slack alert sent with code:", result)
+        return result
+
         }    
 }
 
