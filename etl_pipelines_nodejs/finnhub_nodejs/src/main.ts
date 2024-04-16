@@ -23,10 +23,8 @@ const getFinnhubData = async (finnhubUrl: string): Promise<finnhubData> => {
     
             const message = "OpenWeather API Pipeline Current Weather (Nodejs variant) failure, API connection error: "
             console.error(message, error.message)
-            sendSlackAlerts(message, config.webHookUrl)
-                .then(result => {
-                    return result
-                })
+            const result = await sendSlackAlerts(message, config.webHookUrl)
+            console.error("Slack alert sent for Finnhub API call error, with code", result)
             throw(error.message)
         }
             
@@ -52,7 +50,7 @@ const parseData = (data: finnhubData) => {
 // pushing json data to the DB. So, the write methods will have to 
 // live in the primary ETL code for now - as it will have to be
 // customized for each payload.
-const writeData = (pointData: any) => {   
+const writeData = async (pointData: any) => {   
 
     try {
 
@@ -76,17 +74,14 @@ const writeData = (pointData: any) => {
 
     } catch (error: any) {
 
-        const message = "OpenWeather API Pipeline Current Weather (Nodejs variant) failure, InfluxDB write error: "
-        const fullMessage = (message.concat(JSON.stringify(error.body)));
+        const message = "Finnhub (Nodejs) pipeline failure, InfluxDB "
+        const fullMessage = message.concat(error)
         console.error(fullMessage);
 
         //send pipeline failure alert via Slack
-        sendSlackAlerts(fullMessage, config.webHookUrl)
-            .then(result => {
-                console.log("Slack alert sent with code:", result)
-                return result
-            })
-        throw(error.message)
+        const result = await sendSlackAlerts(message, config.webHookUrl)
+        console.error("Slack alert sent with code:", result)
+        return result
     }       
 
 }

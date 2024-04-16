@@ -2,17 +2,14 @@
 // productivity-music-stocks-weather-IoT-dashboard
 // https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
 // Testing for the Finnhub ETL 
-// May see warnings for console messages not writing, but it won't impact the
-// the tests.
 import { getFinnhubData, parseData, writeData} from '../src/main';
 import { createFinnhubUrl } from "../utils/utilities"
 import {sendSlackAlerts, validateJson} from "../../common/etlUtilities"
 import { config, FinnhubSchema } from "../utils/finnhub_config"
 
-// Test end to end
-// There will be a couple of logging errors, as the tests will complete before logging finishes. 
+// test API call + extracting/parsing data
 describe("Validate Finnhub API Call", () => {
-    it("Pipeline should run and return 0", () => {
+    it("Successful API call, data parsed successfully", () => {
         
     // create Finnhub URL
     const finnhubUrl = createFinnhubUrl(config.stock);
@@ -77,6 +74,46 @@ describe("Validate data format", () => {
 
 }); 
 
+// Test that data writes properly to InfluxDB
+// This test passes as it's supposed to, but throws a few warnings over tests finishing before 
+// logs can complete.
+describe("Validate data write", () => {
+  test("The data should write to InfluxDB successfully", async () => {
+      
+      // define good data payload
+       const goodData= {
+        previousClose: 513.07,
+        open: 514.46,
+        lastPrice: 514.01,
+        change: 1.0447
+        }
+
+      const response = await writeData(goodData);
+      expect(response).toEqual(0)
+  })
+
+});
+
+// Test exception handling for a failed InfluxDB write
+// the expection is that a Slack error message is sent and
+// a 200 code is returned.
+describe("Validate InfluXDB type protection", () => {
+  test("The InfluxDB write should fail due to open field being an integer", async () => {
+      
+      // define bad data payload
+       const badData= {
+        previousClose: 513.07,
+        open: "cheese",
+        lastPrice: 514.01,
+        change: 1.0447
+        }
+
+      const response =  await writeData(badData)
+      expect(response).toEqual(200)
+
+
+  })
+});
 
 // Validate sending Slack Alert
 // This verifies that the proper env var is loaded for the Slack webbhook
