@@ -5,9 +5,6 @@
 // current weather conditions and writes it to InfluxDB. The API calls aren't 
 // mocked, because I wanted be sure that the tests exactly replicate 
 // production.
-// Note: There may be a couple of warnings of tests completing before logging
-// can complete, but it doesn't impact the tests.
-
 import { createOpenWeatherUrl } from "../utils/openweather_library";
 import { getWeatherData, parseData, writeData } from "../src/main"
 import {sendSlackAlerts, validateJson} from "../../common/etlUtilities"
@@ -94,7 +91,7 @@ describe("Validate data format", () => {
 // This test passes as it's supposed to, but throws a few warnings over tests finishing before 
 // logs can complete.
 describe("Validate data write", () => {
-    test("The data should write to InfluxDB successfully", () => {
+    test("The data should write to InfluxDB successfully", async () => {
         
         // define good data payload
          const goodData= {
@@ -110,8 +107,36 @@ describe("Validate data write", () => {
             wind: 4.63
           }
 
-        const response = writeData(goodData);
-        expect(writeData(goodData)).toEqual(0)
+        const response = await writeData(goodData);
+        expect(response).toEqual(0)
+    })
+
+});
+
+// Test that data writes properly to InfluxDB
+// This test passes as it's supposed to, but throws a few warnings over tests finishing before 
+// logs can complete.
+// Note: change the type of the write method to "any" temporarily so you can test this
+// without TypeScript chiding you.
+describe("Validate InfluxDB type checking", () => {
+    test("The data write should fail due to data being the wrong type", async () => {
+        
+        // define good data payload
+         const badData= {
+            barometric_pressure: "sunshower",
+            description: 'broken clouds',
+            feels_like: 11.24,
+            high: 14.12,
+            humidity: 90,
+            low: 9.67,
+            temp: 11.67,
+            time_stamp: 1711154086,
+            weather: 'Clouds',
+            wind: 4.63
+          }
+
+        const response = await writeData(badData); // change writeData type to "any" to test this case
+        expect(response).toEqual(200)
     })
 
 });
@@ -126,6 +151,9 @@ describe("Test Slack Alerts", () => {
     const message = "Test Slack Alert"
 
     const response = await sendSlackAlerts(message, config.webHookUrl)
+    expect(response).toEqual(200)
+
+
     
     })
 

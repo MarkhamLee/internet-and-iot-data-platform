@@ -7,7 +7,7 @@ import axios from 'axios';
 import { Point } from '@influxdata/influxdb-client';
 import {createInfluxClient, sendSlackAlerts }
 from "../../common/etlUtilities"
-import { config, finnhubData } from '../utils/finnhub_config'
+import { config, finnhubData, finnhubPointData } from '../utils/finnhub_config'
 
 
 const getFinnhubData = async (finnhubUrl: string): Promise<finnhubData> => {
@@ -49,7 +49,7 @@ const parseData = (data: finnhubData) => {
 // pushing json data to the DB. So, the write methods will have to 
 // live in the primary ETL code for now - as it will have to be
 // customized for each payload.
-const writeData = async (pointData: any) => {   
+const writeData = async (pointData: finnhubPointData) => {   
 
     try {
 

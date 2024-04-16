@@ -108,7 +108,7 @@ describe("Validate InfluXDB type protection", () => {
         change: 1.0447
         }
 
-      const response =  await writeData(badData)
+      const response =  await writeData(badData) // change type to any temporarily to test this case
       expect(response).toEqual(200)
 
 

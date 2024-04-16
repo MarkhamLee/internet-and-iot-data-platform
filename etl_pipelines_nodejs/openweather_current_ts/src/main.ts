@@ -24,12 +24,13 @@ const getWeatherData = async (weatherUrl: string): Promise<CurrentWeather> => {
     } catch (error: any){
 
         const message = "OpenWeather API Pipeline Current Weather (Nodejs variant) failure, API connection error: "
-        console.error(message, error.message)
-        sendSlackAlerts(message, config.webHookUrl)
-            .then(result => {
-                return result
-            })
-        throw(error.message)
+        const fullMessage = message.concat(error)
+        console.error(fullMessage)
+
+        //send pipeline failure alert via Slack
+        const result = await sendSlackAlerts(message, config.webHookUrl)
+        console.error("Slack alert sent with code:", result)
+        return result
     }
 }
 
@@ -81,7 +82,7 @@ const parseData = (data: CurrentWeather) => {
 // the InfluxDB node.js library doesn't have a clean way of just
 // pushing json data to the DB. So, the write methods will have to 
 // live in the primary ETL code for now. 
-const writeData = (payload: parsedData) => {  
+const writeData = async (payload: parsedData) => {  
 
     try {
 
@@ -113,15 +114,14 @@ const writeData = (payload: parsedData) => {
     } catch (error: any) {
 
         const message = "OpenWeather API Pipeline Current Weather (Nodejs variant) failure, InfluxDB write error: "
-        const fullMessage = (message.concat(JSON.stringify(error.body)));
+        const fullMessage = message.concat(error)
         console.error(fullMessage);
 
         //send pipeline failure alert via Slack
-        sendSlackAlerts(fullMessage, config.webHookUrl)
-            .then(slackResponse => {
-                return slackResponse
-            })
-        }
+        const result = await sendSlackAlerts(message, config.webHookUrl)
+        console.error("Slack alert sent with code:", result)
+        return result
+    }
 }
 
 export { getWeatherData, parseData, writeData }

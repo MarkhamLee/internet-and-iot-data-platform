@@ -6,9 +6,9 @@
 
 import axios from 'axios'
 import { Point } from '@influxdata/influxdb-client';
-import { config, AirQualityMetrics, AirQualitySubset, AirQualitySchema, airPointData }
+import { config, AirQualityMetrics, AirQualitySubset, airPointData }
 from "../utils/openweather_air_config"
-import {createInfluxClient, sendSlackAlerts, validateJson}
+import {createInfluxClient, sendSlackAlerts }
 from "../../common/etlUtilities"
 
 
@@ -29,12 +29,13 @@ const getAirQualityData = async (airUrl: string): Promise<AirQualitySubset> => {
     } catch (error: any){
 
         const message = "OpenWeather API Pipeline Air Pollution (Nodejs variant) failure, API connection error: "
-        console.error(message, error.message);
-        sendSlackAlerts(message, config.webHookUrl)
-            .then(result => {
-                return result
-            })
-        throw(error)
+        const fullMessage = message.concat(error)
+        console.error(fullMessage)
+
+        //send pipeline failure alert via Slack
+        const result = await sendSlackAlerts(message, config.webHookUrl)
+        console.error("Slack alert sent with code:", result)
+        return result
 
     }
 }
@@ -75,7 +76,7 @@ const parseData = (data: AirQualitySubset) => {
 // the InfluxDB node.js library doesn't have a clean way of just
 // pushing json data to the DB. So, the write methods will have to 
 // live in the primary ETL code for now. 
-const writeData = (payload: airPointData) => {   
+const writeData = async (payload: airPointData) => {   
 
     try {
 
@@ -98,16 +99,13 @@ const writeData = (payload: airPointData) => {
     } catch (error: any) {
 
         const message = "OpenWeather API, Air Pollution Pipeline (Nodejs variant) failure - InfluxDB write error: "
-        const fullMessage = (message.concat(JSON.stringify((error.body))));
-        console.error(fullMessage);
+        const fullMessage = message.concat(error)
+        console.error(fullMessage)
 
         //send pipeline failure alert via Slack
-        sendSlackAlerts(fullMessage, config.webHookUrl)
-        .then(result => {
-
-            return result
-            
-        })
+        const result = await sendSlackAlerts(message, config.webHookUrl)
+        console.error("Slack alert sent with code:", result)
+        return result
    
     }
   

@@ -68,7 +68,7 @@ const parseData = (data: gitHubActionsData) => {
 // the InfluxDB node.js library doesn't have a clean way of just
 // pushing json data to the DB. So, the write methods will have to 
 // live in the primary ETL code for now. 
-const writeData = async (payload: any) => {   
+const writeData = async (payload: ghPointData) => {   
 
     try {
 

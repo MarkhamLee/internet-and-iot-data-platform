@@ -64,7 +64,7 @@ describe("Validate InfluxDB type checking", () => {
             mostRecentActionStatus: "Complete"
           }
 
-        const response = await writeData(badData)
+        const response = await writeData(badData) // change writeData type to any to test this case
         expect(response).toEqual(200)
 
     })
