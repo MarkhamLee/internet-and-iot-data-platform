@@ -52,7 +52,7 @@ const parseData = (data: finnhubData) => {
 // pushing json data to the DB. So, the write methods will have to 
 // live in the primary ETL code for now - as it will have to be
 // customized for each payload.
-const writeData = (pointData: finnhubPointData) => {   
+const writeData = (pointData: any) => {   
 
     try {
 
@@ -83,9 +83,11 @@ const writeData = (pointData: finnhubPointData) => {
         //send pipeline failure alert via Slack
         sendSlackAlerts(fullMessage, config.webHookUrl)
             .then(result => {
-                return result 
+                console.log("Slack alert sent with code:", result)
+                return result
             })
-    }
+        throw(error.message)
+    }       
 
 }
 

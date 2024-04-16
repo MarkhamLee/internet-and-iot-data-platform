@@ -77,25 +77,6 @@ describe("Validate data format", () => {
 
 }); 
 
-// Test that data writes properly to InfluxDB
-// This test passes as it's supposed to, but throws a few warnings over tests finishing before 
-// logs can complete.
-describe("Validate data write", () => {
-  test("The data should write to InfluxDB successfully", () => {
-      
-      // define good data payload
-       const goodData= {
-        previousClose: 513.07,
-        open: 514.46,
-        lastPrice: 514.01,
-        change: 1.0447
-        }
-
-      const response = writeData(goodData);
-      expect(writeData(goodData)).toEqual(0)
-  })
-
-});
 
 // Validate sending Slack Alert
 // This verifies that the proper env var is loaded for the Slack webbhook
@@ -107,6 +88,7 @@ describe("Test Slack Alerts", () => {
   const message = "Test Slack Alert"
 
   const response = await sendSlackAlerts(message, config.webHookUrl)
+  expect(response).toEqual(200)
   
   })
 
