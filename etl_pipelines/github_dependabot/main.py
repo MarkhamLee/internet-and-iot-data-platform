@@ -88,7 +88,7 @@ def count_alerts(data: dict) -> dict:
         return payload
 
     except Exception as e:
-        logger.debug(f"Data validation failed/state field missing with error: {e}")  # noqa: E501
+        logger.debug(f"Data validation failed/field missing with error: {e}")  # noqa: E501
         sys.exit()
 
 

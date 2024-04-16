@@ -52,7 +52,7 @@ class GitHubUtilities():
             response = self.etl_utilities.send_slack_webhook(WEBHOOK_URL,
                                                              message)
             logger.debug(f'Slack pipeline failure alert sent with code: {response}')  # noqa: E501
-            return response
+            sys.exit()
 
         logger.info(f'Data retrieved for Github {pipeline_name} for {repo_name}')  # noqa: E501
         return response.json()
@@ -85,8 +85,7 @@ class GitHubUtilities():
 
         try:
             # write data to InfluxDB
-            self.influx.write_influx_data(client, base_payload,
-                                          data, bucket)
+            self.influx.write_influx_data(client, base_payload, data, bucket)
             logger.info('GitHub data successfuly written to InfluxDB')
             return 0
 
