@@ -1,0 +1,12 @@
+project: default
+source:
+  repoURL: 'https://github.com/MarkhamLee/k3s-iac-data-iot-platform.git'
+  path: kasa_plugs_influx_write/
+  targetRevision: HEAD
+destination:
+  server: 'https://kubernetes.default.svc'
+  namespace: operations
+syncPolicy:
+  automated:
+    prune: true
+    selfHeal: true

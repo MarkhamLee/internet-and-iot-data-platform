@@ -1,0 +1,12 @@
+project: 3rd-party-apps
+source:
+  repoURL: 'https://github.com/MarkhamLee/k3s-iac-data-iot-platform.git'
+  path: zigbee2mqtt
+  targetRevision: HEAD
+destination:
+  server: 'https://kubernetes.default.svc'
+  namespace: zigbee2mqtt
+syncPolicy:
+  automated:
+    prune: true
+    selfHeal: true

@@ -1,0 +1,14 @@
+project: default
+source:
+  repoURL: 'https://github.com/MarkhamLee/k3s-iac-data-iot-platform.git'
+  path: iot_devices/air_quality_novapm/
+  targetRevision: HEAD
+  directory:
+    recurse: true
+    jsonnet: {}
+destination:
+  server: 'https://kubernetes.default.svc'
+  namespace: iot-devices
+syncPolicy:
+  automated:
+    selfHeal: true
