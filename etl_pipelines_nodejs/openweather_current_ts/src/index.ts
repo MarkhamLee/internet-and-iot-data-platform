@@ -15,25 +15,26 @@ const endpoint = "weather?"
 // create URL for API get request
 const weatherUrl = createOpenWeatherUrl(endpoint)
 
-// get & write data
-getWeatherData(weatherUrl)
-    .then(result => { //unpack value from Axios API call 
+const openWeatherData = async () => {
 
-        //parse data - finish extraction
-        const parsedData = parseData(result)
+    const weatherData = await getWeatherData(weatherUrl)
 
-        //validate the data - shutdown if the data is invalid
-        const validationStatus = validateJson(parsedData, openWeatherSchema)
+    //parse data - finish extraction
+    const parsedData = await parseData(weatherData)
 
-        if (validationStatus == 1) {
+    //validate the data - shutdown if the data is invalid
+    const validationStatus = validateJson(parsedData, openWeatherSchema)
+    
+    if (validationStatus == 1) {
+    
+        const message = "OpenWeather pipeline failure: data validation"
+        sendSlackAlerts(message, config.webHookUrl)
+        process.exit()
+    }
+    
+    //write data to InfluxDB
+    writeData(parsedData)
 
-            const message = "OpenWeather pipeline failure: data validation"
+}
 
-            sendSlackAlerts(message, config.webHookUrl)
-            process.exit()
-        }
-
-        //write data to InfluxDB
-        writeData(parsedData)
-
-    })
+openWeatherData()

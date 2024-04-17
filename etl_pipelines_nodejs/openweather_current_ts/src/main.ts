@@ -39,7 +39,7 @@ const getWeatherData = async (weatherUrl: string): Promise<CurrentWeather> => {
 // TODO: figure out how to write json directly to InfluxDB, doesn't
 // seem to be possible with the Node.js library for InfluxDB, need to
 // investigate further.
-const parseData = (data: CurrentWeather) => {
+const parseData = async (data: CurrentWeather) => {
 
     try {
 
@@ -64,18 +64,15 @@ const parseData = (data: CurrentWeather) => {
     } catch (error: any) {
 
         const message = "OpenWeather pipeline failure: data parsing failed"
-        console.error(message)
+        const fullMessage = message.concat(error)
+        console.error(fullMessage)
         
         //send pipeline failure alert via Slack
-        sendSlackAlerts(message, config.webHookUrl)
-            .then(slackResponse => {
-                    
-                return slackResponse
-        })
-
-        throw(error)
-        
+        const result = await sendSlackAlerts(fullMessage, config.webHookUrl)
+        console.error("Slack alert sent for OpenWeather Current with code:", result)
+        return result
     }
+    
 }
 
 //method to write data to InfluxDB

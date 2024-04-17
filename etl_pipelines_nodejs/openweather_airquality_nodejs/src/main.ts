@@ -42,7 +42,7 @@ const getAirQualityData = async (airUrl: string): Promise<AirQualitySubset> => {
 
 // parse out the desired fields
 // TODO: update to calculate AQI - may need all the fields for that 
-const parseData = (data: AirQualitySubset) => {
+const parseData = async (data: AirQualitySubset) => {
 
     try {
 
@@ -58,16 +58,13 @@ const parseData = (data: AirQualitySubset) => {
     } catch (error: any) {
 
         const message = "OpenWeather air pollution pipeline error: parsing failed"
-        console.error(message)
+        const fullMessage  = message.concat(error)
+        console.error(fullMessage)
 
         //send pipeline failure alert via Slack
-        sendSlackAlerts(message, config.webHookUrl)
-            .then(slackResponse => {
-                    
-                return slackResponse
-        })
-
-        throw(error)
+        const result = await sendSlackAlerts(fullMessage, config.webHookUrl)
+        console.error("Slack alert sent for Open Weather Air Pollution:", result)
+        return result
 
     }
 }

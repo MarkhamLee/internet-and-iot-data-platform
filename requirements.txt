@@ -67,7 +67,7 @@ googleapis-common-protos==1.61.0
 graphviz==0.20.1
 greenlet==3.0.1
 grpcio==1.59.0
-gunicorn==21.2.0
+gunicorn
 h11==0.14.0
 httpcore==0.18.0
 httpx==0.25.0
