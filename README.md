@@ -8,7 +8,7 @@ This project started out with the following goals:
 
 3) Professional development, by giving me an opportunity to work with technologies I have had limited exposure to and/or technologies I am curious about. 
 
-It has since morphed more into building an extensible, scalable, and easy to manage data platform to support projects I am working on that have a significant data collection or management component. Meaning: the items in this repo are specifically for the original scope of the project, but I am also using this platform for things ranging from custom PC mods to monitoring plants. 
+It has since morphed more into building an extensible, scalable, and easy to manage data platform to support projects I am working on that have a significant data collection or management component. The general idea is that whether its through common files for building data logging, IoT sensor or ETL containers, CICD pipelines, etc., that the level of effort to add new types of sensors, connect to IoT devices or do anything involving collecting data will be relatively easy as the bulk of the work is already complete. E.g., through the use of templates, pre-built code for MQTT and writing to InfluxDB 80-90% of the code for adding new IoT sensors is already written. This also means that the items in this repo are specifically for the original scope of the project, and I'm also using this platform for things ranging from custom PC mods to monitoring plants. 
 
 ### Recent Updates 
 * 03/14/24: Pi, obviously... adding automated unit tests via Jest for Node.js and Unittest for Python, fixed the GitHub actions files for the Node.js ETLs as they weren't always firing properly, added dependabot DAGs for monitoring the repo for the Kubernetes cluster this project runs on.
@@ -18,19 +18,21 @@ It has since morphed more into building an extensible, scalable, and easy to man
 ![Dashboard Thumbnail](/images/dashboard_screenshot4.png)  
 *Snapshot of some of the tracked data* 
 
-## Architecture - Tech Stack
-
-![Architecture](/images/new_architecture_mkII.png)  
-*The TL/DR: data from external sources/APIs comes in via Airflow or Argo Workflows, data from IoT devices from in via device specific libraries, GPIO or USB sensors or the Zigbee2MQTT library. Alerts are generated due to measurements exceeding certain thresholds, data specific conditions (GitHub security alerts, certain products in stock) and when data pipelines or devices malfunction.*
-
-All logos and trademarks are property of their respective owners and their use in the diagram represents an acceptable use based on my understanding of their guidelines. **If that is not the case, please let me now and I'll update the diagram ASAP.** 
-
 This repo contains the code for the ETL pipelines for various data sources, YAML files for deploying various micro-services on Kubernetes, containers for interacting with/pulling data from remote sensors/IoT devices and a lot more. The plan is to continuously add data sources/features in the coming months. You can read a full list of recent updates [here](https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard/blob/main/documentation/updates.md).
 
+## Architecture - Tech Stac
+This project has the following primary components: 
+* **ETL Pipelines:** data ingestion from external sources (APIs) 
+* **IoT:** ingesting and managing a variety of sensor/data collection devices
+* **CICD:** automated multi-architecture Docker image builds and comtainer deployments, building and deploying micro-services that used shared/common private libraries.
+* **Monitoring & Alerting:** sending out alerts via Slack in response to specific events, pipeline failures, device issues, measurements above a pre-defined threshold, etc.
+* **Ops Data:** collecting data from hardware devices, the firewall, UPS, et, al.
+
+![Architecture](/images/new_architecture_mkIIa.png)  
+*The TL/DR: data from external sources/APIs comes in via Airflow or Argo Workflows, data from IoT devices from in via device specific libraries, GPIO or USB sensors or the Zigbee2MQTT library. Alerts are generated due to measurements exceeding certain thresholds, data specific conditions (GitHub security alerts, certain products in stock) and when data pipelines or devices malfunction.*
+All logos and trademarks are property of their respective owners and their use in the diagram represents an acceptable use based on my understanding of their guidelines. **If that is not the case, please let me now and I'll update the diagram ASAP.** 
 
 ### Tech Stack - Detailed Description
-
- This repo contains the code for the ETL pipelines for various data sources, YAML files for deploying various micro-services on Kubernetes, containers for interacting with/pulling data from remote sensors/IoT devices and a lot more. The plan is to continuously add data sources/features in the coming months. You can read a full list of recent updates here. 
 
 * **ETL Tools:** using a variety of ETL/container orchestration tools to gather data from external APIs (Asana, Finnhub, OpenWeather and the like), in addition to general container orchestration:  
 
