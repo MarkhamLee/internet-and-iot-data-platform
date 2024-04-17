@@ -3,7 +3,6 @@
 # Airflow DAG to pull down and run an ETL container that connects to the GitHub
 # API, pulls down data related to Actions: minutes used, remaining, etc., and
 # then writes that data to InfluxDB.
-
 from datetime import datetime, timedelta
 from kubernetes.client import models as k8s
 from airflow import DAG
@@ -11,7 +10,8 @@ from airflow.providers.cncf.kubernetes.secret import Secret
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator  # noqa: E501
 
 # define instance specific variables
-env_variables = {"GITHUB_DATAPLATFORM_ACTIONS_MEASUREMENT": "data_dashboard_actions"}  # noqa: E501
+env_variables = {"GITHUB_DATAPLATFORM_ACTIONS_MEASUREMENT": "data_dashboard_actions",  # noqa: E501
+                 "REPO_NAME": "finance-productivity-iot-informational-weather-dashboard/"}  # noqa: E501
 
 resource_limits = k8s.V1ResourceRequirements(
             requests={
