@@ -30,6 +30,8 @@ def get_sensor_data(client: object, topic: str, interval: int):
     air_quality = SGP30()
     logger.info('Connected to SGP30')
 
+    error_count = 0
+
     while True:
 
         # replace with
