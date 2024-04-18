@@ -3,7 +3,6 @@ FROM python:3.12.2-slim as builder
 WORKDIR /app
 
 RUN apt-get update -y && apt-get install -y gcc python3-dev libgpiod2
-RUN python3 -m pip install pimoroni-sgp30
 
 COPY ./sgp30/requirements.txt .
 
@@ -18,6 +17,7 @@ COPY --from=builder /app/wheels /wheels
 COPY --from=builder /app/requirements.txt .
 
 RUN pip install --no-cache /wheels/*
+RUN python3 -m pip install pimoroni-sgp30
 
 COPY ./iot_libraries ./iot_libraries 
 
