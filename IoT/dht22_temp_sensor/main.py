@@ -56,8 +56,8 @@ def get_temps(client: object, topic: str, interval: int):
         if temp is not None:
 
             payload = {
-                    "t": temp,
-                    "h": humidity
+                    "temp": temp,
+                    "humidity": humidity
                 }
 
             payload = json.dumps(payload)
