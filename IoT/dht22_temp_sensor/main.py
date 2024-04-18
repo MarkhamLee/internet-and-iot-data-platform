@@ -1,8 +1,8 @@
-# Markham Lee 2023
-# Efficient, automated greenhouse
-# https://github.com/MarkhamLee/automated-resource_efficient-greenhouse
-# This script gathers data from a DHT22 temperature sensor and then
-# publishes it to a MQTT topic.
+# Markham Lee 2023 - 2024
+# Finance, Productivity, IoT, & Weather dashboard
+# https://github.com/MarkhamLee/finance-productivity-iot-informational-weather-dashboard
+# This script pulls data from a DHT22 temperature sensor and the publishes it
+# to an MQTT topic.
 import adafruit_dht
 import board
 import json

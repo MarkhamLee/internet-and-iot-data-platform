@@ -1,12 +1,8 @@
-# Markham Lee (C) 2023
-# Productivity, Weather, Personal, et al dashboard:
-# https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
-# Python script for receiving energy data from a TP Link
-# Kasa TP25P4 smart plug. Note: this data could just as easily be written
-# directly to InfluxDB via its REST API, using MQTT because I may
-# (at some point) want to send instructions back to the device,
-# monitor if a device is connected, etc.
-
+# Markham Lee 2023 - 2024
+# Finance, Productivity, IoT, & Weather dashboard
+# https://github.com/MarkhamLee/finance-productivity-iot-informational-weather-dashboard
+# Python script for receiving energy data from a TP Link Kasa TP254
+# smart plug and writing the data to InfluxDB
 import asyncio
 import gc
 import os
