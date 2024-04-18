@@ -61,14 +61,12 @@ spec:
                   key: temp-topic-livingroom
                   name: mqtt-data
                   optional: false
-            - name: ALERT_ENDPOINT
-              valueFrom:
-                secretKeyRef:
-                  key: SLACK_ALERT_ENDPOINT
-                  name: slack-service-endpoint
-                  optional: false
             - name: DEVICE_FAILURE_CHANNEL
-              value: '#iot_device_failures'
+              valueFrom:
+                configMapKeyRef:
+                  key: DEVICE_FAILURE_CHANNEL
+                  name: mqtt-data
+                  optional: false  
             - name: INTERVAL
               value: '5'
             - name: DEVICE_ID_DATA
