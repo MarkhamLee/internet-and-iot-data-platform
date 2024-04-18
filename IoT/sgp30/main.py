@@ -18,13 +18,14 @@ from iot_libraries.communications_utilities\
     import IoTCommunications  # noqa: E402
 
 com_utilities = IoTCommunications()
+SENSOR_ID = os.environ['SENSOR_ID']
 
 
 def get_sensor_data(client: object, topic: str, interval: int):
 
     failure_count = int(os.environ['FAILURE_THRESHOLD'])
-    device_failure_channel = os.environ['DEVICE_FAILURE_CHANNEL']
-    node_device_id = os.environ['DEVICE_ID']
+    DEVICE_FAILURE_CHANNEL = os.environ['DEVICE_FAILURE_CHANNEL']
+    NODE_DEVICE_ID = os.environ['DEVICE_ID']
 
     air_quality = SGP30()
     logger.info('Connected to SGP30')
@@ -34,14 +35,13 @@ def get_sensor_data(client: object, topic: str, interval: int):
         # replace with
         try:
             air_data = air_quality.get_air_quality()
-
             total_co2 = air_data.equivalent_co2
             total_voc = air_data.total_voc
 
             payload = {
                 "co2_Levels": total_co2,
                 "total_volatile_compounds": total_voc
-                }
+            }
 
             payload = json.dumps(payload)
             send_message(client, payload, topic)
@@ -53,9 +53,9 @@ def get_sensor_data(client: object, topic: str, interval: int):
             error_count += 1
             logger.debug(f'Device read error: {e}, consecutive read error count: {error_count}')  # noqa: E501
             if error_count == failure_count:
-                message = (f'Potential device failure on: {node_device_id}, device connected but non responsive over {failure_count} consecutive attempts')  # noqa: E501
+                message = (f'Potential device failure on: {NODE_DEVICE_ID}, device connected but non responsive over {failure_count} consecutive attempts')  # noqa: E501
                 logger.debug(message)
-                com_utilities.send_slack_alert(message, device_failure_channel)
+                com_utilities.send_slack_alert(message, DEVICE_FAILURE_CHANNEL)
                 error_count = 0
 
         sleep(interval)

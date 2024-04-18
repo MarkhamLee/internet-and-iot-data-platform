@@ -2,22 +2,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: bme280-test
+  name: sgp30-co2
   namespace: iot-devices
 spec:
   selector:
     matchLabels: 
-      app: bme280-test
+      app: sgp30-co2
   replicas: 1
   template:
     metadata:
       labels:
-        app: bme280-test
+        app: sgp30-co2
     spec:
       nodeName: rpinode2
       containers:
-        - name: bme280-mki
-          image: markhamlee/bme280_temp:latest
+        - name: sgp30-co2-testing
+          image: markhamlee/sgp30_data:latest
           imagePullPolicy: Always
           resources:
             limits:
@@ -56,30 +56,24 @@ spec:
                   key: MQTT_PORT
                   name: mqtt-data
                   optional: false
-            - name: OFFICE_TEMP_BME280_TEST
+            - name: TOPIC
               valueFrom:
                 configMapKeyRef:
-                  key: OFFICE_TEMP_BME_TEST
+                  key: SGP30_TEST_TOPIC
                   name: mqtt-data
-                  optional: false
-            - name: CLIMATE_ALERT_WEBHOOK
-              valueFrom:
-                secretKeyRef:
-                  key: CLIMATE_ALERT_WEBHOOK
-                  name: climate-alert-secret
-                  optional: false    
+                  optional: false      
             - name: DEVICE_FAILURE_CHANNEL
               valueFrom:
                 configMapKeyRef:
                   key: DEVICE_FAILURE_CHANNEL
                   name: mqtt-data
-                  optional: false       
+                  optional: false                     
             - name: INTERVAL
               value: '5'
             - name: DEVICE_ID
               value: rpinode2
             - name: SENSOR_ID
-              value: bme280_temp_test
+              value: sgp30_test
       imagePullSecrets: 
         - name: docker-creds
       restartPolicy: Always

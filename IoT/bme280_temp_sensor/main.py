@@ -57,7 +57,7 @@ def get_bme280_data(client, topic, interval):
         sleep_duration = interval
 
         if status != 0:
-            message = (f'Air quality MQTT publish failure on {DEVICE_ID}, status code: {status}')  # noqa: E501
+            message = (f'{SENSOR_ID} MQTT publish failure on {DEVICE_ID}, status code: {status}')  # noqa: E501
             logger.debug(message)  # noqa: E501
             com_utilities.send_slack_alert(message, DEVICE_FAILURE_CHANNEL)
             sleep_duration = 3600
