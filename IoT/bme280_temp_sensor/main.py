@@ -1,3 +1,8 @@
+# Markham Lee 2023 - 2024
+# Finance, Productivity, IoT, & Weather dashboard
+# https://github.com/MarkhamLee/finance-productivity-iot-informational-weather-dashboard
+# Script for reading data from a BME280 barometric pressure, humidity and
+# temperature sensor and then transmitting the data via MQTT.
 import smbus2
 import bme280
 import gc

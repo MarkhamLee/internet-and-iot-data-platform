@@ -1,0 +1,6 @@
+board
+logger==1.4
+paho-mqtt==1.6.1
+requests==2.31.0
+uuid==1.30
+smbus2
