@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: temperature-dht22
+  name: temp-dht22
   namespace: iot-devices
 spec:
   selector:
     matchLabels: 
-      app: temperature-dht22
+      app: temp-dht22
   replicas: 1
   template:
     metadata:
       labels:
-        app: temperature-dht22
+        app: temp-dht22
     spec:
-      nodeName: rpinode0 # note: this code will only run on a Raspberry Pi 
+      nodeName: rpinode2 # note: this code will only run on a Raspberry Pi 
       containers:
         - name: temperature-sensor
           image: markhamlee/dht22_monitoring:latest
@@ -58,19 +58,13 @@ spec:
             - name: TOPIC
               valueFrom:
                 configMapKeyRef:
-                  key: temp-topic-livingroom
+                  key: DHT22_TEST_TOPIC
                   name: mqtt-data
                   optional: false
-            - name: DEVICE_FAILURE_CHANNEL
-              valueFrom:
-                configMapKeyRef:
-                  key: DEVICE_FAILURE_CHANNEL
-                  name: mqtt-data
-                  optional: false  
             - name: INTERVAL
               value: '5'
             - name: DEVICE_ID_DATA
-              value: rpi_node0_temperature_monitoring
+              value: rpinode2
       imagePullSecrets: 
         - name: docker-creds
-    restartPolicy: Always
+      restartPolicy: Always
