@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: lab-plug-one
-          image: <your image repo here>
+          image: markhamlee/kasa_plugs:latest
           imagePullPolicy: Always
           resources:
             limits:
@@ -55,145 +55,13 @@ spec:
                   key: lab_plug1
                   name: key-ops-variables
                   optional: false
+            - name: DEVICE_IP
+              valueFrom:
+                secretKeyRef:
+                  key: KASA_PLUG1_IP
+                  name: kasa-plug-ips
             - name: INTERVAL
               value: '5'
-            - name: DEVICE_IP
-              value: <your IP address here>
-        - name: lab-plug-two
-          image: <your image repo here>
-          imagePullPolicy: Always
-          resources:
-            limits:
-              cpu: 200m
-              memory: 256Mi
-            requests:
-              cpu: 100m
-              memory: 128Mi
-          env:
-            - name: MQTT_USER
-              valueFrom:
-                secretKeyRef:
-                  key: MQTT_USER
-                  name: mqtt-creds
-                  optional: false
-            - name: MQTT_SECRET
-              valueFrom:
-                secretKeyRef:
-                  key: MQTT_SECRET
-                  name: mqtt-creds
-                  optional: false
-            - name: MQTT_BROKER
-              valueFrom:
-                configMapKeyRef:
-                  key: MQTT_BROKER
-                  name: mqtt-data
-                  optional: false
-            - name: MQTT_PORT
-              valueFrom:
-                configMapKeyRef:
-                  key: MQTT_PORT
-                  name: mqtt-data
-                  optional: false
-            - name: TOPIC
-              valueFrom:
-                configMapKeyRef:
-                  key: lab_plug2
-                  name: key-ops-variables
-                  optional: false
-            - name: INTERVAL
-              value: '5'
-            - name: DEVICE_IP
-              value: <your IP address here>
-        - name: lab-plug-three
-          image: <your image repo here>
-          imagePullPolicy: Always
-          resources:
-            limits:
-              cpu: 200m
-              memory: 256Mi
-            requests:
-              cpu: 100m
-              memory: 128Mi
-          env:
-            - name: MQTT_USER
-              valueFrom:
-                secretKeyRef:
-                  key: MQTT_USER
-                  name: mqtt-creds
-                  optional: false
-            - name: MQTT_SECRET
-              valueFrom:
-                secretKeyRef:
-                  key: MQTT_SECRET
-                  name: mqtt-creds
-                  optional: false
-            - name: MQTT_BROKER
-              valueFrom:
-                configMapKeyRef:
-                  key: MQTT_BROKER
-                  name: mqtt-data
-                  optional: false
-            - name: MQTT_PORT
-              valueFrom:
-                configMapKeyRef:
-                  key: MQTT_PORT
-                  name: mqtt-data
-                  optional: false
-            - name: TOPIC
-              valueFrom:
-                configMapKeyRef:
-                  key: lab_plug3
-                  name: key-ops-variables
-                  optional: false
-            - name: INTERVAL
-              value: '5'
-            - name: DEVICE_IP
-              value: <your IP address here>
-        - name: lab-plug-four
-          image: <your image repo here>
-          imagePullPolicy: Always
-          resources:
-            limits:
-              cpu: 200m
-              memory: 256Mi
-            requests:
-              cpu: 100m
-              memory: 128Mi
-          env:
-            - name: MQTT_USER
-              valueFrom:
-                secretKeyRef:
-                  key: MQTT_USER
-                  name: mqtt-creds
-                  optional: false
-            - name: MQTT_SECRET
-              valueFrom:
-                secretKeyRef:
-                  key: MQTT_SECRET
-                  name: mqtt-creds
-                  optional: false
-            - name: MQTT_BROKER
-              valueFrom:
-                configMapKeyRef:
-                  key: MQTT_BROKER
-                  name: mqtt-data
-                  optional: false
-            - name: MQTT_PORT
-              valueFrom:
-                configMapKeyRef:
-                  key: MQTT_PORT
-                  name: mqtt-data
-                  optional: false
-            - name: TOPIC
-              valueFrom:
-                configMapKeyRef:
-                  key: lab_plug4
-                  name: key-ops-variables
-                  optional: false
-            - name: INTERVAL
-              value: '5'
-            - name: DEVICE_IP
-              value: <your IP address here>
       imagePullSecrets: 
         - name: private-docker-repo
       restartPolicy: Always
