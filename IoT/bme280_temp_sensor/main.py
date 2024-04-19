@@ -45,7 +45,7 @@ def get_bme280_data(client, topic, interval):
 
         # build payload
         payload = {
-            "temperature": data.temperature,
+            "temperature": data.temp,
             "barometric_pressure": data.pressure,
             "humidity": data.humidity
         }

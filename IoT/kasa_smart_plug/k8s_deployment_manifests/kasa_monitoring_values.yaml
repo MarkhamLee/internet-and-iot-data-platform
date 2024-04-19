@@ -1,28 +1,29 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: kasa-plug-monitoring
+  name: kasa-plug-monitoring-influx
   namespace: operations
 spec:
   selector:
     matchLabels:
-      app: kasa-plug-monitoring
+      app: kasa-plug-monitoring-influx
   replicas: 1
   template:
     metadata:
       labels:
-        app: kasa-plug-monitoring
+        app: kasa-plug-monitoring-influx
     spec:
+      nodeName: orangepi5plus-node0
       containers:
         - name: lab-plug-one
-          image: <your image repo here>
+          image: markhamlee/kasaplugs_influx:latest
           imagePullPolicy: Always
           resources:
             limits:
-              cpu: 200m
+              cpu: 400m
               memory: 256Mi
             requests:
-              cpu: 100m
+              cpu: 200m
               memory: 128Mi
           env:
             - name: TOKEN
@@ -44,140 +45,20 @@ spec:
             - name: BUCKET
               valueFrom:
                 configMapKeyRef:
-                  key: HARDWARE_BUCKET
+                  key: BUCKET
                   name: key-ops-variables
             - name: SMART_PLUG_TABLE
               valueFrom:
                 configMapKeyRef:
                   key: labplug1
                   name: key-ops-variables
-            - name: INTERVAL
-              value: '5'
             - name: DEVICE_IP
-              value: <your IP address here>
-        - name: lab-plug-two
-          image: <your image repo here>
-          imagePullPolicy: Always
-          resources:
-            limits:
-              cpu: 200m
-              memory: 256Mi
-            requests:
-              cpu: 100m
-              memory: 128Mi
-          env:
-            - name: TOKEN
               valueFrom:
                 secretKeyRef:
-                  key: PROD_INFLUX_KEY
-                  name: influxdb-secret
-                  optional: false 
-            - name: ORG
-              valueFrom:
-                configMapKeyRef:
-                  key: INFLUX_ORG
-                  name: key-ops-variables
-            - name: URL
-              valueFrom:
-                configMapKeyRef:
-                  key: INFLUX_URL
-                  name: key-ops-variables
-            - name: BUCKET
-              valueFrom:
-                configMapKeyRef:
-                  key: HARDWARE_BUCKET
-                  name: key-ops-variables
-            - name: SMART_PLUG_TABLE
-              valueFrom:
-                configMapKeyRef:
-                  key: labplug2
-                  name: key-ops-variables
+                  key: KASA_PLUG1_IP
+                  name: kasa-plug-ips
             - name: INTERVAL
               value: '5'
-            - name: DEVICE_IP
-              value: <your IP address here>
-        - name: lab-plug-three
-          image: <your image repo here>
-          imagePullPolicy: Always
-          resources:
-            limits:
-              cpu: 200m
-              memory: 256Mi
-            requests:
-              cpu: 100m
-              memory: 128Mi
-          env:
-            - name: TOKEN
-              valueFrom:
-                secretKeyRef:
-                  key: PROD_INFLUX_KEY
-                  name: influxdb-secret
-                  optional: false 
-            - name: ORG
-              valueFrom:
-                configMapKeyRef:
-                  key: INFLUX_ORG
-                  name: key-ops-variables
-            - name: URL
-              valueFrom:
-                configMapKeyRef:
-                  key: INFLUX_URL
-                  name: key-ops-variables
-            - name: BUCKET
-              valueFrom:
-                configMapKeyRef:
-                  key: HARDWARE_BUCKET
-                  name: key-ops-variables
-            - name: SMART_PLUG_TABLE
-              valueFrom:
-                configMapKeyRef:
-                  key: labplug3
-                  name: key-ops-variables
-            - name: INTERVAL
-              value: '5'
-            - name: DEVICE_IP
-              value: <your IP address here>
-        - name: lab-plug-four
-          image: <your image repo here>
-          imagePullPolicy: Always
-          resources:
-            limits:
-              cpu: 200m
-              memory: 256Mi
-            requests:
-              cpu: 100m
-              memory: 128Mi
-          env:
-            - name: TOKEN
-              valueFrom:
-                secretKeyRef:
-                  key: PROD_INFLUX_KEY
-                  name: influxdb-secret
-                  optional: false 
-            - name: ORG
-              valueFrom:
-                configMapKeyRef:
-                  key: INFLUX_ORG
-                  name: key-ops-variables
-            - name: URL
-              valueFrom:
-                configMapKeyRef:
-                  key: INFLUX_URL
-                  name: key-ops-variables
-            - name: BUCKET
-              valueFrom:
-                configMapKeyRef:
-                  key: HARDWARE_BUCKET
-                  name: key-ops-variables
-            - name: SMART_PLUG_TABLE
-              valueFrom:
-                configMapKeyRef:
-                  key: labplug4
-                  name: key-ops-variables
-            - name: INTERVAL
-              value: '5'
-            - name: DEVICE_IP
-              value: <your IP address here>
       imagePullSecrets: 
         - name: private-docker-repo
       restartPolicy: Always
