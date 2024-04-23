@@ -1,5 +1,8 @@
 ## ETL Containers & Scripts
 
+**Airflow is the primary tool for managing ETLs**, however with all ETls containerized, they can easily be run with other tools like **Argo Workflow** or even **Kubernetes Cron Jobs.** 
+![ETL Workflow](images/airflow.png)  
+
 
 ### Typical End-to-End ETL Workflow
 ![ETL Workflow](images/ETL_workflow_v1.1.png)  
@@ -9,6 +12,8 @@ All the ETL pipelines have been built as Docker containers for a couple of reaso
 1) While I really like Airflow its DAG format isn't very portable and can be difficult to test locally, by moving to containers not only are my pipelines easier to test but they're now portable and can be used with a variety of different tools. 
 
 2) Continuing from point #1... most ETL tools are really just orchestrators and schedulers, IMO, a good engineering practice (especiallty for data engineering) is to ensure that things are as portable and shareable as possible. I.e. once you have a working container, deploying it on Airflow vs Argo Worflow vs Kubernetes Cron Jobs is relatively easy, as you just need to edit what's usually no more than 1-2 dozen lines of a config or deployment file. 
+
+
 
 This folder holds fully operational ETL containers, however, you'll need to acquire the API keys, setup the appropriate databases, populate environmental variables and configure a Slack webhook to receive pipeline failure alerts in order to use them. In keeping with the "Dockerized ETL" theme: while the majority of the pipelines are written in Python, I've added Node.js variants for most of the ones written in Python, you can find them [here](https://github.com/MarkhamLee/finance-productivity-iot-informational-weather-dashboard/tree/main/etl_pipelines_nodejs). In addition to the Node.js variants, I plan on adding some Scala versions in the very near future.
 
