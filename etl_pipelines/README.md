@@ -1,6 +1,6 @@
 ## ETL Containers & Scripts
 
-**Airflow is the primary tool for managing ETLs**, however with all ETls containerized, they can easily be run with other tools like **Argo Workflow** or even **Kubernetes Cron Jobs.** 
+**Airflow is the primary tool for managing ETLs**, however, since all ETLs are containerized, they can easily be run with other tools like **Argo Workflow**, **Kubernetes cron jobs,** or any other tool that allows you to schedule containerized workloads. 
 ![ETL Workflow](images/airflow.png)  
 
 
