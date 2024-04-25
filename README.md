@@ -11,7 +11,7 @@ This project started out with the following goals:
 It has since morphed more into building an extensible, scalable, and easy to manage data platform to support projects that have a significant data collection or management component. The general idea is that whether its through common files for building data logging, IoT sensor or ETL containers, CICD pipelines, etc., the level of effort to add new types of sensors, connect to IoT devices or do anything involving collecting data will be relatively easy as the bulk of the work is already complete. E.g., through the use of templates, pre-built code for MQTT and writing to InfluxDB 80-90% of the code for adding new IoT sensors is already written. This also means that while the items in this repo are items that specifically for the original scope of the project, this same platform is also being used for other projects ranging from custom PC mods to monitoring plants. 
 
 ### Recent Updates 
-* 04/17/224: updates from the last 4+ weeks 
+* 04/17/224: updates from the last ~3 weeks 
     * Updates to Kubernetes deployment manifests for IoT devices, added Argo CD configurations for managing CICD for IoT device scripts/containers. Python scripts + container for SGP30 CO2 sensor (4/17)
     * Refactoring/re-writes for all Node.js ETL pipelines: main pipeline code + updated unit tests (4/16)
     * C++ file for provisioning ESP32s with Wi-Fi and MQTT creds (4/11)
