@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ups1-cyberpowerpc-pfc1500
+  namespace: operations
+spec:
+  selector:
+    matchLabels:
+      app: ups1-cyberpowerpc-pfc1500
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: ups1-cyberpowerpc-pfc1500
+    spec:
+      containers:
+        - name: 'monitoring-ups1'
+          image: 'markhamlee/cyberpowerpfc1500lcd:latest' 
+          imagePullPolicy: Always
+          resources:
+            limits:
+              cpu: 400m
+              memory: 256Mi
+            requests:
+              cpu: 200m
+              memory: 128Mi
+          env:
+            - name: MQTT_USER
+              valueFrom:
+                secretKeyRef:
+                  key: MQTT_USER
+                  name: mqtt-prod-secret
+                  optional: false
+            - name: MQTT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  key: MQTT_SECRET
+                  name: mqtt-prod-secret
+                  optional: false
+            - name: MQTT_BROKER
+              valueFrom:
+                configMapKeyRef:
+                  key: MQTT_BROKER
+                  name: mqtt-config-data
+                  optional: false
+            - name: MQTT_PORT
+              valueFrom:
+                configMapKeyRef:
+                  key: MQTT_PORT
+                  name: mqtt-config-data
+                  optional: false
+            - name: UPS_ID
+              valueFrom:
+                configMapKeyRef:
+                  key: UPS_ONE
+                  name: ups-data
+                  optional: false
+            - name: UPS_TOPIC
+              valueFrom:
+                configMapKeyRef:
+                  key: UPS_TOPIC_UPS_ONE
+                  name: ups-data
+                  optional: false
+            - name: UPS_IP
+              valueFrom:
+                configMapKeyRef:
+                  key: NUT_SERVER_ONE_IP
+                  name: ups-data
+                  optional: false
+            - name: SLACK_HW_ALERTS
+              valueFrom:
+                secretKeyRef:
+                  key: SLACK_HW_ALERTS
+                  name: slack-hw-alerts-webhook
+                  optional: false
+            - name: UPS_INTERVAL
+              value: '20'
+      imagePullSecrets: 
+        - name: private-docker-repo
+      restartPolicy: Always
