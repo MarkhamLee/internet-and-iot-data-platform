@@ -20,7 +20,7 @@ RUN pip install --no-cache /wheels/*
 
 RUN apt-get update -y && apt-get install -y nut-client
 
-COPY ./hw_monitoring_libraries ./hw_monitoring_libraries
+COPY ./iot_libraries ./iot_libraries
 
 WORKDIR /hw_telemetry
 
