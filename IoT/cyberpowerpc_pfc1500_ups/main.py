@@ -18,10 +18,10 @@ sys.path.append(parent_dir)
 
 from iot_libraries.logging_util import logger  # noqa: E402
 from iot_libraries.communications_utilities\
-    import IotCommunications  # noqa: E402
+    import IoTCommunications  # noqa: E402
 
 # instantiate hardware monitoring class
-monitor_utilities = IotCommunications()
+monitor_utilities = IoTCommunications()
 
 UPS_ID = os.environ['UPS_ID']
 
