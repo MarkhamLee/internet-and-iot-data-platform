@@ -5,7 +5,7 @@ annotated-types==0.6.0
 anyio 
 apache-airflow
 apache-airflow-providers-common-sql==1.8.0
-apache-airflow-providers-ftp==3.6.0
+apache-airflow-providers-ftp==3.7.0
 apache-airflow-providers-http==4.6.0
 apache-airflow-providers-imap==3.4.0
 apache-airflow-providers-sqlite==3.5.0
