@@ -5,7 +5,7 @@ WORKDIR /app
 
 RUN apt-get update -y && apt-get install -y gcc python3-dev
 
-COPY /cyberpowerpc_pfc1500lcda_ups/requirements.txt .
+COPY /cyberpowerpc_pfc1500_ups/requirements.txt .
 
 RUN pip wheel --no-cache-dir --no-deps --wheel-dir /app/wheels -r requirements.txt
 
@@ -24,6 +24,6 @@ COPY ./hw_monitoring_libraries ./hw_monitoring_libraries
 
 WORKDIR /hw_telemetry
 
-COPY ./cyberpowerpc_pfc1500lcda_ups ./
+COPY ./cyberpowerpc_pfc1500_ups ./
 
 ENTRYPOINT ["python3", "/hw_telemetry/main.py"]
