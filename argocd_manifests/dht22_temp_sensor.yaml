@@ -1,0 +1,8 @@
+project: embedded-iot-devices
+source:
+  repoURL: 'https://github.com/MarkhamLee/k3s-iac-data-iot-platform.git'
+  path: iot_devices/dht22/
+  targetRevision: HEAD
+destination:
+  server: 'https://kubernetes.default.svc'
+  namespace: iot-devices
