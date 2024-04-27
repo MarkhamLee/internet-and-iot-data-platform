@@ -47,26 +47,26 @@ def ups_monitoring(CMD: str, TOPIC: str, client: object):
             # its own lists.
             initial_list = [i.split(':') for i in data]
 
-            test_dict = dict(initial_list)
+            ups_dict = dict(initial_list)
 
             # payload for MQTT message
             payload = {
-                "battery_level": float(test_dict['battery.charge']),
+                "battery_level": float(ups_dict['battery.charge']),
                 "battery_run_time":
-                    (float(test_dict['battery.runtime']))/60,
-                "battery_voltage": float(test_dict['battery.voltage']),
-                "input_voltage": float(test_dict['input.voltage']),
-                "load_percentage": float(test_dict['ups.load']),
-                "max_power": float(test_dict['ups.realpower.nominal']),
-                "ups_status": test_dict['ups.status'],
-                "device_model": test_dict['device.model']
+                    (float(ups_dict['battery.runtime']))/60,
+                "battery_voltage": float(ups_dict['battery.voltage']),
+                "input_voltage": float(ups_dict['input.voltage']),
+                "load_percentage": float(ups_dict['ups.load']),
+                "max_power": float(ups_dict['ups.realpower.nominal']),
+                "ups_status": ups_dict['ups.status'],
+                "device_model": ups_dict['device.model']
             }
 
             # check load status, send alert if it's to high
             # TODO: add a series of alerts based on the values above
             # Note: running on battery already generates alerts via the
             # Firewall.
-            if float(test_dict['ups.load']) > 50:
+            if float(ups_dict['ups.load']) > 50:
                 excessive_load_count += 1
 
             if excessive_load_count > load_threshold:
