@@ -66,7 +66,7 @@ def monitor(client: object, get_data: object, TOPIC: str):
             payload = json.dumps(payload)
             send_message(client, TOPIC, payload)
 
-            del payload, cpu_util, ram_use, cpu_freq, cpu_temp, gpu_temp
+            del payload, cpu_util, ram_use, cpu_freq
             gc.collect()
 
         except Exception as e:
