@@ -20,7 +20,7 @@ formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(filename)s - %(me
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
-# define write
+# define sensor access/write codes
 # based on R. F. Smith's deep dive into the Plantower Manual
 # https://github.com/rsmith-nl/ft232-pms5003/blob/main/dust-monitor.py
 PASSIVE_READ = b"\x42\x4d\xe2\x00\x00\x01\x71"
@@ -32,15 +32,13 @@ WAKEUP = b"\x42\x4d\xe4\x00\x01\x01\x74"
 
 USB = '/dev/ttyUSB0'
 ser = serial.Serial(USB, baudrate=9600, stopbits=1, parity="N",  timeout=2)
-# ser.write([66, 77, 225, 0, 0, 1, 112])  # puts device in passive mode
 ser.write(PASSIVE_MODE)  # puts device in passive mode
+# ser.write(ACTIVE_MODE)
 
 
 def get_air_data(interval: int):
 
     while True:
-
-        # ser.write([0x42, 0x4D, 0xE1, 0x00, 0x01, 0x01, 0x71])
 
         ser.flushInput()
         ser.write([66, 77, 226, 0, 0, 1, 113])  # query device for data
