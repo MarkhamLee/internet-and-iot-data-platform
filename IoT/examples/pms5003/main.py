@@ -72,7 +72,7 @@ def get_air_data(interval: int):
 
 def main():
 
-    interval = os.environ['PLANTOWER_INTERVAL']
+    interval = int(os.environ['PLANTOWER_INTERVAL'])
 
     # start monitoring loop
     get_air_data(interval)
