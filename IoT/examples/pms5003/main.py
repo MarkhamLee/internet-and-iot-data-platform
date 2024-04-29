@@ -7,6 +7,7 @@
 # https://github.com/rsmith-nl/ft232-pms5003/tree/main
 import serial
 import logging
+import os
 import struct
 from time import sleep
 from sys import stdout
@@ -41,7 +42,7 @@ def get_air_data(interval: int):
     while True:
 
         ser.flushInput()
-        ser.write([66, 77, 226, 0, 0, 1, 113])  # query device for data
+        ser.write(PASSIVE_READ)  # query device for data
 
         try:
             air_data = ser.read(32)
@@ -53,15 +54,12 @@ def get_air_data(interval: int):
                 continue
 
             numbers = struct.unpack(">HHHHHHHHHHHHHHHH", air_data)
-            # toss the first five readings to give
-            # the sensor time to settle down - avoid read errors
-            # or large outlier values.
 
             pm1 = float(numbers[2])
             pm25 = float(numbers[3])
             pm10 = float(numbers[4])
 
-            logger.info(f'pm1 levels are {pm1}')
+            logger.info(f'PM1 levels are {pm1}')
             logger.info(f'PM2.5 levels are: {pm25}')
             logger.info(f'PM10 levels are: {pm10}')
 
@@ -69,12 +67,12 @@ def get_air_data(interval: int):
 
         except Exception as e:
             logger.info(f'Read error: {e}')
-            sleep(5)
+            sleep(interval)
 
 
 def main():
 
-    interval = 5
+    interval = os.environ['PLANTOWER_INTERVAL']
 
     # start monitoring loop
     get_air_data(interval)
