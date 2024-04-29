@@ -5,7 +5,7 @@ on:
     branches:
       - "main"
     paths:
-      - "IoT/plantower_s5003_quality/*"
+      - "IoT/plantower_s5003_airquality/*"
       - "IoT/iot_libraries/*"
 
 jobs:
@@ -27,7 +27,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./IoT/
-          file: ./IoT/plantower_s5003_quality/Dockerfile
+          file: ./IoT/plantower_s5003_airquality/Dockerfile
           platforms: linux/arm64,linux/amd64
           push: true
-          tags: markhamlee/airquality_plantowers5003:latest
+          tags: markhamlee/airquality_plantower_s5003:latest
