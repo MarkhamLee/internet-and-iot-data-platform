@@ -4,7 +4,7 @@ import logging
 from time import sleep
 from sys import stdout
 
-logger = logging.getLogger('asana_etl')
+logger = logging.getLogger('bme280_logging')
 logger.setLevel(logging.DEBUG)
 
 handler = logging.StreamHandler(stdout)

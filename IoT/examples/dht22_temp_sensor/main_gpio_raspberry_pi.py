@@ -15,7 +15,7 @@ import logging
 from time import sleep
 from sys import stdout
 
-logger = logging.getLogger('asana_etl')
+logger = logging.getLogger('dht22_logger')
 logger.setLevel(logging.DEBUG)
 
 handler = logging.StreamHandler(stdout)
