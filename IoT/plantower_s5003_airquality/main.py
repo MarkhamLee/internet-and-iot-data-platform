@@ -70,9 +70,7 @@ def send_message(client: object, payload: dict, topic: str):
         logger.debug(f'MQTT connection error: {error}\
                             with status: {status}')
 
-    # given that this is a RAM constrained device,
-    # let's delete everything and do some garbage collection
-
+    # memory clean-up
     del payload, result, status
     gc.collect()
 
