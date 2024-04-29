@@ -43,8 +43,11 @@ def monitor(client: object, get_data: object, TOPIC: str):
             cpu_freq, core = get_data.get_freq()
 
             # get system temperatures
-            cpu_temp, gpu_temp = get_data.rockchip_3566_temps()
+            # using an experimental OS, temp sensors are having issues
+            # commenting out while I work on a fix.
+            # cpu_temp, gpu_temp = get_data.rockchip_3566_temps()
 
+            '''
             payload = {
                 "cpu_utilization": cpu_util,
                 "ram_utilization": ram_use,
@@ -52,6 +55,13 @@ def monitor(client: object, get_data: object, TOPIC: str):
                 "cpu_temp": cpu_temp,
                 "gpu_temp": gpu_temp
                 }
+            '''
+
+            payload = {
+                "cpu_utilization": cpu_util,
+                "ram_utilization": ram_use,
+                "cpu_freq": cpu_freq
+            }
 
             payload = json.dumps(payload)
             send_message(client, TOPIC, payload)
