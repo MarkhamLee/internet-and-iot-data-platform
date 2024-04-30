@@ -44,7 +44,7 @@ def monitor(client: object, get_data: object, TOPIC: str):
             # get system temperatures
             # using an experimental OS, temp sensors are having issues
             # commenting out while I work on a fix.
-            cpu_temp, gpu_temp = get_data.rockchip_3566_temps()
+            # cpu_temp, gpu_temp = get_data.rockchip_3566_temps()
 
             '''
             payload = {
