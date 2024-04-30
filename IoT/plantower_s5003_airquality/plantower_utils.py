@@ -77,13 +77,4 @@ class PlantowerS5003Utils():
         pm25 = float(air_data[3])
         pm10 = float(air_data[4])
 
-        # create payload
-        payload = {
-            "pm1": pm1,
-            "pm25": pm25,
-            "pm10": pm10
-        }
-
-        logger.info(f"payload ready: {payload}")
-
-        return payload
+        return pm1, pm25, pm10

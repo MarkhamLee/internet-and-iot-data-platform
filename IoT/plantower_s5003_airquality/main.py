@@ -32,6 +32,9 @@ SENSOR_ID = os.environ['PLANTOWER_SENSOR_ID']
 
 def get_sensor_data(client: object, topic: str, interval: int, quality):
 
+    PM2_THRESHOLD = int(os.environ['PM2_THRESHOLD'])
+    PM10_THRESHOLD = int(os.environ['PM10_THRESHOLD'])
+
     while True:
 
         try:
@@ -45,10 +48,26 @@ def get_sensor_data(client: object, topic: str, interval: int, quality):
             if not data.startswith(b"BM"):
                 continue
 
-            payload = quality.parse_plantower_data(data)
+            # parse data
+            pm1, pm25, pm10 = quality.parse_plantower_data(data)
+
+            # check to see if pollutant levels above a threshold, send alert
+            # IDEA: look into coordinating multiple air quality sensors and/or
+            # air purifiers. E.g., if air quality drops due to cooking, have
+            # the others check more often or turn up the purifiers.
+            if pm25 > PM2_THRESHOLD or pm10 > PM10_THRESHOLD:
+                send_threshold_alert(pm25, pm10)
+
+            # create payload
+            payload = {
+                "pm1": pm1,
+                "pm25": pm25,
+                "pm10": pm10
+            }
 
             payload = json.dumps(payload)
             send_message(client, payload, topic)
+
             del payload
             gc.collect()
 
@@ -75,6 +94,7 @@ def send_message(client: object, payload: dict, topic: str):
     gc.collect()
 
 
+# TODO: move this to common library for all air quality sensors
 def send_threshold_alert(pm2, pm10):
 
     # load threshold alert webhook
