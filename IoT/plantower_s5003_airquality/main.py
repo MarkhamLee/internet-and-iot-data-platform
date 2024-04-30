@@ -65,10 +65,12 @@ def get_sensor_data(client: object, topic: str, interval: int, quality):
                 "pm10": pm10
             }
 
+            logger.info(f'Payload ready: {payload}')
+
             payload = json.dumps(payload)
             send_message(client, payload, topic)
 
-            del payload
+            del payload, pm1, pm25, pm10
             gc.collect()
 
         except Exception as e:
@@ -95,7 +97,7 @@ def send_message(client: object, payload: dict, topic: str):
 
 
 # TODO: move this to common library for all air quality sensors
-def send_threshold_alert(pm2, pm10):
+def send_threshold_alert(pm2: float, pm10: float):
 
     # load threshold alert webhook
     AIR_ALERT_WEBHOOK = os.environ['CLIMATE_ALERT_WEBHOOK']
