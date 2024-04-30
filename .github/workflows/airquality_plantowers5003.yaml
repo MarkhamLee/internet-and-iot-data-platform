@@ -1,4 +1,4 @@
-name: airquality_novapm_image_build
+name: airquality_plantower_s5003_image_build
 
 on:
   push:

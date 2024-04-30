@@ -46,21 +46,21 @@ def monitor(client: object, get_data: object, TOPIC: str):
             # commenting out while I work on a fix.
             cpu_temp, gpu_temp = get_data.rockchip_3566_temps()
 
+            '''
             payload = {
                 "cpu_utilization": cpu_util,
                 "ram_utilization": ram_use,
                 "cpu_freq": cpu_freq,
                 "cpu_temp": cpu_temp,
                 "gpu_temp": gpu_temp
-                }
-
+            }
             '''
+
             payload = {
                 "cpu_utilization": cpu_util,
                 "ram_utilization": ram_use,
                 "cpu_freq": cpu_freq
             }
-            '''
 
             payload = json.dumps(payload)
             send_message(client, TOPIC, payload)
