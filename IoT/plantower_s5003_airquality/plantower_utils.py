@@ -54,7 +54,7 @@ class PlantowerS5003Utils():
                                                  parity="N",
                                                  timeout=2)
             # TODO: update this so that the mdodes can be passed as parameters
-            self.plantower_s5003.write(self.PASSIVE_MODE)
+            self.plantower_s5003.write(self.ACTIVE_MODE)
 
         except Exception as e:
             self.logger.debug(f"Failed to connect to Plantower S5003 {e}... ")  # noqa: E501
@@ -73,8 +73,8 @@ class PlantowerS5003Utils():
 
         air_data = struct.unpack(">HHHHHHHHHHHHHHHH", data)
 
-        pm1 = float(air_data[2])
-        pm25 = float(air_data[3])
-        pm10 = float(air_data[4])
+        pm1 = float(air_data[2]) * 1.00
+        pm25 = float(air_data[3]) * 1.00
+        pm10 = float(air_data[4]) * 1.00
 
         return pm1, pm25, pm10
