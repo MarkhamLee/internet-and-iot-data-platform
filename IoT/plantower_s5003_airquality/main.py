@@ -60,7 +60,7 @@ def get_sensor_data(client: object, topic: str, interval: int, quality):
                 send_threshold_alert(pm25, pm10)
 
                 # longer sleep threshold to avoid constant alerts
-                sleep(ALERT_INTERVAL)
+                interval = ALERT_INTERVAL
 
             # create payload
             payload = {
@@ -83,6 +83,8 @@ def get_sensor_data(client: object, topic: str, interval: int, quality):
             com_utilities.send_slack_alert(message, DEVICE_FAILURE_CHANNEL)
 
         sleep(interval)
+        # reset sleep interval
+        interval = interval
 
 
 def send_message(client: object, payload: dict, topic: str):
