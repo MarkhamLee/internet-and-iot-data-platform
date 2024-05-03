@@ -34,6 +34,7 @@ def get_sensor_data(client: object, topic: str, interval: int, quality):
 
     PM2_THRESHOLD = int(os.environ['PM2_THRESHOLD'])
     PM10_THRESHOLD = int(os.environ['PM10_THRESHOLD'])
+    ALERT_INTERVAL = int(os.environ['ALERT_SLEEP'])
 
     while True:
 
@@ -57,6 +58,9 @@ def get_sensor_data(client: object, topic: str, interval: int, quality):
             # the others check more often or turn up the purifiers.
             if pm25 > PM2_THRESHOLD or pm10 > PM10_THRESHOLD:
                 send_threshold_alert(pm25, pm10)
+
+                # longer sleep threshold to avoid constant alerts
+                sleep(ALERT_INTERVAL)
 
             # create payload
             payload = {

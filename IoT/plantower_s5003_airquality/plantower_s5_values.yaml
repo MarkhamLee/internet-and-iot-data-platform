@@ -73,11 +73,21 @@ spec:
                 secretKeyRef:
                   key: CLIMATE_ALERT_WEBHOOK
                   name: climate-alert-secret
-                  optional: false           
+                  optional: false     
+            - name: ALERT_SLEEP
+              valueFrom:
+                secretKeyRef:
+                  key: ALERT_SLEEP
+                  name: iot-device-configs
+                  optional: false   
             - name: DEVICE_FAILURE_CHANNEL
-              value: '#iot_device_failures'
+              valueFrom:
+                secretKeyRef:
+                  key: DEVICE_FAILURE_CHANNEL
+                  name: iot-device-configs
+                  optional: false  
             - name: INTERVAL
-              value: '15'
+              value: '60'
             - name: DEVICE_ID
               value: node2
             - name: PLANTOWER_SENSOR_ID
