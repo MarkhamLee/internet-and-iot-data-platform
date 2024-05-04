@@ -65,6 +65,8 @@ class PlantowerS5003Utils():
 
     def get_air_data(self, interval: int):
 
+        self.plantower_s5003.flushInput()
+
         # query device for data
         self.plantower_s5003.write(self.PASSIVE_READ)
 
