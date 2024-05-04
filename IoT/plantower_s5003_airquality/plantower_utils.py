@@ -56,7 +56,7 @@ class PlantowerS5003Utils():
             # TODO: possibly update this so that the modes can be passed as
             # parameters IF some of the other modes can be run without
             # causing massive errors/needing to reset the device
-            # self.plantower_s5003.write(self.WAKEUP)
+            self.plantower_s5003.write(self.WAKEUP)
             self.plantower_s5003.write(self.PASSIVE_MODE)
             self.plantower_s5003.flushInput()
 
@@ -64,9 +64,6 @@ class PlantowerS5003Utils():
             self.logger.debug(f"Failed to connect to Plantower S5003 {e}... ")  # noqa: E501
 
     def get_air_data(self, interval: int):
-
-        # self.plantower_s5003.write(self.WAKEUP)
-        self.plantower_s5003.flushInput()
 
         # query device for data
         self.plantower_s5003.write(self.PASSIVE_READ)
