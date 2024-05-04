@@ -69,7 +69,7 @@ def get_sensor_data(client: object, topic: str, interval: int, quality):
                 "pm10": pm10
             }
 
-            logger.info(f'Payload ready: {payload}')
+            # logger.info(f'Payload ready: {payload}')
 
             payload = json.dumps(payload)
             send_message(client, payload, topic)
