@@ -1,4 +1,4 @@
-## Finance, Productivity, Home IoT, General Info & Weather Dashboard
+## API, Internet and IoT Data Platform
 
 This project started out with the following goals: 
 
