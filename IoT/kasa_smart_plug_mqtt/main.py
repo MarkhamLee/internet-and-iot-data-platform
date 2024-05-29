@@ -65,8 +65,6 @@ async def get_plug_data(client: object, topic: str,
             "device_id": plug.device_id
         }
 
-        logger.info(f'Payload ready: {payload}')
-
         payload = json.dumps(payload)
         result = client.publish(topic, payload)
         status = result[0]
