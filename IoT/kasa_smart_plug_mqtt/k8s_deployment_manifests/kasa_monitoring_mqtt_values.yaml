@@ -60,6 +60,8 @@ spec:
                 secretKeyRef:
                   key: KASA_PLUG1_IP
                   name: kasa-plug-ips
+            - name: SENSOR_ID
+              value: KASA_PLUG_1
             - name: INTERVAL
               value: '5'
       imagePullSecrets: 
