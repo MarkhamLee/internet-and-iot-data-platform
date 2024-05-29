@@ -23,6 +23,9 @@ com_utilities = IoTCommunications()
 async def get_plug_data(client: object, topic: str,
                         device_ip: str, interval: int):
 
+    error_n = 1
+    error_interval = 180  # sleep interval due to connetion errors
+
     try:
         dev = SmartPlug(device_ip)
         logger.info(f'Connected to Kasa smart plug at: {device_ip}')

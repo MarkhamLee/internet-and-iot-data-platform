@@ -57,6 +57,8 @@ def air(client: object, quality: object, topic: str, interval: int) -> str:
             sleep_duration = error_n * interval
             error_n = (2 * error_n)
 
+        error_n = 1  # reset error sleep interval
+
         # given that this is a RAM constrained device, let's delete
         # everything and do some garbage collection, watching things
         # on htop the RAM usage was creeping upwards...
