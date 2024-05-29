@@ -19,36 +19,50 @@ from iot_libraries.communications_utilities\
 
 com_utilities = IoTCommunications()
 
+DEVICE_FAILURE_CHANNEL = os.environ['DEVICE_FAILURE_CHANNEL']
+SENSOR_ID = os.environ['SENSOR_ID']
+
 
 async def get_plug_data(client: object, topic: str,
                         device_ip: str, interval: int):
 
-    error_n = 1
-    error_interval = 180  # sleep interval due to connetion errors
+    device_error_count = 0
+    mqtt_error_count = 0
 
     try:
-        dev = SmartPlug(device_ip)
+        plug = SmartPlug(device_ip)
         logger.info(f'Connected to Kasa smart plug at: {device_ip}')
 
     except Exception as e:
-        logger.debug(f'device connection unsuccessful with error: {e}')
+        message = (f"Kasa device: {SENSOR_ID} unavailable with error {e}, going to sleep....")  # noqa: E501
+        com_utilities.send_slack_alert(message, DEVICE_FAILURE_CHANNEL)
+        # go to sleep for 30 minutes, give device time to be setup
+        # and deployed, Kubernetes will just redeploy the container
+        # if we exit, so we sleep instead
+        asyncio.sleep(1800)
 
     while True:
 
         # poll device for update
         try:
-            await dev.update()
+            await plug.update()
 
         except Exception as e:
-            logger.debug(f'connection error: {e}')
+            message = (f'Kasa plug {SENSOR_ID} connectivity failure with error: {e}')  # noqa: E501
+            logger.debug(message)
+            device_error_count += 1
+            if device_error_count > 36:
+                com_utilities.send_slack_alert(message, DEVICE_FAILURE_CHANNEL)
+                device_error_count = 0  # reset error count
+                asyncio.sleep(1200)  # sleep for 20 minutes
+                continue
 
         # split out data
-
         payload = {
-            "power_usage": dev.emeter_realtime.power,
-            "voltage": dev.emeter_realtime.voltage,
-            "current": dev.emeter_realtime.current,
-            "device_id": dev.device_id
+            "power_usage": plug.emeter_realtime.power,
+            "voltage": plug.emeter_realtime.voltage,
+            "current": plug.emeter_realtime.current,
+            "device_id": plug.device_id
         }
 
         payload = json.dumps(payload)
@@ -56,14 +70,22 @@ async def get_plug_data(client: object, topic: str,
         status = result[0]
 
         if status != 0:
-            logger.debug(f'data failed to publish to MQTT topic, status code:\
-                          {status}')
+            mqtt_error_count += 1
+            message = (f'MQTT connection error, failed to publish data for: {SENSOR_ID} to MQTT topic: {topic}, with code: {status}')  # noqa: E501
+            logger.debug(message)
+
+            if mqtt_error_count > 36:
+                com_utilities.send_slack_alert(message, DEVICE_FAILURE_CHANNEL)
+                mqtt_error_count = 0  # reset count interval
+                # sleep for 30 minutes, 10 consecutive failures suggests
+                # broader network and/or MQTT broker issues.
+                asyncio.sleep(1800)
 
         # clean up RAM, container metrics show RAM usage creeping up daily
         del payload, result, status
         gc.collect()
 
-        # wait 30 seconds
+        # wait 5 seconds
         await asyncio.sleep(interval)  # Sleep some time between updates
 
 
