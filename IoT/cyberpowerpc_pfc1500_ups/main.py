@@ -41,52 +41,6 @@ def ups_monitoring(CMD: str, TOPIC: str, client: object):
 
             # query the UPS via bash to acquire data
             data = sp.check_output(CMD, shell=True)
-            data = data.decode("utf-8").strip().split("\n")
-
-            # parse data into a list of lists, each pair of values becomes
-            # its own lists.
-            initial_list = [i.split(':') for i in data]
-
-            ups_dict = dict(initial_list)
-
-            # payload for MQTT message
-            payload = {
-                "battery_level": float(ups_dict['battery.charge']),
-                "battery_run_time":
-                    (float(ups_dict['battery.runtime']))/60,
-                "battery_voltage": float(ups_dict['battery.voltage']),
-                "input_voltage": float(ups_dict['input.voltage']),
-                "load_percentage": float(ups_dict['ups.load']),
-                "max_power": float(ups_dict['ups.realpower.nominal']),
-                "ups_status": ups_dict['ups.status'],
-                "device_model": ups_dict['device.model']
-            }
-
-            # check load status, send alert if it's to high
-            # TODO: add a series of alerts based on the values above
-            # Note: running on battery already generates alerts via the
-            # Firewall.
-            if float(ups_dict['ups.load']) > 50:
-                excessive_load_count += 1
-
-            if excessive_load_count > load_threshold:
-                SLACK_WEBHOOK = os.environ['SLACK_HW_ALERTS']
-                message = (f'Power load has exceeded 50% on {UPS_ID} for more than 15 minutes')  # noqa: E501
-                logger.info(message)
-                monitor_utilities.send_slack_webhook(SLACK_WEBHOOK, message)
-                excessive_load_count = 0  # reset the timer
-
-            # build json payload
-            payload = json.dumps(payload)
-
-            result = client.publish(TOPIC, payload)
-            status = result[0]
-
-            if status != 0:
-                logger.debug(f'MQTT publishing failure for monitoring UPS: {UPS_ID}, return code: {status}')  # noqa: E501
-
-            del data, initial_list, test_dict, payload, result, status
-            gc.collect()
 
         except Exception as e:
             logger.debug(f'Failed to read data from UPS: {UPS_ID} with error: {e}')  # noqa: E501
@@ -94,16 +48,77 @@ def ups_monitoring(CMD: str, TOPIC: str, client: object):
             # now as the firewall will detect this and send out a Slack alert.
             # Will need to add in the future once I add more UPS devices.
             sleep(600)
+            continue
+
+        # parse the output of the bash command into a Python dictionary
+        ups_dict = parse_data(data)
+
+        # check load status, send alert if it's too high
+        # TODO: add a series of alerts based on the values above
+        # Note: running on battery already generates alerts via the
+        # Firewall.
+        if float(ups_dict['ups.load']) > 50:
+            excessive_load_count += 1
+
+        else:
+            excessive_load_count = 0  # reset counter
+
+        if excessive_load_count > load_threshold:
+            SLACK_WEBHOOK = os.environ['SLACK_HW_ALERTS']
+            message = (f'Power load has exceeded 50% on {UPS_ID} for more than 15 minutes')  # noqa: E501
+            logger.info(message)
+            monitor_utilities.send_slack_webhook(SLACK_WEBHOOK, message)
+            excessive_load_count = 0  # reset the timer
+
+        # build json payload
+        payload = json.dumps(ups_dict)
+
+        result = client.publish(TOPIC, payload)
+        status = result[0]
+
+        if status != 0:
+            logger.debug(f'MQTT publishing failure for monitoring UPS: {UPS_ID}, return code: {status}')  # noqa: E501
+
+        del data, initial_list, test_dict, payload, result, status
+        gc.collect()
 
         sleep(INTERVAL)
 
 
-def build_ups_query():
+# build UPS bash query string
+def build_ups_query() -> str:
 
     UPS_IP = os.environ['UPS_IP']
     CMD = "upsc " + UPS_ID + "@" + UPS_IP
 
     return CMD
+
+
+# parse string from bash ups query into a python dictionary
+def parse_data(data: str) -> dict:
+
+    data = data.decode("utf-8").strip().split("\n")
+
+    # parse data into a list of lists, each pair of values becomes
+    # its own list.
+    initial_list = [i.split(':') for i in data]
+
+    # convert lists into a dictionary
+    ups_dict = dict(initial_list)
+
+    # build payload for MQTT message
+    payload = {
+        "battery_level": float(ups_dict['battery.charge']),
+        "battery_run_time": (float(ups_dict['battery.runtime']))/60,
+        "battery_voltage": float(ups_dict['battery.voltage']),
+        "input_voltage": float(ups_dict['input.voltage']),
+        "load_percentage": float(ups_dict['ups.load']),
+        "max_power": float(ups_dict['ups.realpower.nominal']),
+        "ups_status": ups_dict['ups.status'],
+        "device_model": ups_dict['device.model']
+    }
+
+    return payload
 
 
 def main():
