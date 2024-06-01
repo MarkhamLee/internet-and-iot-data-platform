@@ -51,13 +51,13 @@ def ups_monitoring(CMD: str, TOPIC: str, client: object):
             continue
 
         # parse the output of the bash command into a Python dictionary
-        ups_dict = parse_data(data)
+        payload = parse_data(data)
 
         # check load status, send alert if it's too high
         # TODO: add a series of alerts based on the values above
         # Note: running on battery already generates alerts via the
         # Firewall.
-        if float(ups_dict['ups.load']) > 50:
+        if float(payload['load_percentage']) > 50:
             excessive_load_count += 1
 
         else:
@@ -71,15 +71,14 @@ def ups_monitoring(CMD: str, TOPIC: str, client: object):
             excessive_load_count = 0  # reset the timer
 
         # build json payload
-        payload = json.dumps(ups_dict)
+        payload = json.dumps(payload)
 
         result = client.publish(TOPIC, payload)
-        status = result[0]
 
-        if status != 0:
-            logger.debug(f'MQTT publishing failure for monitoring UPS: {UPS_ID}, return code: {status}')  # noqa: E501
+        if result[0] != 0:  # checking status code
+            logger.debug(f'MQTT publishing failure for monitoring UPS: {UPS_ID}, return code: {result[0]}')  # noqa: E501
 
-        del data, initial_list, test_dict, payload, result, status
+        del data, payload, result
         gc.collect()
 
         sleep(INTERVAL)
