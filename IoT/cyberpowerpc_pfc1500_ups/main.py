@@ -38,7 +38,6 @@ def ups_monitoring(CMD: str, TOPIC: str, client: object):
     while True:
 
         try:
-
             # query the UPS via bash to acquire data
             data = sp.check_output(CMD, shell=True)
 

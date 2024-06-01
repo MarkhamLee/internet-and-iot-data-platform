@@ -9,7 +9,7 @@ While the code in this container is targeted for the CyberPower PC PFC1500LCDa i
 After getting NUT setup and managing my UPS, I begun looking into how to pull data off of it for display in a Grafana dashboard. After looking into into some code libraries, API wrappers and the like, it occured to me that it would be simpler to just run the Linux command line instruction to query your UPS on any machine with the NUT client installed from within Python. Namely: 
 
 ~~~
-ups_name@nut-server-ip-address  e.g., myups@192.168.99.99
+upsc ups_name@nut-server-ip-address  e.g., upsc myups@192.168.99.99
 ~~~
 
 Using the Python subprocess library you can run bash commands from within a Python script and convert the outputs to a dictionary:
