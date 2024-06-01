@@ -17,7 +17,10 @@ Using the Python subprocess library you can run bash commands from within a Pyth
 ~~~
 import subprocess as sp
 
-CMD = ups_name@nut-server-ip-address  # e.g. myups@192.168.99.99
+# UPS_ID and UPS_IP being environmental variables for the device name
+# and IP address of the server NUT is running on respectively
+
+CMD = "upsc " + UPS_ID + "@" + UPS_IP  # e.g. upsc myups@192.168.99.99
 
 data = sp.check_output(CMD, shell=True)
 data = data.decode("utf-8").strip().split("\n")
