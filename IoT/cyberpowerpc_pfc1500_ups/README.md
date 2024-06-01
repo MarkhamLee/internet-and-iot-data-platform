@@ -2,11 +2,17 @@
 
 ![Dashboard Thumbnail](../images/ups_dashboard.png)  
 
-While the code in this container is targeted for the CyberPower PC PFC1500LCDa it will "likely" work for any UPS device being managed by Network Ups Tools (NUT), I just have it labeled for the 1500LCD as that's the device I currently own. I.e., as I add more UPS devices I will probably juse use the same container and just change a few variables in the Kubernetes deployment manifest before I deploy monitoring for that particular device: device_id, server IP if it's on a dfiferent NUT server, followed by pushing the manifest to the CIDCD repo that's monitored by Argo CD, which would then deploy a new monitoring container on my Kubernetes cluster. 
+While the code in this container is targeted for the CyberPower PC PFC1500LCDa it will "likely" work for any UPS device that can be managed by Network Ups Tools (NUT), I just have it labeled for the 1500LCD as that's the device I currently own. In most instances, deploying a new UPS device would require the following:
+* Duplicating a Kubernetes manifest for an existing UPS device
+* Changing the device IP and deployment name
+* Adding a server IP if deploying this UPS device requires adding another NUT server, as existing ones don't have the capacity (USB ports) for additional UPS devices; this would require adding that IP as an environmental variable within Kubernetes via a config map or secret. 
+* In rare cases updating the code when a particular model exposes different or addtional data compared to the CyberPower PC device this code was originally written for. 
+
+Once that's complete, uploading the deployment manifest to the GitHub repo monitored by Argo CD will trigger the deployment of a container to monitor the new device.
 
 ### Technical Basics
 
-After getting NUT setup and managing my UPS, I begun looking into how to pull data off of it for display in a Grafana dashboard. After looking into into some code libraries, API wrappers and the like, it occured to me that it would be simpler to just run the Linux command line instruction to query your UPS on any machine with the NUT client installed from within Python. Namely: 
+After getting NUT setup and managing my UPS, I begun looking into how to pull data off of it for display in a Grafana dashboard. After looking into into some code libraries, API wrappers and the like, it occured to me that it would be simpler to just run the NUT client bash command you use to query UPS data from within Python:
 
 ~~~
 upsc ups_name@nut-server-ip-address  e.g., upsc myups@192.168.99.99
