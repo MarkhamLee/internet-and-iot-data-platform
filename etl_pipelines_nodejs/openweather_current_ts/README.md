@@ -6,7 +6,7 @@
 * Compile the TypeScript code from the ../src directory with 'npx tsc index.ts' 
 * Run the files locally by:
     * Creating all the environmental variables for your InfluxDB instance, creating your own OpenWeather API key, etc. 
-    * Running ts-node index.ts will run the file
+    * Running "ts-node index.ts" or "node index.js" will run the file
 * If you run into issues, in particular getting errors for "process.env" or the imports not working... 
     * Re-run NPM install from the directory with the package.json file
     * Re-compile the code by running 'npx tsc index.ts' 

@@ -13,7 +13,12 @@ Regardless of the language being used, certain core tenants always apply:
 
 ### Building & Transpiling
 
-* the folders for the TypeScript ETLs only contain the source files, you will have to transpile them into JavaScript to run them. For that purpose I used npm as the package manager and "npx" to franspile the .ts files into .js ones.
+* the folders for the TypeScript ETLs only contain the source files, you will have to transpile them into JavaScript to run them. 
+* I used npm as the package manager
+* **Key commands:** 
+  * "npx tsc --init" to initialize the project
+  * "npx tsc" to transpile the .ts files into .js ones
+  * "node index.js" to run the ETL
 * When cloning these folders, you will need to run the NPM install command in the "common" folder as well as the folder for an individual ETL
 * The following has to be added to the tsconfig.json for a given project/ETL folder so it can use the common files 
 
