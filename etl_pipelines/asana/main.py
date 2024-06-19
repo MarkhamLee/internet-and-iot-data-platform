@@ -104,10 +104,7 @@ def get_db_vars() -> dict:
     return TABLE, param_dict
 
 
-def get_postgres_client(TABLE, param_dict):
-
-    # get database variables, connection parameters
-    TABLE, param_dict = get_db_vars()
+def get_postgres_client(param_dict):
 
     return postgres_utilities.postgres_client(param_dict)
 
@@ -145,7 +142,8 @@ def main():
 
     # get Postgres connection
     TABLE, param_dict = get_db_vars()
-    connection = get_postgres_client(TABLE, param_dict)
+
+    connection = get_postgres_client(param_dict)
 
     # clear table
     response = postgres_utilities.clear_table(connection, TABLE)
