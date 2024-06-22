@@ -49,10 +49,15 @@ class EtlUtilities():
         }
 
         response = requests.post(url, headers=headers, json=payload)
-        logger.debug(f'Slack pipeline failure alert published succesfully with code: {response.status_code}')  # noqa: E501
 
-        return EtlUtilities.evaluate_slack_response(response.status_code,
-                                                    'webhook')
+        code = response.status_code
+
+        if code != 200:
+            logger.debug(f'Publishing of alert to Slack webhook failed with response code: {code}')  # noqa: E501
+        else:
+            logger.debug(f'Publishing of alert to Slack webhook suceeded with code: {code}')  # noqa: E501
+
+        return code
 
     # evaluates the response code and writes the appropriate message
     # to the logs
