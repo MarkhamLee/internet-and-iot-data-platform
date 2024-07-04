@@ -115,7 +115,7 @@ def write_data(connection, payload, table):
                                                          payload, table)
 
     if status == 1:
-        message = (f'Postgres write failed for AlphaVantage T-Bill ETL with error: {response}')  # noqa: E501
+        message = (f'Postgres write failed for Asana Tasks with error: {response}')  # noqa: E501
         response = etl_utilities.send_slack_webhook(WEBHOOK_URL, message)
         return status, response
 
