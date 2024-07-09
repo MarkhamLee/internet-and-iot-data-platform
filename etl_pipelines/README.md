@@ -53,7 +53,7 @@ docker buildx build --push  --platform linux/arm64/v8,linux/amd64 --tag  markham
 
 This command would build linux containers for arm64 and amd64 architectures, modify it for building for other architectures as you see fit.
 
-### Deployment Notes
+###   Deployment Notes
 
 * The folder for each pipeline/data source will have a readme file that will list all the environmental variables you will need to run the container. Meaning: API keys for data sources, secrets for databases, and other pieces of data you will need for the pipeline to work. 
 

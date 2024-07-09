@@ -57,7 +57,7 @@ spec:
               configMapKeyRef:
                 key: POSTGRES_DB_HOST
                 name: asana-etl-variables
-          - name: PORT
+          - name: POSTGRES_PORT
             valueFrom:
               configMapKeyRef:
                 key: POSTGRES_PORT
