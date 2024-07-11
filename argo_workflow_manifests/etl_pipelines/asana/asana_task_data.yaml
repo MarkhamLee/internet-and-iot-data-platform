@@ -3,7 +3,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: cronWorkflow
 metadata:
   name: asana-task-data-etl
-  namespace: etl-pipelines
+  namespace: argo
 spec:
   schedule: "0 * * * *"
   timezone: "America/Los_Angeles"
@@ -15,7 +15,7 @@ spec:
   workflowSpec:
     entrypoint: load-asana-task-data
     imagePullSecrets:
-    - name: docker-creds
+    - name: docker-secrets
     templates:
       - name: load-asana-task-data
         container:
