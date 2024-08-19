@@ -10,7 +10,7 @@ urllib3==2.2.2
 wcwidth 
 webencodings==0.5.1
 websocket-client
-pandas==2.1.3pip3 s
+pandas==2.1.3
 numpy==1.26.4
 asana==5.0.3
 joblib
