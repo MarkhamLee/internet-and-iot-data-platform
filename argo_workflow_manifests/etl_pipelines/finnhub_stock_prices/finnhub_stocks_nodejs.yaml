@@ -1,8 +1,9 @@
-# Workflow for pulling in weather data from the Open Weather API 
+# Argo Workflow for pulling in stock data from the Finnhub API
+# Nodejs variant
 apiVersion: argoproj.io/v1alpha1
 kind: cronWorkflow
 metadata:
-  name: openweather-current-weather
+  name: finnhub-stock-price-etl-nodejs
   namespace: argo
 spec:
   schedule: "*/15 * * * *"
@@ -13,15 +14,17 @@ spec:
   successfulJobsHistoryLimit: 5
   suspend: false
   workflowSpec:
-    entrypoint: load-weather-data
+    entrypoint: load-stock-data
     imagePullSecrets:
-    - name: docker-creds
+    - name: docker-secrets
     templates:
-      - name: load-weather-data
+      - name: load-stock-data
+        node_selector:
+          node_type: etl_node_arm64
         container:
-          image: markhamlee/openweather_current
-          command: ["python3"]
-          args: ["/etl/main.py", "Open Weather. Scheduled on: {{workflow.scheduledTime}}"]
+          image: markhamlee/finnhub_stockprice_nodejs:latest
+          command: ["node"]
+          args: ["/app/finnhub_nodejs/src/index.js", "Finnhub Stock API. Scheduled on: {{workflow.scheduledTime}}"]
           resources: 
             limits:
               memory: 256Mi
@@ -37,31 +40,27 @@ spec:
               secretKeyRef:
                 key: WEBHOOK_ETL_ALERTS
                 name: slack-webhook-pipeline-failures
-          - name: OPENWEATHER_KEY
+          - name: FINNHUB_SECRET
             valueFrom:
               secretKeyRef:
-                key: OPEN_WEATHER_SECRET
-                name: openweather-secret
+                key: FINNHUB_SECRET
+                name: finnhub-secret-key
           - name: INFLUX_ORG
             valueFrom:
               configMapKeyRef:
-                key: PROD_INFLUX_ORG
+                key: INFLUX_ORG
                 name: key-etl-variables
           - name: INFLUX_URL
             valueFrom:
               configMapKeyRef:
-                key: PROD_INFLUX_URL
+                key: INFLUX_URL
                 name: key-etl-variables
           - name: BUCKET
             valueFrom:
               configMapKeyRef:
-                key: PROD_DASHBOARD_BUCKET
+                key: BUCKET
                 name: key-etl-variables
-          - name: CITY
-            value: seattle
-          - name: LAT
-            value: '47.6'
-          - name: LONG 
-            value: '-122.3321'
-          - name: WEATHER_MEASUREMENT
-            value: weather
+          - name: FINNHUB_MEASUREMENT_SPY
+            value: finnhub_quotes
+          - name: STOCK_SYMBOL
+            value: SPY

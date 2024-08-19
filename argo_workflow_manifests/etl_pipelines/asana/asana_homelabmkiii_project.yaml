@@ -1,11 +1,11 @@
-# Workflow for pulling in TBill Data from the Alpha Vantage API
+# Workflow for pulling in task data from Asana
 apiVersion: argoproj.io/v1alpha1
-kind: cronWorkflow
+kind: CronWorkflow
 metadata:
-  name: alpha-vantage-2yr-tbill
+  name: asana-tasks-homelab-mkiii
   namespace: argo
 spec:
-  schedule: "0 */12 * * *"
+  schedule: "0 * * * *"
   timezone: "America/Los_Angeles"
   startingDeadlineSeconds: 0
   concurrencyPolicy: Replace
@@ -13,17 +13,17 @@ spec:
   successfulJobsHistoryLimit: 5
   suspend: false
   workflowSpec:
-    entrypoint: load-bond-data
+    entrypoint: load-asana-task-data
     imagePullSecrets:
     - name: docker-secrets
     templates:
-      - name: load-bond-data
-        nodeSelector:
-          node_type: etl_node_arm64
+      - name: load-asana-task-data
+        node_selector:
+          work_type: tasks
         container:
-          image: markhamlee/alphavantage_tbill_interval:latest
+          image: markhamlee/asanadata:latest
           command: ["python3"]
-          args: ["/etl/main.py", "Alpha Vantage 2 Year TBill. Scheduled on: {{workflow.scheduledTime}}"]
+          args: ["/etl/main.py", "Asana task data ETL. Scheduled on: {{workflow.scheduledTime}}"]
           resources: 
             limits:
               memory: 256Mi
@@ -44,11 +44,11 @@ spec:
               secretKeyRef:
                 key: WEBHOOK_ETL_ALERTS
                 name: slack-webhook-pipeline-failures
-          - name: ALPHA_KEY
+          - name: ASANA_KEY
             valueFrom:
               secretKeyRef:
-                key: ALPHA_VANTAGE_SECRET
-                name: alpha-vantage-secret
+                key: ASANA_KEY
+                name: asana-secret
           - name: DASHBOARD_DB
             valueFrom:
               configMapKeyRef:
@@ -64,9 +64,13 @@ spec:
               configMapKeyRef:
                 key: POSTGRES_PORT
                 name: asana-etl-variables
-          - name: BOND_MATURITY
-            value: 2year
-          - name: TBILL_TABLE
-            value: two_year_tbill
-          - name: COUNT
-            value: "7"
+          - name: ASANA_TABLE
+            valueFrom:
+              configMapKeyRef:
+                key: ASANA_TABLE_HOMELAB_MKIII
+                name: asana-etl-variables
+          - name: GID
+            valueFrom:
+              configMapKeyRef:
+                key: PROJECT_GID_HOMELAB_MKIII
+                name: asana-etl-variables

@@ -15,13 +15,15 @@ spec:
   workflowSpec:
     entrypoint: load-weather-data
     imagePullSecrets:
-    - name: docker-creds
+    - name: docker-secrets
     templates:
       - name: load-weather-data
+        nodeSelector:
+          node_type: etl_node_arm64
         container:
-          image: markhamlee/openweather_current
-          command: ["python3"]
-          args: ["/etl/main.py", "Open Weather. Scheduled on: {{workflow.scheduledTime}}"]
+          image: "markhamlee/openweather_current_ts_node:latest"
+          command: ["node"]
+          args: ["/app/openweather_current_ts/src/index.js", "Open Weather. Scheduled on: {{workflow.scheduledTime}}"]
           resources: 
             limits:
               memory: 256Mi
@@ -45,17 +47,17 @@ spec:
           - name: INFLUX_ORG
             valueFrom:
               configMapKeyRef:
-                key: PROD_INFLUX_ORG
+                key: INFLUX_ORG
                 name: key-etl-variables
           - name: INFLUX_URL
             valueFrom:
               configMapKeyRef:
-                key: PROD_INFLUX_URL
+                key: INFLUX_URL
                 name: key-etl-variables
           - name: BUCKET
             valueFrom:
               configMapKeyRef:
-                key: PROD_DASHBOARD_BUCKET
+                key: BUCKET
                 name: key-etl-variables
           - name: CITY
             value: seattle

@@ -3,7 +3,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: cronWorkflow
 metadata:
   name: finnhub-stock-price-etl
-  namespace: etl-pipelines
+  namespace: argo
 spec:
   schedule: "*/15 * * * *"
   timezone: "America/Los_Angeles"
@@ -15,7 +15,7 @@ spec:
   workflowSpec:
     entrypoint: load-stock-data
     imagePullSecrets:
-    - name: docker-creds
+    - name: docker-secrets
     templates:
       - name: load-stock-data
         container:
@@ -45,17 +45,17 @@ spec:
           - name: INFLUX_ORG
             valueFrom:
               configMapKeyRef:
-                key: PROD_INFLUX_ORG
+                key: INFLUX_ORG
                 name: key-etl-variables
           - name: INFLUX_URL
             valueFrom:
               configMapKeyRef:
-                key: PROD_INFLUX_URL
+                key: INFLUX_URL
                 name: key-etl-variables
           - name: BUCKET
             valueFrom:
               configMapKeyRef:
-                key: PROD_DASHBOARD_BUCKET
+                key: BUCKET
                 name: key-etl-variables
           - name: FINNHUB_MEASUREMENT_SPY
             value: finnhub_quotes

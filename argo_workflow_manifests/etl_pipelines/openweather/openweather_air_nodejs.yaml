@@ -15,16 +15,16 @@ spec:
   workflowSpec:
     entrypoint: load-air-quality-data
     imagePullSecrets:
-    - name: docker-creds
+    - name: docker-secrets
     templates:
     - name: load-air-quality-data
       node_selector:
-        work_type: tasks
+        node_type: etl_node_arm64
       container:
         name: argo-open-weather-air-quality
-        image: markhamlee/openweather_airquality:latest
-        command: ["python3"]
-        args: ["/etl/main.py", "Open Weather. Scheduled on: {{workflow.scheduledTime}}"]
+        image: "markhamlee/openweather_airquality_nodejs:latest"
+        command: ["node"]
+        args: ["/app/openweather_airquality_nodejs/src/index.js", "Open Weather API. Scheduled on: {{workflow.scheduledTime}}"]
         resources: 
           limits:
             memory: 256Mi
@@ -48,17 +48,17 @@ spec:
         - name: INFLUX_ORG
           valueFrom:
             configMapKeyRef:
-              key: PROD_INFLUX_ORG
+              key: INFLUX_ORG
               name: key-etl-variables
         - name: INFLUX_URL
           valueFrom:
             configMapKeyRef:
-              key: PROD_INFLUX_URL
+              key: INFLUX_URL
               name: key-etl-variables
         - name: BUCKET
           valueFrom:
             configMapKeyRef:
-              key: PROD_DASHBOARD_BUCKET
+              key: BUCKET
               name: key-etl-variables
         - name: CITY
           value: seattle
