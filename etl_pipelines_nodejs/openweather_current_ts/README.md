@@ -2,7 +2,8 @@
 
 * Make sure you have a recent copy of node, npm and npx installed
 * Clone the repo/copy the files, note: you don't need the .js files, those will be re-created when you compile the TypeScript code and are just there for reference.
-* Run 'NPM install' to install the packages 
+* Run 'NPM install' to install the packages. 
+    * E.g., if you were to get dependabot alert about a package with a security vulnerability, go to the common folder, change the version of the package in package.json, run "npm install" and the updates package-lock.json will be taken care of. 
 * Compile the TypeScript code from the ../src directory with 'npx tsc index.ts' 
 * Run the files locally by:
     * Creating all the environmental variables for your InfluxDB instance, creating your own OpenWeather API key, etc. 

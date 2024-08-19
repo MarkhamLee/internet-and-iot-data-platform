@@ -16,6 +16,8 @@ Regardless of the language being used, certain core tenants always apply:
 * the folders for the TypeScript ETLs only contain the source files, you will have to transpile them into JavaScript to run them. 
 * I used npm as the package manager
 * **Key commands:** 
+  * "npm install" build all the packages
+    * For example: you update a package version number in /common/package.json and then run npm install from that folder, it will then update the package-lock.json everyplace that package is referenced. Next, check it into GitHub and containers that use that fill will be rebuilt via a GitHub Action and then deployed to Docker Hub.
   * "npx tsc --init" to initialize the project
   * "npx tsc" to transpile the .ts files into .js ones
   * "node index.js" to run the ETL
