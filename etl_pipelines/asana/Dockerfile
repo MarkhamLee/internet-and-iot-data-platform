@@ -1,6 +1,6 @@
 # Temp Stage 
 
-FROM python:alpine as builder
+FROM python:slim-bookworm AS builder
 
 WORKDIR /app
 
@@ -11,7 +11,7 @@ COPY /asana/requirements.txt .
 RUN pip wheel --no-cache-dir --no-deps --wheel-dir /app/wheels -r requirements.txt
 
 # Final Stage
-FROM python:alpine
+FROM python:slim-bookworm
 
 COPY --from=builder /app/wheels /wheels
 COPY --from=builder /app/requirements.txt .

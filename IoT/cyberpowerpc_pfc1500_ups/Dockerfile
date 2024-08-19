@@ -1,5 +1,5 @@
 # temp stage
-FROM python:slim-bookworm as builder
+FROM python:slim-bookworm AS builder
 
 WORKDIR /app
 
