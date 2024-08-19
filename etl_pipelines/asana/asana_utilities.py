@@ -2,7 +2,6 @@
 # productivity-music-stocks-weather-IoT-dashboard
 # https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
 # Utility script for retrieving data from Asana
-
 import asana
 import os
 import sys
