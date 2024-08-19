@@ -1,6 +1,5 @@
 jedi
 lxml
-prometheus-client 
 python-dateutil 
 pyzmq
 reactivex==4.0.4
@@ -11,12 +10,11 @@ urllib3==2.2.2
 wcwidth 
 webencodings==0.5.1
 websocket-client
-pandas
-numpy
-SQLAlchemy
+pandas==2.1.3pip3 s
+numpy==1.26.4
 asana==5.0.3
 joblib
 Werkzeug
 slack_sdk
-psycopg2-binary
-jsonschema
+psycopg2-binary==2.9.3
+jsonschema  
