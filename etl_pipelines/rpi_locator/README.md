@@ -1,4 +1,4 @@
-## Finnhub Stock ETL
+## Raspberry Pi Locator Bot/ETL
 
 ### Folder Contents 
 
