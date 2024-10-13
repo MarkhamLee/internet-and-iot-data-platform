@@ -39,7 +39,7 @@ class AirQuality:
         self.read_error_count = 0
         self.usb_error_count = 0
         self.NODE_DEVICE_ID = os.environ['DEVICE_ID']
-        self.DEVICE_FAILURE_CHANNEL = os.environ['DEVICE_FAILURE_CHANNEL']
+        self.DEVICE_FAILURE_WEBHOOK = os.environ['DEVICE_ALERT_WEBHOOK']
 
         self.com_utilities = IoTCommunications()
 
@@ -55,8 +55,8 @@ class AirQuality:
         except Exception as e:
             message = (f'USB device connection failure on node: {self.NODE_DEVICE_ID}, with device: {USB} with error message: {e}, going to sleep...')  # noqa: E501
             logger.debug(message)
-            self.com_utilities.send_slack_alert(message,
-                                                self.DEVICE_FAILURE_CHANNEL)
+            self.com_utilities.send_slack_webhook(self.DEVICE_FAILURE_WEBHOOK,
+                                                  message)
             # back-off limits/pod restart patterns are hard-coded into K8s,
             # SO... we put the container to sleep for an hour to provide
             # enough time to fix the physical issue w/o being spammed with
@@ -86,9 +86,8 @@ class AirQuality:
 
         except Exception as e:
             message = (f'Potential Nova PM SDS011 device error/failure on: {self.NODE_DEVICE_ID}, with error: {e}, going to sleep....')  # noqa: E501
-            logger.debug(message)
-            self.com_utilities.send_slack_alert(message,
-                                                self.DEVICE_FAILURE_CHANNEL)
+            self.com_utilities.send_slack_webhook(self.DEVICE_FAILURE_WEBHOOK,
+                                                  message)
             # put container to sleep to avoid getting continuous container
             # creation back off alerts
             self.read_error_count += 1
