@@ -16,11 +16,11 @@ spec:
   workflowSpec:
     entrypoint: load-stock-data
     imagePullSecrets:
-    - name: docker-secrets
+    - name: docker-creds
     templates:
       - name: load-stock-data
-        node_selector:
-          node_type: etl_node_arm64
+        nodeSelector:
+          k3s_role: x86_worker
         container:
           image: markhamlee/finnhub_stockprice_nodejs:latest
           command: ["node"]
@@ -44,7 +44,7 @@ spec:
             valueFrom:
               secretKeyRef:
                 key: FINNHUB_SECRET
-                name: finnhub-secret-key
+                name: etl-secrets-data
           - name: INFLUX_ORG
             valueFrom:
               configMapKeyRef:

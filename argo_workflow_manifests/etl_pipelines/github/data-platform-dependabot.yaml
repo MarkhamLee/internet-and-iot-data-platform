@@ -1,0 +1,92 @@
+# Workflow for pulling in GitHub dependabot alert data
+apiVersion: argoproj.io/v1alpha1
+kind: CronWorkflow
+metadata:
+  name: dependabot-monitor-data-platform
+  namespace: argo
+spec:
+  schedule: "0 * * * *"
+  timezone: "America/Los_Angeles"
+  startingDeadlineSeconds: 0
+  concurrencyPolicy: Replace
+  failedJobsHistoryLimit: 3
+  successfulJobsHistoryLimit: 5
+  suspend: false
+  workflowSpec:
+    entrypoint: github-dependabot-alert-data-platform
+    imagePullSecrets:
+    - name: docker-creds
+    templates:
+      - name: github-dependabot-alert-data-platform
+        nodeSelector:
+          k3s_role: x86_worker
+        container:
+          image: "markhamlee/github_dependabot:latest"
+          command: ["python3"]
+          args: ["/etl/main.py", "GitHub Dependabot Data Scheduled on: {{workflow.scheduledTime}}"]
+          resources: 
+            limits:
+              memory: 256Mi
+              cpu: 200m
+          env:
+          - name: INFLUX_KEY
+            valueFrom:
+              secretKeyRef:
+                key: PROD_INFLUX_KEY
+                name: influxdb-secret
+          - name: ALERT_WEBHOOK
+            valueFrom:
+              secretKeyRef:
+                key: WEBHOOK_ETL_ALERTS
+                name: slack-webhook-pipeline-failures
+          - name: SECURITY_SLACK_WEBHOOK
+            valueFrom:
+              secretKeyRef:
+                key: SECURITY_SLACK_WEBHOOK
+                name: slack-github-alerts       
+          - name: GITHUB_TOKEN
+            valueFrom:
+              secretKeyRef:
+                key: GITHUB_TOKEN
+                name: github-api-token
+          - name: INFLUX_ORG
+            valueFrom:
+              configMapKeyRef:
+                key: INFLUX_ORG
+                name: key-etl-variables
+          - name: INFLUX_URL
+            valueFrom:
+              configMapKeyRef:
+                key: INFLUX_URL
+                name: key-etl-variables
+          - name: DEVOPS_BUCKET
+            valueFrom:
+              configMapKeyRef:
+                key: DEVOPS_BUCKET
+                name: github-variables
+          - name: GITHUB_ALERTS_MEASUREMENT
+            valueFrom:
+              configMapKeyRef:
+                key: GITHUB_ALERTS_MEASUREMENT_IOT_PLATFORM
+                name: github-variables       
+          - name: ALERTS_ENDPOINT
+            valueFrom:
+              configMapKeyRef:
+                key: ALERTS_ENDPOINT
+                name: github-variables
+          - name: GITHUB_BASE_URL
+            valueFrom:
+              configMapKeyRef:
+                key: GITHUB_BASE_URL
+                name: github-variables
+          - name: REPO_BASE
+            valueFrom:
+              configMapKeyRef:
+                key: REPO_BASE
+                name: github-variables   
+          - name: REPO_NAME
+            value: internet-and-iot-data-platform 
+          - name: GITHUB_PIPELINE_NAME
+            value: dependabot_alerts
+          - name: REPO_SHORT_NAME
+            value: dashboard

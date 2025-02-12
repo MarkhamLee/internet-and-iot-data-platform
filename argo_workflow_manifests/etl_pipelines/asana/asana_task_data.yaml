@@ -15,7 +15,7 @@ spec:
   workflowSpec:
     entrypoint: load-asana-task-data
     imagePullSecrets:
-    - name: docker-secrets
+    - name: docker-creds
     templates:
       - name: load-asana-task-data
         container:
@@ -31,12 +31,12 @@ spec:
             valueFrom:
               secretKeyRef:
                 key: POSTGRES_USER
-                name: postgres-secrets
+                name: pg-secrets
           - name: POSTGRES_PASSWORD
             valueFrom:
               secretKeyRef:
                 key: POSTGRES_PASSWORD
-                name: postgres-secrets
+                name: pg-secrets
           - name: ALERT_WEBHOOK
             valueFrom:
               secretKeyRef:
@@ -46,7 +46,7 @@ spec:
             valueFrom:
               secretKeyRef:
                 key: ASANA_KEY
-                name: asana-secret
+                name: etl-secrets-data
           - name: DASHBOARD_DB
             valueFrom:
               configMapKeyRef:
@@ -56,12 +56,12 @@ spec:
             valueFrom:
               configMapKeyRef:
                 key: POSTGRES_DB_HOST
-                name: asana-etl-variables
+                name: postgres-config
           - name: POSTGRES_PORT
             valueFrom:
               configMapKeyRef:
                 key: POSTGRES_PORT
-                name: asana-etl-variables
+                name: postgres-config
           - name: ASANA_TABLE
             valueFrom:
               configMapKeyRef:

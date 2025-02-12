@@ -15,11 +15,11 @@ spec:
   workflowSpec:
     entrypoint: load-air-quality-data
     imagePullSecrets:
-    - name: docker-secrets
+    - name: docker-creds
     templates:
     - name: load-air-quality-data
-      node_selector:
-        node_type: etl_node_arm64
+      nodeSelector:
+        k3s_role: x86_worker
       container:
         name: argo-open-weather-air-quality
         image: "markhamlee/openweather_airquality_nodejs:latest"

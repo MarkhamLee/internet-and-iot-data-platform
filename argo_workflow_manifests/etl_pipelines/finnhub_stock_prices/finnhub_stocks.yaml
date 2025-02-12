@@ -18,6 +18,8 @@ spec:
     - name: docker-secrets
     templates:
       - name: load-stock-data
+        nodeSelector:
+          k3s_role: x86_worker
         container:
           image: markhamlee/finnhub_stock_etl:latest
           command: ["python3"]

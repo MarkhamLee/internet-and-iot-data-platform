@@ -18,8 +18,8 @@ spec:
     - name: docker-creds
     templates:
     - name: load-air-quality-data
-      node_selector:
-        work_type: tasks
+      nodeSelector:
+        k3s_role: x86_worker
       container:
         name: argo-open-weather-air-quality
         image: markhamlee/openweather_airquality:latest

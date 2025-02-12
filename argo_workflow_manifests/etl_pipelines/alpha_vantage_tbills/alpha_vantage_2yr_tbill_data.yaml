@@ -13,13 +13,13 @@ spec:
   successfulJobsHistoryLimit: 5
   suspend: false
   workflowSpec:
-    entrypoint: load-bond-data
+    entrypoint: load-two-year-bond-data
     imagePullSecrets:
-    - name: docker-secrets
+    - name: docker-creds
     templates:
-      - name: load-bond-data
+      - name: load-two-year-bond-data
         nodeSelector:
-          node_type: etl_node_arm64
+          k3s_role: x86_worker
         container:
           image: markhamlee/alphavantage_tbill_interval:latest
           command: ["python3"]
@@ -33,7 +33,7 @@ spec:
             valueFrom:
               secretKeyRef:
                 key: POSTGRES_USER
-                name: postgres-secrets
+                name: pg-secrets
           - name: POSTGRES_PASSWORD
             valueFrom:
               secretKeyRef:
@@ -47,23 +47,23 @@ spec:
           - name: ALPHA_KEY
             valueFrom:
               secretKeyRef:
-                key: ALPHA_VANTAGE_SECRET
-                name: alpha-vantage-secret
+                key: ALPHA_KEY
+                name: etl-secrets-data
           - name: DASHBOARD_DB
             valueFrom:
               configMapKeyRef:
                 key: POSTGRES_DASHBOARD_DB
-                name: asana-etl-variables
+                name: postgres-etl-config
           - name: DB_HOST
             valueFrom:
               configMapKeyRef:
                 key: POSTGRES_DB_HOST
-                name: asana-etl-variables
+                name: postgres-config
           - name: POSTGRES_PORT
             valueFrom:
               configMapKeyRef:
                 key: POSTGRES_PORT
-                name: asana-etl-variables
+                name: postgres-config
           - name: BOND_MATURITY
             value: 2year
           - name: TBILL_TABLE

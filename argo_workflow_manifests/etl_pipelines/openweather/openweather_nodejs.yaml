@@ -15,11 +15,11 @@ spec:
   workflowSpec:
     entrypoint: load-weather-data
     imagePullSecrets:
-    - name: docker-secrets
+    - name: docker-creds
     templates:
       - name: load-weather-data
         nodeSelector:
-          node_type: etl_node_arm64
+          k3s_role: x86_worker
         container:
           image: "markhamlee/openweather_current_ts_node:latest"
           command: ["node"]

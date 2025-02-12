@@ -18,6 +18,8 @@ spec:
     - name: docker-creds
     templates:
       - name: load-weather-data
+        nodeSelector:
+          k3s_role: x86_worker
         container:
           image: markhamlee/openweather_current
           command: ["python3"]
