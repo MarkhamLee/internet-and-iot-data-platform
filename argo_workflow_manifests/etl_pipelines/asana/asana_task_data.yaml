@@ -18,6 +18,8 @@ spec:
     - name: docker-creds
     templates:
       - name: load-asana-task-data
+        nodeSelector:
+          k3s_role: x86_worker
         container:
           image: markhamlee/asanadata:latest
           command: ["python3"]

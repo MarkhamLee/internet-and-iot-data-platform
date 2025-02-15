@@ -2,7 +2,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: CronWorkflow
 metadata:
-  name: asana-tasks-homelab-mkiii
+  name: asana-tasks-k3s-2025
   namespace: argo
 spec:
   schedule: "0 * * * *"
@@ -13,11 +13,11 @@ spec:
   successfulJobsHistoryLimit: 5
   suspend: false
   workflowSpec:
-    entrypoint: load-asana-task-data
+    entrypoint: asana-tasks-k3s-2025
     imagePullSecrets:
-    - name: docker-secrets
+    - name: docker-creds
     templates:
-      - name: load-asana-task-data
+      - name: asana-tasks-k3s-2025
         nodeSelector:
           k3s_role: x86_worker
         container:
@@ -67,10 +67,10 @@ spec:
           - name: ASANA_TABLE
             valueFrom:
               configMapKeyRef:
-                key: ASANA_TABLE_HOMELAB_MKIII
+                key: K3s_Q1_2025_TABLE
                 name: asana-etl-variables
           - name: GID
             valueFrom:
               configMapKeyRef:
-                key: PROJECT_GID_HOMELAB_MKIII
+                key: K3S_Q1_2025_GID
                 name: asana-etl-variables
