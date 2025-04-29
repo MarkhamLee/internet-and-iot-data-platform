@@ -4,7 +4,7 @@ alembic==1.12.1
 annotated-types==0.6.0
 anyio 
 apache-airflow
-apache-airflow-providers-common-sql==1.8.0
+apache-airflow-providers-common-sql>=1.24.1
 apache-airflow-providers-ftp==3.7.0
 apache-airflow-providers-http==4.6.0
 apache-airflow-providers-imap==3.4.0
@@ -52,7 +52,7 @@ entrypoints
 executing 
 fastjsonschema
 Flask==2.2.5
-Flask-AppBuilder==4.5.1
+Flask-AppBuilder>=4.5.3
 Flask-Babel==2.0.0
 Flask-Caching==2.1.0
 Flask-JWT-Extended==4.5.3
@@ -68,7 +68,7 @@ graphviz==0.20.1
 greenlet==3.0.1
 grpcio==1.59.0
 gunicorn
-h11==0.14.0
+h11==0.16.0
 httpcore==0.18.0
 httpx==0.25.0
 idna 
@@ -189,7 +189,7 @@ urllib3==2.2.2
 wcwidth 
 webencodings==0.5.1
 websocket-client
-Werkzeug==3.0.3
+Werkzeug==3.0.6
 wrapt==1.15.0
 WTForms==3.1.0
 yarl==1.9.2
