@@ -16,11 +16,14 @@ Regardless of the language being used, certain core tenants always apply:
 * the folders for the TypeScript ETLs only contain the source files, you will have to transpile them into JavaScript to run them. 
 * I used npm as the package manager
 * **Key commands:** 
-  * "npm install" build all the packages
-    * For example: you update a package version number in /common/package.json and then run npm install from that folder, it will then update the package-lock.json everyplace that package is referenced. Next, check it into GitHub and containers that use that fill will be rebuilt via a GitHub Action and then deployed to Docker Hub.
+  * Run "npm install" build all the packages when you first setup the project. 
   * "npx tsc --init" to initialize the project
   * "npx tsc" to transpile the .ts files into .js ones
   * "node index.js" to run the ETL
+  * You should also run "npm install" when you update package versions, for example:
+    * You update a package version number in /common/package.json to address a security vulnerability or to use new functionality. You would then run "npm install" from that folder, in order to update the package-lock.json everyplace that package is referenced. 
+    * After the above run "npm audit fix" to address any other known security vulnerabilities.
+    * Next, check it into GitHub and containers that use that file will be rebuilt via a GitHub Action and then deployed to Docker Hub.
 * When cloning these folders, you will need to run the NPM install command in the "common" folder as well as the folder for an individual ETL
 * The following has to be added to the tsconfig.json for a given project/ETL folder so it can use the common files 
 
