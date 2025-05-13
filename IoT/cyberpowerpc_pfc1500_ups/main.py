@@ -82,16 +82,16 @@ def ups_monitoring(CMD: str, TOPIC: str, client: object):
 
         # send an alert if the device is running off the battery
         # AKA using mains AC power.
-        if ups_status == ' OB DISCHRG': 
+        if ups_status == ' OB DISCHRG':
             power_alert_count += 1
-            logger.info(f'UPS has switched to battery power') 
+            logger.info(f'UPS {UPS_ID} has switched to battery power')
         else:
             power_alert_count = 5  # proper reset the issue as resolved
 
         if power_alert_count >= power_alert_threshold:
-            message = (f'UPS {UPS_ID} has lost mains power and is running off of the battery')
+            message = (f'UPS {UPS_ID} has lost mains power and is running off of the battery')  # noqa: E501
             logger.info(message)
-            logger.info('Sending loss of AC mains alert') 
+            logger.info('Sending loss of AC mains alert')
             send_power_status_alert(message)
             power_alert_count = 0
 
@@ -189,8 +189,9 @@ def main():
     client, code = monitor_utilities.mqttClient(clientID,
                                                 MQTT_USER, MQTT_SECRET,
                                                 MQTT_BROKER, MQTT_PORT)
-    
-    message = (f'{UPS_ID} is now online - being monitored')
+
+    message = (f'{UPS_ID} monitoring is online')
+    logger.info(message)
     monitor_utilities.send_slack_webhook(SLACK_WEBHOOK, message)
 
     # start monitoring

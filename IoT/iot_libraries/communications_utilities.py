@@ -81,19 +81,12 @@ class IoTCommunications():
         except Exception as e:
             logger.debug(f'Publishing of Slack alert failed with error: {e}')
 
-
-        IoTCommunications.evaluate_slack_response(response.status_code,
-                                                         'webhook')
-        
-        return response.status_code
-
-    @staticmethod
-    def evaluate_slack_response(code: int, type: str):
+        code = response.status_code
 
         if code == 200:
-            logger.info(f'Publishing of alert to Slack {type} was successful')
+            logger.info('Publishing of alert to Slack webhook was successful')
 
         else:
-            logger.debug(f'Publishing of alert to Slack {type} failed, with error code {code}')  # noqa: E501
+            logger.debug(f'Publishing of alert to Slack webhook failed, with error code {code}')  # noqa: E501
 
-        return code
+        return response.status_code
