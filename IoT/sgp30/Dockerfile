@@ -1,4 +1,4 @@
-FROM python:3.12.2-slim as builder
+FROM python:3.13.3-slim AS builder
 
 WORKDIR /app
 
@@ -9,7 +9,7 @@ COPY ./sgp30/requirements.txt .
 RUN pip wheel --no-cache-dir --no-deps --wheel-dir /app/wheels -r requirements.txt
 
 
-FROM python:3.12.2-slim
+FROM python:3.13.3-slim
 
 RUN apt-get update -y && apt-get install -y libgpiod2
 
