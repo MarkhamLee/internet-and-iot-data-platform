@@ -73,11 +73,19 @@ class IoTCommunications():
             "text": message
         }
 
-        response = requests.post(url, headers=headers, json=payload)
-        logger.debug(f'Slack pipeline failure alert published succesfully with code: {response.status_code}')  # noqa: E501
+        try:
 
-        return IoTCommunications.evaluate_slack_response(response.status_code,
+            response = requests.post(url, headers=headers, json=payload)
+            logger.info(f'Slack pipeline failure alert published succesfully with code: {response.status_code}')  # noqa: E501
+
+        except Exception as e:
+            logger.debug(f'Publishing of Slack alert failed with error: {e}')
+
+
+        IoTCommunications.evaluate_slack_response(response.status_code,
                                                          'webhook')
+        
+        return response.status_code
 
     @staticmethod
     def evaluate_slack_response(code: int, type: str):

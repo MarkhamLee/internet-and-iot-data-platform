@@ -23,6 +23,7 @@ from iot_libraries.communications_utilities\
 # instantiate hardware monitoring class
 monitor_utilities = IoTCommunications()
 
+SLACK_WEBHOOK = os.environ['SLACK_HW_ALERTS']
 UPS_ID = os.environ['UPS_ID']
 
 
@@ -64,6 +65,7 @@ def ups_monitoring(CMD: str, TOPIC: str, client: object):
         # TODO: add a series of alerts based on the values above
         # Note: running on battery already generates alerts via the
         # Firewall.
+
         if float(payload['load_percentage']) > 50:
             excessive_load_count += 1
 
@@ -71,7 +73,6 @@ def ups_monitoring(CMD: str, TOPIC: str, client: object):
             excessive_load_count = 0  # reset counter
 
         if excessive_load_count > load_threshold:
-            SLACK_WEBHOOK = os.environ['SLACK_HW_ALERTS']
             message = (f'Power load has exceeded 50% on {UPS_ID} for more than 15 minutes')  # noqa: E501
             logger.info(message)
             monitor_utilities.send_slack_webhook(SLACK_WEBHOOK, message)
@@ -79,22 +80,26 @@ def ups_monitoring(CMD: str, TOPIC: str, client: object):
 
         ups_status = payload['ups_status']
 
-        # send an alert if the device is runningo off the battery
+        # send an alert if the device is running off the battery
         # AKA using mains AC power.
-        if ups_status == ' BL':
+        if ups_status == ' OB DISCHRG': 
             power_alert_count += 1
+            logger.info(f'UPS has switched to battery power') 
         else:
             alert_count = 5  # proper reset the issue as resolved
 
         if alert_count >= power_alert_threshold:
-            send_power_status_alert()
+            message = (f'UPS {UPS_ID} has lost mains power and is running off of the battery')
+            logger.info(message)
+            logger.info('Sending loss of AC mains alert') 
+            send_power_status_alert(message)
             power_alert_count = 0
 
-        if ups_status != ' OL' and ups_status != ' BL':
-
+        if ups_status != ' OL' and ups_status != ' OB DISCHRG':
             issue_count += 1
 
             if issue_count > issue_threshold:
+                logger.info(f'UPS device: {UPS_ID} status change alert to: {ups_status}, sending Slack alert...')  # noqa: E501
                 send_device_alert(ups_status)
                 issue_count = 0
 
@@ -112,19 +117,17 @@ def ups_monitoring(CMD: str, TOPIC: str, client: object):
         sleep(INTERVAL)
 
 
-def send_power_status_alert():
+def send_power_status_alert(message):
 
-    SLACK_WEBHOOK = os.environ['SLACK_HW_ALERTS']
-    message = (f'UPS {UPS_ID} has lost mains power and is running off of battery')  # noqa: E501
     logger.info(message)
     monitor_utilities.send_slack_webhook(SLACK_WEBHOOK, message)
 
 
 def send_device_alert(ups_status):
 
-    SLACK_WEBHOOK = os.environ['SLACK_HW_ALERTS']
-    message = (f'UPS device status change: {ups_status}, which may require direct attention')  # noqa: E501
+    message = (f'UPS device status change to: {ups_status}, which may require direct attention')  # noqa: E501
     logger.info(message)
+    logger.info('Sending UPS device status change Slack alert')
     monitor_utilities.send_slack_webhook(SLACK_WEBHOOK, message)
 
 
