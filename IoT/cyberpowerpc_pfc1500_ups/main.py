@@ -42,7 +42,7 @@ def ups_monitoring(CMD: str, TOPIC: str, client: object):
     power_alert_threshold = 5 * (60/INTERVAL)
 
     # ensures we get an alert the first time it happens
-    power_alert_count = 5
+    power_alert_count = power_alert_threshold
 
     while True:
 
@@ -86,7 +86,8 @@ def ups_monitoring(CMD: str, TOPIC: str, client: object):
             power_alert_count += 1
             logger.info(f'UPS {UPS_ID} has switched to battery power')
         else:
-            power_alert_count = 5  # proper reset the issue as resolved
+            # proper reset the issue as resolved
+            power_alert_count = power_alert_threshold
 
         if power_alert_count >= power_alert_threshold:
             message = (f'UPS {UPS_ID} has lost mains power and is running off of the battery')  # noqa: E501
