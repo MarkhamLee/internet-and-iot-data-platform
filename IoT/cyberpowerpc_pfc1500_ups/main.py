@@ -189,6 +189,9 @@ def main():
     client, code = monitor_utilities.mqttClient(clientID,
                                                 MQTT_USER, MQTT_SECRET,
                                                 MQTT_BROKER, MQTT_PORT)
+    
+    message = (f'{UPS_ID} is now online - being monitored')
+    monitor_utilities.send_slack_webhook(SLACK_WEBHOOK, message)
 
     # start monitoring
     try:
