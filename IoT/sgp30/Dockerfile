@@ -21,8 +21,8 @@ RUN python3 -m pip install pimoroni-sgp30
 
 COPY ./iot_libraries ./iot_libraries 
 
-WORKDIR /iot_sensors
+WORKDIR /spg30
 
 COPY ./sgp30 ./
 
-ENTRYPOINT ["python3", "/iot_sensors/main.py"]
+ENTRYPOINT ["python3", "/sgp30/main.py"]
