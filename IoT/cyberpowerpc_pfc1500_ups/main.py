@@ -34,6 +34,14 @@ def ups_monitoring(CMD: str, TOPIC: str, client: object):
     logger.info(f'Starting monitoring for {UPS_ID}')
     excessive_load_count = 0
     load_threshold = 900/INTERVAL
+    issue_count = 0
+    issue_threshold = 600/INTERVAL
+
+    # ensures we get an alert every five minutes if the mains power is lost
+    power_alert_threshold = 5 * (60/INTERVAL)
+
+    # ensures we get an alert the first time it happens
+    power_alert_count = 5
 
     while True:
 
@@ -69,6 +77,27 @@ def ups_monitoring(CMD: str, TOPIC: str, client: object):
             monitor_utilities.send_slack_webhook(SLACK_WEBHOOK, message)
             excessive_load_count = 0  # reset the timer
 
+        ups_status = payload['ups_status']
+
+        # send an alert if the device is runningo off the battery
+        # AKA using mains AC power.
+        if ups_status == ' BL':
+            power_alert_count += 1
+        else:
+            alert_count = 5  # proper reset the issue as resolved
+
+        if alert_count >= power_alert_threshold:
+            send_power_status_alert()
+            power_alert_count = 0
+
+        if ups_status != ' OL' and ups_status != ' BL':
+
+            issue_count += 1
+
+            if issue_count > issue_threshold:
+                send_device_alert(ups_status)
+                issue_count = 0
+
         # build json payload
         payload = json.dumps(payload)
 
@@ -81,6 +110,22 @@ def ups_monitoring(CMD: str, TOPIC: str, client: object):
         gc.collect()
 
         sleep(INTERVAL)
+
+
+def send_power_status_alert():
+
+    SLACK_WEBHOOK = os.environ['SLACK_HW_ALERTS']
+    message = (f'UPS {UPS_ID} has lost mains power and is running off of battery')  # noqa: E501
+    logger.info(message)
+    monitor_utilities.send_slack_webhook(SLACK_WEBHOOK, message)
+
+
+def send_device_alert(ups_status):
+
+    SLACK_WEBHOOK = os.environ['SLACK_HW_ALERTS']
+    message = (f'UPS device status change: {ups_status}, which may require direct attention')  # noqa: E501
+    logger.info(message)
+    monitor_utilities.send_slack_webhook(SLACK_WEBHOOK, message)
 
 
 # build UPS bash query string
