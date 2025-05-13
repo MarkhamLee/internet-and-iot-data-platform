@@ -86,9 +86,9 @@ def ups_monitoring(CMD: str, TOPIC: str, client: object):
             power_alert_count += 1
             logger.info(f'UPS has switched to battery power') 
         else:
-            alert_count = 5  # proper reset the issue as resolved
+            power_alert_count = 5  # proper reset the issue as resolved
 
-        if alert_count >= power_alert_threshold:
+        if power_alert_count >= power_alert_threshold:
             message = (f'UPS {UPS_ID} has lost mains power and is running off of the battery')
             logger.info(message)
             logger.info('Sending loss of AC mains alert') 
