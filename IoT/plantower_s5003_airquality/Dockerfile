@@ -1,5 +1,5 @@
 # temp stage
-FROM python:slim-bookworm as builder
+FROM python:slim-bookworm AS builder
 
 WORKDIR /app
 
@@ -20,8 +20,8 @@ RUN pip install --no-cache /wheels/*
 
 COPY ./iot_libraries ./iot_libraries
 
-WORKDIR /hw_telemetry
+WORKDIR /plantower_s5003_airquality
 
 COPY ./plantower_s5003_airquality ./
 
-ENTRYPOINT ["python3", "/hw_telemetry/main.py"]
+ENTRYPOINT ["python3", "/plantower_s5003_airquality/main.py"]
