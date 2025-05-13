@@ -37,6 +37,7 @@ def ups_monitoring(CMD: str, TOPIC: str, client: object):
     load_threshold = 900/INTERVAL
     issue_count = 0
     issue_threshold = 600/INTERVAL
+    ac_status = 1
 
     # ensures we get an alert every five minutes if the mains power is lost
     power_alert_threshold = 5 * (60/INTERVAL)
@@ -85,10 +86,13 @@ def ups_monitoring(CMD: str, TOPIC: str, client: object):
         if ups_status == ' OB DISCHRG':
             power_alert_count += 1
             logger.info(f'UPS {UPS_ID} has switched to battery power')
-        else:
-            # proper reset the issue as resolved
+            ac_status = 0
+
+        if ups_status == ' OL CHRG' and ac_status == 0:
+            # reset threshold
+            ac_status = 1
             power_alert_count = power_alert_threshold
-            back_on_ac_message = (f'UPS {UPS_ID} is back on AC/Mains Power')
+            back_on_ac_message = (f'UPS {UPS_ID} is back on AC/Mains Power, battery is recharging')  # noqa: E501
             logger.info(back_on_ac_message)
             send_power_status_alert(back_on_ac_message)
 
