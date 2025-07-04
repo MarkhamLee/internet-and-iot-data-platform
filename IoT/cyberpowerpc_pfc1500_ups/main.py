@@ -133,7 +133,7 @@ def send_power_status_alert(message):
 
 def send_device_alert(ups_status):
 
-    message = (f'UPS device status change to: {ups_status}, which may require direct attention')  # noqa: E501
+    message = (f'UPS device {UPS_ID} status is: {ups_status}, which may require direct attention')  # noqa: E501
     logger.info(message)
     logger.info('Sending UPS device status change Slack alert')
     monitor_utilities.send_slack_webhook(SLACK_WEBHOOK, message)
