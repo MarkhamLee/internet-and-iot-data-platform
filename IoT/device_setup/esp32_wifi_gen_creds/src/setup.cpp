@@ -1,28 +1,31 @@
 /*
-
+I build this with Platformio - you may need to change
+things for it to work with the Arduino IDE.
 This is a provisioning sketch for ESP32 devices, the MQTT
-creds are loaded from environmental variables and I enter in the
-Wi-Fi credentials on my iPad (or any device with Wi-Fi) and then
-stored on the device. Once that's done you can comment out or delete
-the lines of code used for loading that data and write your app code
-without having to worry about loading Wi-Fi credentials, MQTT creds, etc.
-
+creds are loaded from environmental variables on my local
+device,  and I enter in the Wi-Fi credentials on my iPad 
+(or any device with Wi-Fi) via the Wi-Fi manager setup
+web page, and then all the variables are stored on the
+device. Once that's done you can comment out or delete the
+lines of code used for loading that data and write your app code
+without having to worry about loading Wi-Fi credentials,
+MQTT creds, etc.
 */
+
 #include <iostream>
 #include <stdlib.h>
 #include <Arduino.h>
 #include <WiFiManager.h> 
 #include <PicoMQTT.h>
 #include <ArduinoJson.h>
-#include <Preferences.h>
+#include <Preferences.h>  // this is a standard included library, don't add the one listed in packages
 
 #define LED 2
 
 
 PicoMQTT::Client mqtt("");
 
-String topic = "<Insert MQTT Topic Name Here>";
-
+String topic = "/embedded/esp32_setup_verify";
 
 void setup() {  
 
@@ -34,20 +37,21 @@ void setup() {
     WiFiManager wm;
 
     // Supress Debug information
-    wm.setDebugOutput(false);
+    wm.setDebugOutput(true);
  
     // reset settings - comment out after you've loaded creds
     // Wi-Fi credentials
-    // wm.resetSettings();
+    wm.resetSettings();
 
     // parameters for Wi-Fi setup 
     // comment out after you've loaded creds
-    // bool res;
-    // res = wm.autoConnect("esp32_node1","password");
+    // replace "esp_setup" with your desired device ID
+    bool res;
+    res = wm.autoConnect("esp_setup", "password");
       
     // Auto Connect esp32_node1 will be part of the device name on your WiFi network
     // this block of code is for auto connecting to Wi-Fi
-    if (!wm.autoConnect("esp32_node1", "password")) {
+    if (!wm.autoConnect("esp_setup", "password")) {
         // Did not connect, print error message
         Serial.println("failed to connect and hit timeout");
     
@@ -73,24 +77,25 @@ void setup() {
     // for subsequent code updates unless you change the creds.
 
     // Instantiate the preferences class
-    // Preferences prefs;
+    Preferences prefs;
 
-    // prefs.begin("credentials", false);
+    prefs.begin("credentials", false);
 
     // Comment out after you've saved the creds. Note: you can apply
     // the below to any vars you want to store on the device. Just be
     // mindful of the limited space.
-    // const char* mqtt_user =  getenv ("MQTT_USER");
-    // const char* mqtt_secret = getenv ("MQTT_SECRET");
-    // const char* mqtt_host = getenv ("MQTT_HOST");
+    
+    const char* mqtt_user =  getenv ("MQTT_USER");
+    const char* mqtt_secret = getenv ("MQTT_SECRET");
+    const char* mqtt_host = getenv ("MQTT_HOST");
 
-    // prefs.putString("mqtt_user", mqtt_user);
-    // prefs.putString("mqtt_secret", mqtt_secret);
-    // prefs.putString("mqtt_host", mqtt_host);
+    prefs.putString("mqtt_user", mqtt_user);
+    prefs.putString("mqtt_secret", mqtt_secret);
+    prefs.putString("mqtt_host", mqtt_host);
 
-    // Serial.println("MQTT credentials saved");
+    Serial.println("MQTT credentials saved");
 
-    // prefs.end();
+    prefs.end();
 
     // load MQTT creds and setup the MQTT client
     Preferences preferences;
@@ -107,7 +112,7 @@ void setup() {
     mqtt.port=1883;
     mqtt.username=user;
     mqtt.password=secret;
-    mqtt.client_id = "esp32_node1_s5003";
+    mqtt.client_id = "esp32_setup_test";
     mqtt.begin();
 
     // setup pin to flash on activity
@@ -134,10 +139,11 @@ void loop() {
 
   JsonDocument payload; // define json document 
 
-  //Add data to the JSON document 
-  payload["pm1"] = 1;
-  payload["pm25"] = 2;
-  payload["pm10"] = 3;
+  //Add data to the JSON document
+  //Test data to make sure Wi-Fi and MQTT are working  
+  payload["key1"] = 1;
+  payload["key2"] = 2;
+  payload["key3"] = 3;
 
   // send MQTT message
   auto publish = mqtt.begin_publish(topic, measureJson(payload));
