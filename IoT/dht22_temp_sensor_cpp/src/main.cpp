@@ -1,7 +1,6 @@
 /*
 * Pulls data from a dht22 temperature sensor and then
 * Sends it to an MQTT broker
-
 */
 #include <Adafruit_Sensor.h>
 #include <DHT.h>
@@ -40,10 +39,10 @@ void setup() {
 
     // parameters for Wi-Fi setup page
     // bool res;
-    // res = wm.autoConnect("esp32_node1","password");
+    // res = wm.autoConnect("esp32_dht_node1","password");
       
     // Auto Connect esp32_node will be part of the device name on your WiFi network
-    if (!wm.autoConnect("esp32_node1", "password")) {
+    if (!wm.autoConnect("esp32_dht22_node1", "password")) {
         // Did not connect, print error message
         Serial.println("failed to connect and hit timeout");
     
@@ -68,41 +67,40 @@ void setup() {
     // sketch, run the below, then comment out as it won't be
     // needed again unless you change the MQTT creds.
 
-    // Instantiate the preferences class
-    // Preferences prefs;
+    /*
+    Preferences prefs;
 
-    // prefs.begin("credentials", false);
+    prefs.begin("credentials", false);
 
     // Comment out after you've saved the creds. Note: you can apply
     // the below to any vars you want to store on the device. Just be
     // mindful of the limited space.
-    // const char* mqtt_user =  getenv ("MQTT_USER");
-    // const char* mqtt_secret = getenv ("MQTT_SECRET");
-    // const char* mqtt_host = getenv ("MQTT_HOST");
+    
+    const char* mqtt_user = MQTT_USER;
+    const char* mqtt_secret = MQTT_SECRET;
+    const char* mqtt_host = MQTT_HOST;
 
-    // prefs.putString("mqtt_user", mqtt_user);
-    // prefs.putString("mqtt_secret", mqtt_secret);
-    // prefs.putString("mqtt_host", mqtt_host);
+    prefs.putString("mqtt_user", mqtt_user);
+    prefs.putString("mqtt_secret", mqtt_secret);
+    prefs.putString("mqtt_host", mqtt_host);
 
-    // Serial.println("MQTT credentials saved");
+    Serial.println("MQTT credentials saved");
 
-    // prefs.end();
+    prefs.end();
 
-
-    // DHT22 Sensor Setup 
-    Serial.begin(9600);
-    dht_sensor.begin(); 
+    */
 
     // load MQTT creds from device storage via the Preferences library
     // and then use them to setup the MQTT client.
     Preferences preferences;
-
     preferences.begin("credentials", false);
 
     // get MQTT creds
     String host = preferences.getString("mqtt_host", "");
     String user = preferences.getString("mqtt_user", "");
     String secret = preferences.getString("mqtt_secret", "");
+    Serial.println("MQTT Credentials Loaded");
+
 
     // MQTT setup
     mqtt.host=host;
@@ -111,6 +109,11 @@ void setup() {
     mqtt.password=secret;
     mqtt.client_id = "esp32_node1";
     mqtt.begin();
+
+
+    // DHT22 Sensor Setup 
+    Serial.begin(9600);
+    dht_sensor.begin(); 
 
     // setup pin to flash on activity
     pinMode(LED, OUTPUT);
