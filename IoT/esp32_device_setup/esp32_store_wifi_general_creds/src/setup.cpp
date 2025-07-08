@@ -28,6 +28,8 @@ need to tweak things for this to work with a different IDE.
 
 #define LED 2
 
+String device_id = "esp_dev_device10";
+
 
 PicoMQTT::Client mqtt("");
 
@@ -50,18 +52,18 @@ void setup() {
  
     // reset settings - comment out after you've loaded creds
     // Wi-Fi credentials
-    wm.resetSettings();
+    // wm.resetSettings();
 
     // parameters for Wi-Fi setup 
     // comment out after you've loaded creds
     // replace "esp_setup" with your desired device ID
-    bool res;
-    res = wm.autoConnect("esp_setup1", "password");
+    // bool res;
+    // res = wm.autoConnect("esp_dev_device10", "password");
       
     // Auto Connect esp32_node1 will be part of the device name on your WiFi network
     // this block of code is for auto connecting to Wi-Fi
     digitalWrite(LED,HIGH);
-    if (!wm.autoConnect("esp_setup1", "password")) {
+    if (!wm.autoConnect("esp_dev_device10", "password")) {
         // Did not connect, print error message
         Serial.println("failed to connect and hit timeout");
     
@@ -93,6 +95,8 @@ void setup() {
     // "Preferences prefs" and "prefs.end()", as there is no need
     // to reload the env variables the second time as they're already
     // stored on the device.
+    
+    /*
     Preferences prefs;
 
     prefs.begin("credentials", false);
@@ -110,14 +114,17 @@ void setup() {
     prefs.putString("mqtt_host", mqtt_host);
 
     Serial.println("MQTT credentials saved");
+    Serial.println(mqtt_user);
 
     prefs.end();
-    
-    
+    */
+
     // load MQTT creds and setup the MQTT client
     Preferences preferences;
 
     preferences.begin("credentials", false);
+
+    preferences.putString("DEVICE_ID", device_id);
 
     // get MQTT creds
     String host = preferences.getString("mqtt_host", "");
@@ -129,7 +136,7 @@ void setup() {
     mqtt.port=1883;
     mqtt.username=user;
     mqtt.password=secret;
-    mqtt.client_id = "esp32_setup_test";
+    mqtt.client_id = device_id;
     mqtt.begin();
 
     // setup for external devices conn ected to the ESP32, e.g., climate sensors
@@ -144,8 +151,7 @@ void loop() {
 
   digitalWrite(LED,HIGH); // blink on when reading and transmitting, off when finished
 
-  // insert code for reading from sensor
-
+  // insert code for reading from a sensor
 
   // build JSON message for MQTT 
   // This is just a sample payload to test/verify that everything is
@@ -155,6 +161,8 @@ void loop() {
 
   //Add data to the JSON document
   //Test data to make sure Wi-Fi and MQTT are working  
+  
+  payload["device_id"] = device_id;
   payload["key1"] = 1;
   payload["key2"] = 2;
   payload["key3"] = 3;
