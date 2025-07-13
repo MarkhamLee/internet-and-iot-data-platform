@@ -16,8 +16,7 @@ from cicd_common.general_utils import send_slack_webhook  # noqa: E402
 
 logger = console_logging('Portainer_container_control')
 
-# CICD_SLACK_WEBHOOK = os.environ['CICD_ALERT_SLACK_WEBHOOK']
-CICD_SLACK_WEBHOOK = 'https://hooks.slack.com/services/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'  # noqa: E501
+CICD_SLACK_WEBHOOK = os.environ['CICD_ALERT_SLACK_WEBHOOK']
 
 
 def build_container_api_url(portainer_url: str,
