@@ -1,28 +1,24 @@
-## API, Internet and IoT Data Platform
+## API and IoT Data Platform
 
-This project started out with the following goals: 
+This is a companion project to my [K3s cluster project/Private Cloud project](https://github.com/MarkhamLee/kubernetes-k3s-cluster-for-data-and-iot-projects), with this project being a collection of custom code, pipelines, et, al, related to data ingestion and the K3s cluster project providing the infrastructure for the databases, visualization tools, etc., that support this project in addition to hosting a variety of tools I use in my day to day life. TL/DR the scope of this project is custom code related to data ingestion and the scope of the other project is infrastructure for hosting apps and being the landing place for the data collected by this one.
 
-1) Enhance my productivity by aggregating finance, productivity, weather, and other useful data in a way that would prevent me from getting distracted by looking up that data on my phone. Think: the scenario where you pick up your phone to check the weather and wind up distracted by Instagram.  
+Expanding on the above, the scope of this project is to build an extensible, scalable, and easy to manage data platform to ingest data from APIs, IoT devices, sensors, etc. 
 
-2) Gain insights into climate and energy consumption by collecting data from a variety of sensors around my house. 
+* Extensible because everything is built with a lot of shared code/private libraries, I.e., a collection of "data lego blocks" that make it easy to light up new capabilities.
+* Scalable via efficient containerized code that can be easily deployed via Airflow, Argo Workflows, deployed via Kubernetes or with cloud based tools like AWS Elastic Container Service. This is in addition to automating as much of the CICD as possible with ArgoCD and GitHub actions. E.g., an update to one of the ETL or task containers triggers rebuilding that image, and the next time the task runs it will automatically use the new code. For an on-going task, automations are being built to trigger the restart of those containers as well. 
 
-3) Professional development, by giving me an opportunity to work with technologies I have had limited exposure to and/or technologies I am curious about. 
+#### 07/12/2025: recent updates from the past week:
+* Updated code for ESP32 microprocessors in the IoT Section:
+    * Initial provisioning of a device: adding a device ID, MQTT and Wi-Fi credentials, which provides an easy way to setup/prepare several ESP32s for IoT style projects.
+    * Used the above as the basis for refactored/updated code for pulling data from a DHT22 temperature sensor and then sending it out via MQTT.
+    * Test sketch for verifying that DHT22 sensors work properly. 
+* Added CICD & GitOps automation section, added script for restarting containers via the Portainer API. Future plans:
+    * Updating env vars via the Portainer API
+    * Incorporating into a broader API for detecting Docker Image updates and then updating all the Portainer managed machines running that container.
 
-It has since morphed more into building an extensible, scalable, and easy to manage data platform to support projects that have a significant data collection or management component. The general idea is that whether its through common files for building data logging, IoT sensor or ETL containers, CICD pipelines, etc., the level of effort to add new types of sensors, connect to IoT devices or do anything involving collecting data will be relatively easy as the bulk of the work is already complete. E.g., through the use of templates, pre-built code for MQTT and writing to InfluxDB 80-90% of the code for adding new IoT sensors is already written. This also means that while the items in this repo are items that specifically for the original scope of the project, this same platform is also being used for other projects ranging from custom PC mods to monitoring plants. 
-
-### Recent Updates 
-* 04/17/224: updates from the last ~3 weeks 
-    * Updates to Kubernetes deployment manifests for IoT devices, added Argo CD configurations for managing CICD for IoT device scripts/containers. Python scripts + container for SGP30 CO2 sensor (4/17)
-    * Refactoring/re-writes for all Node.js ETL pipelines: main pipeline code + updated unit tests (4/16)
-    * C++ file for provisioning ESP32s with Wi-Fi and MQTT creds (4/11)
-    * IoT architecture diagram and documentation (4/10)
-    * Added C++ code for retrieving data from a DHT22 temperature sensor connected to an ESP32 and transmitting the data via MQTT (4/9)
-    * Added three new ETLs that work in concert to retrieve T-Bill data for use in plotting the daily yield curve. i.e., ETL containers + Airflow DAGs for loading historical data, retrieving data for the current day and data transformations load a reporting/golden table for the yield curve plot.  (4/3)
-    * Re-wrote all Dockerfiles to use multi-stage builds, resulting in smaller and more secure Docker images. ETL work flow diagram and documentation (4/2)
-    * Added python scripts + container for BME280 temperature sensor (3/31)
-* Additional updates are available [here](https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard/blob/main/documentation/updates.md)
 
 ![Dashboard Thumbnail](/images/dashboard_screenshot4.png)  
+![UPS Dashboard Thumbnail](/images/ups_monitoring.png)  
 *Snapshot of some of the tracked data* 
 
 This repo contains the code for the ETL pipelines for various data sources, YAML files for deploying various micro-services on Kubernetes, containers for interacting with/pulling data from remote sensors/IoT devices and a lot more. The plan is to continuously add data sources/features in the coming months. You can read a full list of recent updates [here](https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard/blob/main/documentation/updates.md).
