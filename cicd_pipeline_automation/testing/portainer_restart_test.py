@@ -5,7 +5,8 @@ parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(parent_dir)
 
 from cicd_common.logging_utils import console_logging  # noqa: E402
-from portainer_common.container_control import container_update  # noqa: E402
+from portainer_common.\
+    portainer_container_management import container_update  # noqa: E402
 
 logger = console_logging('portainer_automation_logger')
 
