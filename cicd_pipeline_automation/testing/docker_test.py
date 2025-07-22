@@ -1,3 +1,7 @@
+# (C) Markham Lee 2023-2025
+# API, IoT Data Platform
+# https://github.com/MarkhamLee/internet-and-iot-data-platform
+# Script to test the Docker info script and API calls.
 import os
 import sys
 
