@@ -1,4 +1,4 @@
-name: ups1_cyberpowerpfc1500_build
+name: Automated Container Redeployment via Portainer API
 
 on:
   push:
