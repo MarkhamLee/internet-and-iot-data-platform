@@ -5,9 +5,9 @@ on:
     branches:
       - "main"
     paths:
-      - "cicd_pipeline_automation/docker_common/*"
-      - "cicd_pipeline_automation/portainer_common/*"
-      - "cicd_pipeline_automation/cicd_common/*"
+      # - "cicd_pipeline_automation/docker_common/*"
+      # - "cicd_pipeline_automation/portainer_common/*"
+      # - "cicd_pipeline_automation/cicd_common/*"
       - "cicd_pipeline_automation/portainer_automated_redeployment/*"
 
 jobs:
