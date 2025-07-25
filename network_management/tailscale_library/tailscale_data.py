@@ -46,6 +46,8 @@ class TailscaleData():
         response = requests.get(url,
                                 headers=auth_headers)
 
+        # TODO: add json payload validation
+
         return response.json()
 
     # get status of all devices
