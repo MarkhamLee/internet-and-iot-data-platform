@@ -1,0 +1,4 @@
+requests==2.32.4
+pytz==2025.2
+influxdb-client==1.49.0
+jsonschema==4.25.0
