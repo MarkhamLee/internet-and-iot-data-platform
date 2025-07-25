@@ -26,13 +26,10 @@ logger = console_logging('Tailscale_monitoring_logger')
 TAILSCALE_API_KEY = os.environ['MARKHAMSLAB_TAILSCALE_DEVICE_STATUS_KEY']
 TAILSCALE_BASE_URL = 'https://api.tailscale.com/api/v2'
 TAILNET_NAME = os.environ['TAILNET_NAME']
-HYPERION_DEVICE_ID = os.environ['HYPERION_DEVICE_ID']
-IOT_NODE0 = os.environ['IOT_NODE0_DEVICE_ID']
 DATE_TIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
-# NETWORK_ALERT_WEBHOOK = os.environ['NETWORK_ALERT_WEBHOOK']
-NETWORK_ALERT_WEBHOOK = 'https://hooks.slack.com/services/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'  # noqa: E501
-EXIT_NODE_NAME = os.environ['EXIT_NODE_NAME']
-# LOCAL_CITY = os.environ['LOCALE']
+NETWORK_ALERT_WEBHOOK = os.environ['NETWORK_ALERT_WEBHOOK']
+NODE_NAME = os.environ['NODE_NAME']
+LOCAL_CITY = os.environ['LOCALE']
 
 
 def calculate_online_status(device_data: dict) -> float:
@@ -55,21 +52,20 @@ def get_latency(device_data: dict, latency_location: str) -> float:
 
 def main():
 
-    device_id = HYPERION_DEVICE_ID
-    local_city = 'Seattle'
+    device_id = NODE_NAME
 
     raw_device_data = tailscale_data_utils.\
         get_device_status(device_id, TAILSCALE_API_KEY)
     last_seen_seconds = calculate_online_status(raw_device_data)
-    latency = get_latency(raw_device_data, local_city)
+    latency = get_latency(raw_device_data, LOCAL_CITY)
 
     logger.info(f'Device was last seen {last_seen_seconds} seconds ago')
-    logger.info(f'Device latency for {local_city} is {latency}ms')
+    logger.info(f'Device latency for {LOCAL_CITY} is {latency}ms')
 
     if last_seen_seconds > 120:
 
         minutes = round(last_seen_seconds / 60, 2)
-        message = (f'Exit node problem: {EXIT_NODE_NAME} was last seen: {minutes} ago')  # noqa: E501
+        message = (f'Exit node problem: {NODE_NAME} was last seen: {minutes} ago')  # noqa: E501
         send_slack_webhook(NETWORK_ALERT_WEBHOOK, message)
 
 
