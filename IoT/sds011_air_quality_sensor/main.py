@@ -18,18 +18,24 @@ from iot_libraries.communications_utilities\
     import IoTCommunications  # noqa: E402
 
 com_utilities = IoTCommunications()
+
+# Load Environmental Variables
 DEVICE_FAILURE_CHANNEL = os.environ['DEVICE_FAILURE_CHANNEL']
-
-
 DEVICE_ID = os.environ['DEVICE_ID']
 SENSOR_ID = os.environ['SENSOR_ID']
+INTERVAL = int(os.environ['INTERVAL'])
+TOPIC = os.environ['TOPIC']
+MQTT_BROKER = os.environ['MQTT_BROKER']
+MQTT_USER = os.environ['MQTT_USER']
+MQTT_SECRET = os.environ['MQTT_SECRET']
+MQTT_PORT = int(os.environ['MQTT_PORT'])
+PM2_THRESHOLD = int(os.environ['PM2_THRESHOLD'])
+PM10_THRESHOLD = int(os.environ['PM10_THRESHOLD'])
 
 
 def air(client: object, quality: object, topic: str, interval: int) -> str:
 
     error_n = 1
-    PM2_THRESHOLD = int(os.environ['PM2_THRESHOLD'])
-    PM10_THRESHOLD = int(os.environ['PM10_THRESHOLD'])
 
     while True:
 
@@ -93,22 +99,15 @@ def main():
         com_utilities.send_slack_alert(message, DEVICE_FAILURE_CHANNEL)
         sleep(1800)
 
-    # Load parameters
-    INTERVAL = int(os.environ['INTERVAL'])
-    TOPIC = os.environ['TOPIC']
-
-    # Load Environmental Variables
-    MQTT_BROKER = os.environ['MQTT_BROKER']
-    MQTT_USER = os.environ['MQTT_USER']
-    MQTT_SECRET = os.environ['MQTT_SECRET']
-    MQTT_PORT = int(os.environ['MQTT_PORT'])
-
     # get unique client ID
     clientID = com_utilities.getClientID()
 
     # get mqtt client
-    client, code = com_utilities.mqttClient(clientID, MQTT_USER, MQTT_SECRET,
-                                            MQTT_BROKER, MQTT_PORT)
+    client = com_utilities.mqttClient(clientID,
+                                      MQTT_USER,
+                                      MQTT_SECRET,
+                                      MQTT_BROKER,
+                                      MQTT_PORT)
 
     # start data monitoring
     try:

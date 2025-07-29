@@ -22,6 +22,17 @@ com_utilities = IoTCommunications()
 DEVICE_FAILURE_CHANNEL = os.environ['DEVICE_FAILURE_CHANNEL']
 SENSOR_ID = os.environ['SENSOR_ID']
 
+# Load operating parameters
+INTERVAL = int(os.environ['INTERVAL'])
+DEVICE_IP = os.environ['DEVICE_IP']
+TOPIC = os.environ['TOPIC']
+
+# Load connection variables
+MQTT_BROKER = os.environ['MQTT_BROKER']
+MQTT_USER = os.environ['MQTT_USER']
+MQTT_SECRET = os.environ['MQTT_SECRET']
+MQTT_PORT = int(os.environ['MQTT_PORT'])
+
 
 async def get_plug_data(client: object, topic: str,
                         device_ip: str, interval: int):
@@ -91,24 +102,15 @@ async def get_plug_data(client: object, topic: str,
 
 def main():
 
-    # Load operating parameters
-    INTERVAL = int(os.environ['INTERVAL'])
-    DEVICE_IP = os.environ['DEVICE_IP']
-    TOPIC = os.environ['TOPIC']
-
-    # Load connection variables
-    MQTT_BROKER = os.environ['MQTT_BROKER']
-    MQTT_USER = os.environ['MQTT_USER']
-    MQTT_SECRET = os.environ['MQTT_SECRET']
-    MQTT_PORT = int(os.environ['MQTT_PORT'])
-
     # get unique client ID
     clientID = com_utilities.getClientID()
 
     # get mqtt client
-    client, code = com_utilities.mqttClient(clientID, MQTT_USER,
-                                            MQTT_SECRET, MQTT_BROKER,
-                                            MQTT_PORT)
+    client = com_utilities.mqttClient(clientID,
+                                      MQTT_USER,
+                                      MQTT_SECRET,
+                                      MQTT_BROKER,
+                                      MQTT_PORT)
 
     # start device monitoring
     try:

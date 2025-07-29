@@ -1,5 +1,5 @@
 python-kasa
 asyncio
-paho-mqtt==1.6.1
+paho-mqtt==2.1.0
 requests
 uuid==1.30

@@ -21,6 +21,14 @@ from iot_libraries.communications_utilities\
 
 com_utilities = IoTCommunications()
 
+# load environmental variables
+TOPIC = os.environ['TOPIC']
+INTERVAL = int(os.environ['INTERVAL'])
+MQTT_BROKER = os.environ['MQTT_BROKER']
+MQTT_USER = os.environ['MQTT_USER']
+MQTT_SECRET = os.environ['MQTT_SECRET']
+MQTT_PORT = int(os.environ['MQTT_PORT'])
+
 
 def get_temps(client: object, topic: str, interval: int):
 
@@ -87,21 +95,15 @@ def send_message(client: object, payload: dict, topic: str):
 
 def main():
 
-    # load environmental variables
-    TOPIC = os.environ['TOPIC']
-    INTERVAL = int(os.environ['INTERVAL'])
-    MQTT_BROKER = os.environ['MQTT_BROKER']
-    MQTT_USER = os.environ['MQTT_USER']
-    MQTT_SECRET = os.environ['MQTT_SECRET']
-    MQTT_PORT = int(os.environ['MQTT_PORT'])
-
     # get unique client ID
     CLIENT_ID = com_utilities.getClientID()
 
     # get mqtt client
-    client, code = com_utilities.mqttClient(CLIENT_ID, MQTT_USER,
-                                            MQTT_SECRET, MQTT_BROKER,
-                                            MQTT_PORT)
+    client = com_utilities.mqttClient(CLIENT_ID,
+                                      MQTT_USER,
+                                      MQTT_SECRET,
+                                      MQTT_BROKER,
+                                      MQTT_PORT)
 
     # start data monitoring
     try:

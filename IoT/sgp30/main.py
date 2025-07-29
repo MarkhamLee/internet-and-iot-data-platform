@@ -20,12 +20,19 @@ from iot_libraries.communications_utilities\
 com_utilities = IoTCommunications()
 SENSOR_ID = os.environ['SENSOR_ID']
 
+# load environmental variables
+TOPIC = os.environ['TOPIC']
+INTERVAL = int(os.environ['INTERVAL'])
+MQTT_BROKER = os.environ['MQTT_BROKER']
+MQTT_USER = os.environ['MQTT_USER']
+MQTT_SECRET = os.environ['MQTT_SECRET']
+MQTT_PORT = int(os.environ['MQTT_PORT'])
+failure_count = int(os.environ['FAILURE_THRESHOLD'])
+DEVICE_FAILURE_CHANNEL = os.environ['DEVICE_FAILURE_CHANNEL']
+NODE_DEVICE_ID = os.environ['DEVICE_ID']
+
 
 def get_sensor_data(client: object, topic: str, interval: int):
-
-    failure_count = int(os.environ['FAILURE_THRESHOLD'])
-    DEVICE_FAILURE_CHANNEL = os.environ['DEVICE_FAILURE_CHANNEL']
-    NODE_DEVICE_ID = os.environ['DEVICE_ID']
 
     air_quality = SGP30()
     logger.info('Connected to SGP30')
@@ -82,21 +89,15 @@ def send_message(client: object, payload: dict, topic: str):
 
 def main():
 
-    # load environmental variables
-    TOPIC = os.environ['TOPIC']
-    INTERVAL = int(os.environ['INTERVAL'])
-    MQTT_BROKER = os.environ['MQTT_BROKER']
-    MQTT_USER = os.environ['MQTT_USER']
-    MQTT_SECRET = os.environ['MQTT_SECRET']
-    MQTT_PORT = int(os.environ['MQTT_PORT'])
-
     # get unique client ID
     CLIENT_ID = com_utilities.getClientID()
 
     # get mqtt client
-    client, code = com_utilities.mqttClient(CLIENT_ID, MQTT_USER,
-                                            MQTT_SECRET, MQTT_BROKER,
-                                            MQTT_PORT)
+    client = com_utilities.mqttClient(CLIENT_ID,
+                                      MQTT_USER,
+                                      MQTT_SECRET,
+                                      MQTT_BROKER,
+                                      MQTT_PORT)
 
     # start data monitoring
     try:
