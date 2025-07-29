@@ -25,26 +25,34 @@ class IoTCommunications():
     @staticmethod
     def mqttClient(clientID, username, pwd, host, port):
 
-        def connectionStatus(client, userdata, flags, code):
+        def connectionStatus(client, userdata, flags,
+                             reasonCode,
+                             properties=None):
 
-            if code == 0:
+            if reasonCode == 0 or getattr(reasonCode,
+                                          'value',
+                                          reasonCode) == 0:
                 logger.info('connected to MQTT broker')
 
             else:
-                logger.debug(f'connection error occured, return code: {code}, retrying...')  # noqa: E501
 
-        client = mqtt.Client(clientID)
+                reason_string = str(reasonCode)
+                logger.debug(f'connection error occured, return code: {reason_string}, retrying...')  # noqa: E501
+
+        # TODO: while this is good enought to "work", need to look into
+        # the updated API library, etc., and re-work the reconnection logic.
+        client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, clientID)
         client.username_pw_set(username=username, password=pwd)
         client.on_connect = connectionStatus
 
-        code = client.connect(host, port)
+        client.connect(host, port)
 
         # this is so that the client will attempt to reconnect automatically/
         # no need to add reconnect
         # logic.
         client.loop_start()
 
-        return client, code
+        return client
 
     # method for sending slack alerts
     @staticmethod

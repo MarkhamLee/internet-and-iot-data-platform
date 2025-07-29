@@ -23,14 +23,20 @@ from iot_libraries.communications_utilities\
 # instantiate hardware monitoring class
 monitor_utilities = IoTCommunications()
 
+# load environmental variables
+MQTT_BROKER = os.environ["MQTT_BROKER"]
+MQTT_USER = os.environ['MQTT_USER']
+MQTT_SECRET = os.environ['MQTT_SECRET']
+MQTT_PORT = int(os.environ['MQTT_PORT'])
+INTERVAL = int(os.environ['UPS_INTERVAL'])
 SLACK_WEBHOOK = os.environ['SLACK_HW_ALERTS']
+TOPIC = os.environ['UPS_TOPIC']
 UPS_ID = os.environ['UPS_ID']
+UPS_IP = os.environ['UPS_IP']
 
 
 # start monitoring loop
 def ups_monitoring(CMD: str, TOPIC: str, client: object):
-
-    INTERVAL = int(os.environ['UPS_INTERVAL'])
 
     logger.info(f'Starting monitoring for {UPS_ID}')
     excessive_load_count = 0
@@ -142,7 +148,6 @@ def send_device_alert(ups_status):
 # build UPS bash query string
 def build_ups_query() -> str:
 
-    UPS_IP = os.environ['UPS_IP']
     CMD = "upsc " + UPS_ID + "@" + UPS_IP
 
     return CMD
@@ -179,24 +184,15 @@ def main():
 
     logger.info('Monitoring utilities class instantiated')
 
-    # operating parameters
-    TOPIC = os.environ['UPS_TOPIC']
-
-    # load environmental variables
-    MQTT_BROKER = os.environ["MQTT_BROKER"]
-    MQTT_USER = os.environ['MQTT_USER']
-    MQTT_SECRET = os.environ['MQTT_SECRET']
-    MQTT_PORT = int(os.environ['MQTT_PORT'])
-
     CMD = build_ups_query()
 
     # get unique client ID
     clientID = monitor_utilities.getClientID()
 
     # get mqtt client
-    client, code = monitor_utilities.mqttClient(clientID,
-                                                MQTT_USER, MQTT_SECRET,
-                                                MQTT_BROKER, MQTT_PORT)
+    client = monitor_utilities.mqttClient(clientID,
+                                          MQTT_USER, MQTT_SECRET,
+                                          MQTT_BROKER, MQTT_PORT)
 
     message = (f'{UPS_ID} monitoring is online')
     logger.info(message)
