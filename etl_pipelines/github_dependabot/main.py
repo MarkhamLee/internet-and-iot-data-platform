@@ -79,7 +79,7 @@ def count_alerts(data: dict) -> dict:
             DEPENDABOT_WEBHOOK_URL = os.environ['SECURITY_SLACK_WEBHOOK']
 
             response = etl_utilities.send_slack_webhook(DEPENDABOT_WEBHOOK_URL, message)  # noqa: E501
-            logger.message(f'Dependabot security alert sent via Slack with code: {response}')  # noqa: E501
+            logger.info(f'Dependabot security alert sent via Slack with code: {response}')  # noqa: E501
 
         logger.info(f'{alerts} alerts detected for {REPO_NAME}')
         field_name = (f'{REPO_SHORT_NAME}_dependabot_alerts')
