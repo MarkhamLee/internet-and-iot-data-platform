@@ -1,4 +1,4 @@
-python-kasa
+python-kasa==0.10.2
 asyncio
 influxdb-client
 requests
