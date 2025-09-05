@@ -1,4 +1,4 @@
 python-kasa==0.10.2
-asyncio
-influxdb-client
-requests
+asyncio==3.4.3
+influxdb-client==1.49.0
+requests==2.32.4
