@@ -191,8 +191,10 @@ def main():
 
     # get mqtt client
     client = monitor_utilities.mqttClient(clientID,
-                                          MQTT_USER, MQTT_SECRET,
-                                          MQTT_BROKER, MQTT_PORT)
+                                          MQTT_USER,
+                                          MQTT_SECRET,
+                                          MQTT_BROKER,
+                                          MQTT_PORT)
 
     message = (f'{UPS_ID} monitoring is online')
     logger.info(message)
