@@ -20,6 +20,10 @@ def parse_value(message, start_byte, num_bytes=2,
     value = int.from_bytes(value, byteorder=byte_order)
     value = value * scale if scale else value
 
+    # flush buffer - should help avoid issues where we get
+    # anomolous readings
+    serial_connection.reset_input_buffer()
+
     return value
 
 
