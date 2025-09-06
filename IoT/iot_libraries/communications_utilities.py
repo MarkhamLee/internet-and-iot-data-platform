@@ -56,9 +56,8 @@ class IoTCommunications():
 
     # method for sending slack alerts
     @staticmethod
-    def send_slack_alert(message: str, device_failure_channel):
-
-        ALERT_ENDPOINT = os.environ['ALERT_ENDPOINT']
+    def send_slack_alert(message: str, device_failure_channel, alert_endpoint):
+        
         payload = {
             "text": message,
             "slack_channel": device_failure_channel
@@ -66,7 +65,7 @@ class IoTCommunications():
 
         headers = {'Content-type': 'application/json'}
 
-        response = requests.post(ALERT_ENDPOINT, json=payload, headers=headers)
+        response = requests.post(alert_endpoint, json=payload, headers=headers)
         logger.info(f'Device failure alert sent with code: {response.text}')
 
     @staticmethod
