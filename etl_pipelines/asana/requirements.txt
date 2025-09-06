@@ -6,7 +6,7 @@ reactivex==4.0.4
 requests
 soupsieve 
 stack-data 
-urllib3==2.2.2
+urllib3==2.5.0
 wcwidth 
 webencodings==0.5.1
 websocket-client
