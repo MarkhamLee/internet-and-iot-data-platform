@@ -19,6 +19,7 @@ from iot_libraries.communications_utilities\
 
 com_utilities = IoTCommunications()
 
+ALERT_ENDPOINT = os.environ['ALERT_ENDPOINT']
 DEVICE_FAILURE_CHANNEL = os.environ['DEVICE_FAILURE_CHANNEL']
 SENSOR_ID = os.environ['SENSOR_ID']
 
@@ -63,7 +64,7 @@ async def get_plug_data(client: object, topic: str,
             logger.debug(message)
             device_error_count += 1
             if device_error_count > 36:
-                com_utilities.send_slack_alert(message, DEVICE_FAILURE_CHANNEL)
+                com_utilities.send_slack_alert(message, DEVICE_FAILURE_CHANNEL, ALERT_ENDPOINT)
                 device_error_count = 0  # reset error count
                 asyncio.sleep(1200)  # sleep for 20 minutes
                 continue
@@ -86,7 +87,7 @@ async def get_plug_data(client: object, topic: str,
             logger.debug(message)
 
             if mqtt_error_count > 36:
-                com_utilities.send_slack_alert(message, DEVICE_FAILURE_CHANNEL)
+                com_utilities.send_slack_alert(message, DEVICE_FAILURE_CHANNEL, ALERT_ENDPOINT)
                 mqtt_error_count = 0  # reset count interval
                 # sleep for 30 minutes, 10 consecutive failures suggests
                 # broader network and/or MQTT broker issues.
