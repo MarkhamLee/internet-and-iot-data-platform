@@ -1,6 +1,6 @@
-# Markham Lee (C) 2023 - 2024
-# Productivity, Weather, Personal, et al dashboard:
-# https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
+# Markham 2023 - 2025
+# Internet & IoT Data Platform:
+# https://github.com/MarkhamLee/internet-and-iot-data-platform
 # This script retrieves air quality data from a Nova PM SDS011 Air Quality
 # sensor connected via USB and then sends the data off to an MQTT broker
 import json
@@ -33,6 +33,7 @@ MQTT_SECRET = os.environ['MQTT_SECRET']
 MQTT_PORT = int(os.environ['MQTT_PORT'])
 PM2_THRESHOLD = int(os.environ['PM2_THRESHOLD'])
 PM10_THRESHOLD = int(os.environ['PM10_THRESHOLD'])
+
 
 def air(client: object, quality: object, topic: str, interval: int) -> str:
 
@@ -94,9 +95,10 @@ def main():
     except Exception as e:
         message = (f'Air Quality Class failed to instantiate, with error {e}, going to sleep....')  # noqa: E501
         logger.debug(message)
-        # TODO: make this more elegant, commented out the Slack alert because it's already
-        # handled by the device's class
-        # com_utilities.send_slack_alert(message, DEVICE_FAILURE_CHANNEL, DEVICE_ALERT_WEBHOOK)
+        # TODO: make this more elegant, commented out the Slack alert
+        # because it's already handled by the device's class
+        # com_utilities.send_slack_alert(message,
+        # DEVICE_FAILURE_CHANNEL, DEVICE_ALERT_WEBHOOK)
         sleep(1800)
 
     # get unique client ID

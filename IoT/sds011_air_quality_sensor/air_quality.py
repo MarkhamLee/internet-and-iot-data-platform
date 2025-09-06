@@ -1,7 +1,7 @@
 # !/usr/bin/env python
-# Markham 2023 - 2024
-# Productivity, Weather, Personal, et al dashboard:
-# https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
+# Markham 2023 - 2025
+# Internet & IoT Data Platform:
+# https://github.com/MarkhamLee/internet-and-iot-data-platform
 # Python script for receiving Air Quality data from a Nova PM SDS011 air
 # quality sensor and sending it to InfluxDB via Node-RED and MQTT.
 import serial
@@ -17,6 +17,7 @@ from iot_libraries.communications_utilities\
     import IoTCommunications  # noqa: E402
 
 DEVICE_ALERT_WEBHOOK = os.environ['DEVICE_ALERT_WEBHOOK']
+
 
 class AirQuality:
 
@@ -35,7 +36,6 @@ class AirQuality:
         self.read_error_count = 0
         self.usb_error_count = 0
         self.NODE_DEVICE_ID = os.environ['DEVICE_ID']
-        self.DEVICE_FAILURE_CHANNEL = os.environ['DEVICE_FAILURE_CHANNEL']
 
         self.com_utilities = IoTCommunications()
 
@@ -53,7 +53,8 @@ class AirQuality:
         except Exception as e:
             message = (f'USB device connection failure on node: {self.NODE_DEVICE_ID}, with device: {USB} with error message: {e}, going to sleep...')  # noqa: E501
             logger.debug(message)
-            self.com_utilities.send_slack_webhook(DEVICE_ALERT_WEBHOOK, message)
+            self.com_utilities.send_slack_webhook(DEVICE_ALERT_WEBHOOK,
+                                                  message)
             # back-off limits/pod restart patterns are hard-coded into K8s,
             # SO... we put the container to sleep for an hour to provide
             # enough time to fix the physical issue w/o being spammed with
@@ -84,7 +85,8 @@ class AirQuality:
         except Exception as e:
             message = (f'Failed to read from Nova PM SDS011 device: {self.NODE_DEVICE_ID}, with error: {e}, going to sleep....')  # noqa: E501
             logger.debug(message)
-            self.com_utilities.send_slack_webhook(DEVICE_ALERT_WEBHOOK, message)
+            self.com_utilities.send_slack_webhook(DEVICE_ALERT_WEBHOOK,
+                                                  message)
             # put container to sleep to avoid getting continuous container
             # creation back off alerts
             self.read_error_count += 1
