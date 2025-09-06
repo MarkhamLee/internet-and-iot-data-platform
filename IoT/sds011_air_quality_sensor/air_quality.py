@@ -36,11 +36,10 @@ class AirQuality:
         self.read_error_count = 0
         self.usb_error_count = 0
         self.NODE_DEVICE_ID = os.environ['DEVICE_ID']
-
         self.com_utilities = IoTCommunications()
 
     # connect to sensor, send Slack alert if there is an issue
-    def connect_to_sensor(self, usb_address):
+    def connect_to_sensor(self):
 
         # TODO: re-write as a regular script, no real need for this
         # to be a class.
