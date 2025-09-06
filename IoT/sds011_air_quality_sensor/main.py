@@ -20,7 +20,9 @@ from iot_libraries.communications_utilities\
 com_utilities = IoTCommunications()
 
 # Load Environmental Variables
-DEVICE_FAILURE_CHANNEL = os.environ['DEVICE_FAILURE_CHANNEL']
+AIR_ALERT_WEBHOOK = os.environ['CLIMATE_ALERT_WEBHOOK']
+DEVICE_ALERT_WEBHOOK = os.environ['DEVICE_ALERT_WEBHOOK']
+IOT_PIPELINE_ALERTS = os.environ['IOT_PIPELINE_ALERTS']
 DEVICE_ID = os.environ['DEVICE_ID']
 SENSOR_ID = os.environ['SENSOR_ID']
 INTERVAL = int(os.environ['INTERVAL'])
@@ -31,7 +33,6 @@ MQTT_SECRET = os.environ['MQTT_SECRET']
 MQTT_PORT = int(os.environ['MQTT_PORT'])
 PM2_THRESHOLD = int(os.environ['PM2_THRESHOLD'])
 PM10_THRESHOLD = int(os.environ['PM10_THRESHOLD'])
-
 
 def air(client: object, quality: object, topic: str, interval: int) -> str:
 
@@ -59,7 +60,7 @@ def air(client: object, quality: object, topic: str, interval: int) -> str:
         if status != 0:
             message = (f'Air quality MQTT publish failure on {DEVICE_ID}, status code: {status}')  # noqa: E501
             logger.debug(message)  # noqa: E501
-            com_utilities.send_slack_alert(message, DEVICE_FAILURE_CHANNEL)
+            com_utilities.send_slack_webhook(IOT_PIPELINE_ALERTS, message)
             sleep_duration = error_n * interval
             error_n = (2 * error_n)
 
@@ -76,11 +77,8 @@ def air(client: object, quality: object, topic: str, interval: int) -> str:
 
 def send_threshold_alert(pm2, pm10):
 
-    # load threshold alert webhook
-    AIR_ALERT_WEBHOOK = os.environ['CLIMATE_ALERT_WEBHOOK']
-
     # alerts for now, future plan is to link/hook into an air purifier
-    message = (f"{SENSOR_ID} reporting air quality above threshold, ventilate room. PM2_5 level: {pm2}, PM10 level: {pm10} ")  # noqa: E501
+    message = (f"{SENSOR_ID} is reporting air quality above threshold, ventilate room. PM2_5 level: {pm2}, PM10 level: {pm10} ")  # noqa: E501
 
     com_utilities.send_slack_webhook(AIR_ALERT_WEBHOOK, message)
 
@@ -96,7 +94,9 @@ def main():
     except Exception as e:
         message = (f'Air Quality Class failed to instantiate, with error {e}, going to sleep....')  # noqa: E501
         logger.debug(message)
-        com_utilities.send_slack_alert(message, DEVICE_FAILURE_CHANNEL)
+        # TODO: make this more elegant, commented out the Slack alert because it's already
+        # handled by the device's class
+        # com_utilities.send_slack_alert(message, DEVICE_FAILURE_CHANNEL, DEVICE_ALERT_WEBHOOK)
         sleep(1800)
 
     # get unique client ID

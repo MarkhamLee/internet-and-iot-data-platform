@@ -16,11 +16,7 @@ from iot_libraries.logging_util import logger  # noqa: E402
 from iot_libraries.communications_utilities\
     import IoTCommunications  # noqa: E402
 
-# TODO: elegant way of shutting of sensor/activating sleep mode
-# code examples I've found are 5+ years old and don't work with
-# current serial library. Solution is probably to use GPIO pins
-# and/or C++
-
+DEVICE_ALERT_WEBHOOK = os.environ['DEVICE_ALERT_WEBHOOK']
 
 class AirQuality:
 
@@ -44,8 +40,10 @@ class AirQuality:
         self.com_utilities = IoTCommunications()
 
     # connect to sensor, send Slack alert if there is an issue
-    def connect_to_sensor(self):
+    def connect_to_sensor(self, usb_address):
 
+        # TODO: re-write as a regular script, no real need for this
+        # to be a class.
         USB = os.environ['USB_ADDRESS']
 
         try:
@@ -55,8 +53,7 @@ class AirQuality:
         except Exception as e:
             message = (f'USB device connection failure on node: {self.NODE_DEVICE_ID}, with device: {USB} with error message: {e}, going to sleep...')  # noqa: E501
             logger.debug(message)
-            self.com_utilities.send_slack_alert(message,
-                                                self.DEVICE_FAILURE_CHANNEL)
+            self.com_utilities.send_slack_webhook(DEVICE_ALERT_WEBHOOK, message)
             # back-off limits/pod restart patterns are hard-coded into K8s,
             # SO... we put the container to sleep for an hour to provide
             # enough time to fix the physical issue w/o being spammed with
@@ -85,10 +82,9 @@ class AirQuality:
             return pm2, pm10
 
         except Exception as e:
-            message = (f'Potential Nova PM SDS011 device error/failure on: {self.NODE_DEVICE_ID}, with error: {e}, going to sleep....')  # noqa: E501
+            message = (f'Failed to read from Nova PM SDS011 device: {self.NODE_DEVICE_ID}, with error: {e}, going to sleep....')  # noqa: E501
             logger.debug(message)
-            self.com_utilities.send_slack_alert(message,
-                                                self.DEVICE_FAILURE_CHANNEL)
+            self.com_utilities.send_slack_webhook(DEVICE_ALERT_WEBHOOK, message)
             # put container to sleep to avoid getting continuous container
             # creation back off alerts
             self.read_error_count += 1
