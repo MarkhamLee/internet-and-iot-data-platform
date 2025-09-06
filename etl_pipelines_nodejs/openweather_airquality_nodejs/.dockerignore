@@ -1,4 +1,6 @@
 README.md
-.eslintrc.yml
-.package-lock.json
-jest.config.js
+/node_modules
+/tests
+jest.config.ts
+.git
+*.log

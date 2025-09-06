@@ -1,6 +1,6 @@
-// (C) Markham Lee 2023 - 2024
-// productivity-music-stocks-weather-IoT-dashboard
-// https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
+// (C) Markham Lee 2023 - 2025
+// internet-and-iot-data-platform
+// https://github.com/MarkhamLee/internet-and-iot-data-platform
 // Node variant of the OpenWeather API ETL - pulls down Air Pollution Data and
 // writes it to InfluxDB.
 

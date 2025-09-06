@@ -1,3 +1,5 @@
+/node_modules
 /tests
-jest.config.js
-package-lock.json
+jest.config.ts
+.git
+*.log

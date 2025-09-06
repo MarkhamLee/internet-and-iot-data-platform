@@ -1,6 +1,6 @@
-// (C) Markham Lee 2023 - 2024
-// finance-productivity-IoT-weather-dashboard
-// https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
+// (C) Markham Lee 2023 - 2025
+// internet-and-iot-data-platform
+// https://github.com/MarkhamLee/internet-and-iot-data-platform
 // Node.js - TypeScript version of the Finnhub ETL: pulling down daily stock price data 
 // and writing it to InfluxDB.
 import axios from 'axios';

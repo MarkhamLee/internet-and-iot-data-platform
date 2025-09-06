@@ -1,4 +1,6 @@
 .eslinttrc.yml
-jest.config.js
-tests/*
-package-lock.json
+/node_modules
+/tests
+jest.config.ts
+.git
+*.log

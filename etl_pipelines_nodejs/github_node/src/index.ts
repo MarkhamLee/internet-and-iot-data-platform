@@ -1,6 +1,6 @@
-// (C) Markham Lee 2023 - 2024
-// productivity-music-stocks-weather-IoT-dashboard
-// https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
+// (C) Markham Lee 2023 - 2025
+// internet-and-iot-data-platform
+// https://github.com/MarkhamLee/internet-and-iot-data-platform
 // ETL that uses the GitHub Octokit node.js library to pull Actions data for 
 // a given repo from the GitHub API. 
 import {getGitHubActions, parseData, writeData } from '../src/main'
