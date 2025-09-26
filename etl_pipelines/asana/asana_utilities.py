@@ -57,8 +57,9 @@ class AsanaUtilities():
 
             df = pd.json_normalize([x for x in data])
 
-            # drop the 'gid' field and re-order the columns
-            df = df[['name', 'created_at', 'modified_at']]
+            # re-order the columns
+            # "gid" will be the PK in Postgres
+            df = df[['gid', 'name', 'created_at', 'modified_at']]
 
             total_rows = len(df)
 
