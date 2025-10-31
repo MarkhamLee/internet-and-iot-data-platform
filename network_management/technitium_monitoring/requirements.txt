@@ -1,0 +1,7 @@
+json
+requests==2.32.4
+entrypoints
+executing
+influxdb-client==1.49.0
+pandas==2.3.1
+numpy==2.3.2
