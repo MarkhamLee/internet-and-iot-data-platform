@@ -56,3 +56,34 @@ def write_influx_data(client: object, base: dict, data: dict, BUCKET: str):
 
     # write data to InfluxDB
     client.write(bucket=BUCKET, record=base)
+
+
+def write_data(base_payload: dict,
+               data: dict,
+               client: object,
+               bucket: str,
+               data_message: str,
+               slack_webhook: str,
+               data_name: str):
+
+    # note: create payload with "types" defined before sending
+    # data
+    # Will streamline this and the other method once I've changed
+    # the other methods that already use this library
+
+    # combine the baseline payload with the data to be written to InfluxDB
+    base_payload.update({"fields": data})
+
+    try:
+        # write data to InfluxDB
+        client.write(bucket=bucket,
+                     record=base_payload)
+        # write_influx_data(client, base_payload, data, bucket)
+        logger.info(data_message)  # noqa: E501
+
+    except Exception as e:
+        message = (f'InfluxDB write error for {data_name}: {e}')
+        logger.debug(message)
+        response = send_slack_webhook(slack_webhook, message)
+        logger.debug(f'Slack pipeline failure alert sent with code: {response}')  # noqa: E501
+        return response
