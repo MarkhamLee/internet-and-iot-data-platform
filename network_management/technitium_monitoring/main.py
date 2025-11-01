@@ -16,7 +16,7 @@ sys.path.append(parent_dir)
 from network_monitoring_libraries.\
     logging_utils import console_logging  # noqa: E402
 from network_monitoring_libraries.\
-    general_utils import send_slack_webhook, create_influx_client, write_influx_data  # noqa: E402, E501
+    general_utils import send_slack_webhook, create_influx_client, write_data  # noqa: E402, E501
 
 logger = console_logging('technitium_monitoring')
 
@@ -47,6 +47,8 @@ base_payload = {
             TAG_KEY: TAG_VALUE,
     }
 }
+
+data_message = (f'Technitium status data for {DNS_ID}')
 
 
 def build_dashboard_data_url():
@@ -81,6 +83,23 @@ def extract_alert_data(data: dict):
     return failure_ratio, refusal_ratio
 
 
+def prepare_payload(data: dict, failure_ratio, refusal_ratio):
+
+    payload = {
+
+        "failure_ratio": float(failure_ratio),
+        "refusal_ratio": float(refusal_ratio),
+        "total_queries": float(data['totalQueries']),
+        "total_clients": float(data['totalClients']),
+        "total_zones": float(data['zones']),
+        "blockedListZones": float(data['blockListZones']),
+        "totalBlocked": float(data['totalBlocked'])
+
+    }
+
+    return payload
+
+
 def main():
 
     # build url
@@ -90,7 +109,17 @@ def main():
 
         logger.info('Getting Technitium data')
         data, status = get_data(dashboard_url)
-        extract_alert_data(data)
+        failure_ratio, refusal_ratio = extract_alert_data(data)
+        finished_payload = prepare_payload(data,
+                                           failure_ratio,
+                                           refusal_ratio)
+        logger.info('Writing data to InfluxDB')
+        write_data(base_payload,
+                   finished_payload,
+                   influx_client,
+                   BUCKET,
+                   data_message,
+                   DNS_ALERT_WEBHOOK)
         sleep(30)
 
 
