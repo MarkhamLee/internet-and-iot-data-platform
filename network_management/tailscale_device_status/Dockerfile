@@ -1,10 +1,13 @@
+# Temp Stage 
+
 FROM python:alpine as builder
 
 WORKDIR /app
 
+RUN apt-get update -y && apt-get install -y gcc python3-dev libpq-dev
+
 COPY ./tailscale_device_status/requirements.txt . 
 
-RUN pip install -r requirements.txt
 
 RUN pip wheel --no-cache-dir --no-deps --wheel-dir /app/wheels -r requirements.txt
 
