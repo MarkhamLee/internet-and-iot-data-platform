@@ -85,6 +85,11 @@ def extract_alert_data(data: dict):
 
 def prepare_payload(data: dict, failure_ratio, refusal_ratio):
 
+    # InfluxDB has fairly tight type setting so, we have to
+    # re-parse data and reset the type otherwise if it's a float one
+    # time and then float the next, it would reject types that are
+    # different from the first
+
     payload = {
 
         "failure_ratio": float(failure_ratio),
@@ -96,6 +101,8 @@ def prepare_payload(data: dict, failure_ratio, refusal_ratio):
         "totalBlocked": float(data['totalBlocked'])
 
     }
+
+    logger.info(f'Technitium DNS payload ready: {payload}')
 
     return payload
 
