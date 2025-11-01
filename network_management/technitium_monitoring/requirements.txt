@@ -1,4 +1,3 @@
-json
 requests==2.32.4
 entrypoints
 executing
