@@ -18,9 +18,7 @@ COPY --from=builder /app/requirements.txt .
 
 RUN pip install --no-cache /wheels/*
 
-RUN apt-get update -y && apt-get install -y nut-client
-
-COPY ./iot_libraries ./iot_libraries
+COPY ./network_monitoring_libraries ./network_monitoring_libraries
 
 WORKDIR /technitium_monitoring
 
