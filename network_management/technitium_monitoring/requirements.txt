@@ -1,6 +1,5 @@
 requests==2.32.4
-entrypoints
-executing
+pytz==2025.2
 influxdb-client==1.49.0
 pandas==2.3.1
 numpy==2.3.2

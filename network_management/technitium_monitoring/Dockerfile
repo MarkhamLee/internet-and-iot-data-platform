@@ -10,7 +10,7 @@ COPY /technitium_monitoring/requirements.txt .
 RUN pip wheel --no-cache-dir --no-deps --wheel-dir /app/wheels -r requirements.txt
 
 
-# final stage - 
+# final stage
 FROM python:slim-bookworm
 
 COPY --from=builder /app/wheels /wheels

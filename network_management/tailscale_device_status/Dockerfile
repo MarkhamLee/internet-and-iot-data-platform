@@ -6,8 +6,7 @@ WORKDIR /app
 
 RUN apt-get update -y && apt-get install -y gcc  python3-dev
 
-COPY ./tailscale_device_status/requirements.txt . 
-
+COPY /tailscale_device_status/requirements.txt . 
 
 RUN pip wheel --no-cache-dir --no-deps --wheel-dir /app/wheels -r requirements.txt
 
