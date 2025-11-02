@@ -1,10 +1,10 @@
 # Temp Stage 
 
-FROM python:alpine as builder
+FROM python:slim-bookworm AS builder
 
 WORKDIR /app
 
-RUN apt-get update -y && apt-get install -y gcc python3-dev libpq-dev
+RUN apt-get update -y && apt-get install -y gcc  python3-dev
 
 COPY ./tailscale_device_status/requirements.txt . 
 
@@ -12,7 +12,7 @@ COPY ./tailscale_device_status/requirements.txt .
 RUN pip wheel --no-cache-dir --no-deps --wheel-dir /app/wheels -r requirements.txt
 
 # Final Stage 
-FROM python:alpine
+FROM python:slim-bookworm
 
 COPY --from=builder /app/wheels /wheels
 COPY --from=builder /app/requirements.txt .
