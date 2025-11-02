@@ -29,6 +29,6 @@ jobs:
         with:
           context: ./network_management/
           file: ./network_management/tailscale_device_status/Dockerfile
-          platforms: linux/amd64
+          platforms: linux/arm64,linux/amd64
           push: true
           tags: markhamlee/tailscale_device_monitoring:latest
