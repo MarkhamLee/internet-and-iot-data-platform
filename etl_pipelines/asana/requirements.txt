@@ -16,5 +16,5 @@ asana==5.2.2
 joblib
 Werkzeug
 slack_sdk
-psycopg2-binary==2.9.10
+psycopg2
 jsonschema  
