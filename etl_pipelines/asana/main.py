@@ -4,7 +4,6 @@
 # ETL script for retrieving all the tasks from an Asana project
 # pass the environmental variable with the project GID to retrieve
 # data from the right project.
-
 import os
 import sys
 import pandas as pd
