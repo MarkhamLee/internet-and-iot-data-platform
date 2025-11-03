@@ -2,9 +2,16 @@ FROM python:alpine as builder
 
 WORKDIR /app
 
+RUN apt-get update -y && apt-get install -y gcc python3-dev libpq-dev
+
+RUN pip install --upgrade pip setuptools wheel
+
 COPY /yield_curve_library/requirements.txt .
 
+RUN pip install --upgrade pip setuptools wheel
+
 RUN pip wheel --no-cache-dir --no-deps --wheel-dir /app/wheels -r requirements.txt
+
 
 
 # Final Stage 
