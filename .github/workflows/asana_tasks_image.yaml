@@ -28,6 +28,6 @@ jobs:
         with:
           context: ./etl_pipelines/
           file: ./etl_pipelines/asana/Dockerfile
-          platforms: linux/amd64
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: markhamlee/asanadata:latest
