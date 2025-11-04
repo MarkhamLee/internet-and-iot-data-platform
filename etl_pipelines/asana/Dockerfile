@@ -15,7 +15,7 @@ RUN pip wheel --no-cache-dir --no-deps --wheel-dir /app/wheels -r requirements.t
 # Final Stage
 FROM python:slim-bookworm
 
-RUN RUN apt-get update -y && apt-get install -y libpq5
+RUN apt-get update -y && apt-get install -y libpq5
 
 COPY --from=builder /app/wheels /wheels
 COPY --from=builder /app/requirements.txt .
