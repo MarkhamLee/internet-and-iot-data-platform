@@ -61,14 +61,15 @@ def get_asana_data(asana_client: object, PROJECT_GID: str) -> object:
 # calculate age and days since last update for each task
 def calculate_task_age(df: object) -> object:
 
-    df.loc[:, ['created_at', 'modified_at']] =\
-        df[['created_at', 'modified_at']].apply(pd.to_datetime)
-
-    # Calculate the age of each task
+    # convert columns to date time format so task age can be
+    # calculated.
+    df['created_at'] = pd.to_datetime(df['created_at'], errors='coerce')
+    df['modified_at'] = pd.to_datetime(df['modified_at'], errors='coerce')
 
     # set time zone, get current time and set format
     current_time = datetime.now(timezone.utc)
 
+    # calculate task age
     df.loc[:, 'task_age(days)'] = (current_time - df['created_at']) /\
         pd.Timedelta(days=1)
 
