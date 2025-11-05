@@ -21,23 +21,22 @@ from network_monitoring_libraries.\
 logger = console_logging('technitium_monitoring')
 
 
-BUCKET = os.environ['INFLUX_NETWORK_MONITORING_BUCKET']
-DASHBOARD_TIME_HORIZON = os.environ['DASHBOARD_TIME_HORIZON']
+BUCKET = os.environ['INFLUX_BUCKET']
 DNS_ID = os.environ['DNS_ID']
 INFLUX_URL = os.environ['INFLUX_URL']
 INFLUX_KEY = os.environ['INFLUX_KEY']
 INFLUX_ORG = os.environ['INFLUX_ORG']
 SLEEP_DURATION = os.environ['SLEEP_DURATION']
-TABLE = os.environ['DNS_MEASUREMENT_BUCKET']
+TABLE = os.environ['INFLUX_BUCKET']
 TAG_KEY = os.environ['TAG_KEY']
 TAG_VALUE = os.environ['TAG_VALUE']
 TECHNITIUM_SERVER_IP = os.environ['TECHNITIUM_SERVER_IP']
-TOKEN = os.environ['TECHNITIUM_TOKEN']
+TECHNITIUM_TOKEN = os.environ['TECHNITIUM_TOKEN']
 TIME_HORIZON = os.environ['DASHBOARD_TIME_HORIZON']
 TIME_TYPE = os.environ['TIME_TYPE']
 DNS_ALERT_WEBHOOK = os.environ['DNS_ALERT_WEBHOOK']
 
-influx_client = create_influx_client(TOKEN, INFLUX_ORG, INFLUX_URL)
+influx_client = create_influx_client(INFLUX_KEY, INFLUX_ORG, INFLUX_URL)
 
 
 logger.info('Creating base payload for writing to InfluxDB')
@@ -53,7 +52,7 @@ data_message = (f'Technitium status data for {DNS_ID}')
 
 def build_dashboard_data_url():
 
-    url = (f'http://{TECHNITIUM_SERVER_IP}:5380/api/dashboard/stats/get?token={TOKEN}&type={TIME_HORIZON}&utc={TIME_TYPE}')  # noqa: E501
+    url = (f'http://{TECHNITIUM_SERVER_IP}:5380/api/dashboard/stats/get?token={TECHNITIUM_TOKEN}&type={TIME_HORIZON}&utc={TIME_TYPE}')  # noqa: E501
     logger.info(f'API connection URL created for {DNS_ID}')
 
     return url
