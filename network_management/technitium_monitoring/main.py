@@ -54,14 +54,21 @@ data_message = (f'Technitium status data for {DNS_ID}')
 def build_dashboard_data_url():
 
     url = (f'http://{TECHNITIUM_SERVER_IP}:5380/api/dashboard/stats/get?token={TOKEN}&type={TIME_HORIZON}&utc={TIME_TYPE}')  # noqa: E501
+    logger.info(f'API connection URL created for {DNS_ID}')
 
     return url
 
 
 def get_data(url: str):
 
-    response = requests.post(url=url)
-    status = response.json()['status']
+    try:
+
+        response = requests.post(url=url)
+        status = response.json()['status']
+        logger.info(f'Technitium connection successful with status code: {status}')  # noqa: E501
+
+    except Exception as e:
+        logger.debug(f'Technitium API connection failed with error: {e}')
 
     return response, status
 
@@ -127,7 +134,7 @@ def main():
                    BUCKET,
                    data_message,
                    DNS_ALERT_WEBHOOK)
-        sleep(30)
+        sleep(SLEEP_DURATION)
 
 
 if __name__ == '__main__':
