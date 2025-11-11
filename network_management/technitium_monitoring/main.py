@@ -171,7 +171,6 @@ def main():
                        BUCKET,
                        data_message,
                        DNS_ALERT_WEBHOOK)
-        sys.exit()
         sleep(SLEEP_DURATION)
 
 
