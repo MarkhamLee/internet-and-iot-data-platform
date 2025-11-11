@@ -29,6 +29,6 @@ jobs:
           context: ./network_management/
           file: ./network_management/technitium_monitoring/Dockerfile
           platforms: 
-            linux/arm64,linux/amd64
+            linux/amd64
           push: true
           tags: markhamlee/technitium_monitoring:latest
