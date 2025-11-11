@@ -118,10 +118,9 @@ def extract_alert_data(data: dict):
 
 def prepare_payload(data: dict, failure_ratio, refusal_ratio):
 
-    # InfluxDB has fairly tight type setting so, we have to
-    # re-parse data and reset the type otherwise if it's a float one
-    # time and then float the next, it would reject types that are
-    # different from the first
+    # InfluxDB has fairly tight type requirements, e.g., if the
+    # first value is a 1 and it implies INT,it will reject subsequent
+    # values that are floats.
 
     payload = {
 
