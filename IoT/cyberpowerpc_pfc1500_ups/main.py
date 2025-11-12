@@ -10,6 +10,7 @@ import json
 import os
 import sys
 from time import sleep
+from prometheus_client import Gauge, start_http_server
 import subprocess as sp
 
 
@@ -24,6 +25,9 @@ from iot_libraries.communications_utilities\
 monitor_utilities = IoTCommunications()
 
 # load environmental variables
+HEARTBEAT_FLAG = int(os.environ['HEARTBEAT_FLAG'])
+METRIC_IP = os.environ['METRIC_IP']
+METRIC_PORT = int(os.environ['METRIC_PORT'])
 MQTT_BROKER = os.environ["MQTT_BROKER"]
 MQTT_USER = os.environ['MQTT_USER']
 MQTT_SECRET = os.environ['MQTT_SECRET']
@@ -33,6 +37,15 @@ SLACK_WEBHOOK = os.environ['SLACK_HW_ALERTS']
 TOPIC = os.environ['UPS_TOPIC']
 UPS_ID = os.environ['UPS_ID']
 UPS_IP = os.environ['UPS_IP']
+
+
+if HEARTBEAT_FLAG == 1:
+    logger.info('Settiing up Prometheus heartbeat')
+    METRIC_NAME = (f'{UPS_ID}_HEARTBEAT')
+    heartbeat = Gauge(METRIC_NAME, UPS_ID)
+
+    logger.info('Starting metric server')
+    start_http_server(METRIC_PORT, addr=METRIC_IP)
 
 
 # start monitoring loop
@@ -56,6 +69,10 @@ def ups_monitoring(CMD: str, TOPIC: str, client: object):
         try:
             # query the UPS via bash to acquire data
             data = sp.check_output(CMD, shell=True)
+
+            # successful data pull, so now we surface the device heartbeat
+            if HEARTBEAT_FLAG == 1:
+                heartbeat.set(1)
 
         except Exception as e:
             logger.debug(f'Failed to read data from UPS: {UPS_ID} with error: {e}')  # noqa: E501
