@@ -24,6 +24,7 @@ logger = console_logging('technitium_monitoring')
 
 
 BUCKET = os.environ['INFLUX_BUCKET']
+DNS_ALERT_WEBHOOK = os.environ['DNS_ALERT_WEBHOOK']
 DNS_ID = os.environ['DNS_ID']
 INFLUX_URL = os.environ['INFLUX_URL']
 INFLUX_KEY = os.environ['INFLUX_KEY']
@@ -31,17 +32,18 @@ INFLUX_ORG = os.environ['INFLUX_ORG']
 SLEEP_DURATION = int(os.environ['SLEEP_DURATION'])
 TAG_KEY = os.environ['TAG_KEY']
 TAG_VALUE = os.environ['TAG_VALUE']
+TECHNITIUM_DASHBOARD_MEASUREMENT = os.environ['TECHNITIUM_DASHBOARD_MEASUREMENT']  # noqa: E501
 TECHNITIUM_SERVER_IP = os.environ['TECHNITIUM_SERVER_IP']
 TECHNITIUM_TOKEN = os.environ['TECHNITIUM_TOKEN']
 TIME_HORIZON = os.environ['DASHBOARD_TIME_HORIZON']
 UTC_STATUS = os.environ['UTC_STATUS']
-DNS_ALERT_WEBHOOK = os.environ['DNS_ALERT_WEBHOOK']
+
 
 influx_client = create_influx_client(INFLUX_KEY, INFLUX_ORG, INFLUX_URL)
 
 logger.info('Creating base payload for writing to InfluxDB')
 base_payload = {
-    "measurement": BUCKET,
+    "measurement": TECHNITIUM_DASHBOARD_MEASUREMENT,
     "tags": {
             TAG_KEY: TAG_VALUE,
     }
