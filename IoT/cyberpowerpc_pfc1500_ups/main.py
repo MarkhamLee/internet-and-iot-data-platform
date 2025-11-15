@@ -25,8 +25,11 @@ from iot_libraries.communications_utilities\
 monitor_utilities = IoTCommunications()
 
 # load environmental variables
+# Note:  UPS IP is the IP of the mini server connected
+# to the UPS, not the IP of the UP itself
+# Since the server might support several UPS devices, we differentiate
+# between them with the metric port
 HEARTBEAT_FLAG = int(os.environ['HEARTBEAT_FLAG'])
-METRIC_IP = os.environ['METRIC_IP']
 METRIC_PORT = int(os.environ['METRIC_PORT'])
 MQTT_BROKER = os.environ["MQTT_BROKER"]
 MQTT_USER = os.environ['MQTT_USER']
@@ -45,7 +48,7 @@ if HEARTBEAT_FLAG == 1:
     heartbeat = Gauge(METRIC_NAME, UPS_ID)
 
     logger.info('Starting metric server')
-    start_http_server(METRIC_PORT, addr=METRIC_IP)
+    start_http_server(METRIC_PORT, addr=UPS_IP)
 
 
 # start monitoring loop
@@ -71,6 +74,7 @@ def ups_monitoring(CMD: str, TOPIC: str, client: object):
             data = sp.check_output(CMD, shell=True)
 
             # successful data pull, so now we surface the device heartbeat
+            # just adding redundancy to the device monitoring
             if HEARTBEAT_FLAG == 1:
                 heartbeat.set(1)
 
