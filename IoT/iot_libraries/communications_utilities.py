@@ -2,7 +2,7 @@
 # Productivity, Weather, Personal, et al dashboard:
 # https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
 # General communication utilities for IoT devices
-import os
+# import os
 import uuid
 import requests
 from paho.mqtt import client as mqtt
@@ -57,7 +57,7 @@ class IoTCommunications():
     # method for sending slack alerts
     @staticmethod
     def send_slack_alert(message: str, device_failure_channel, alert_endpoint):
-        
+
         payload = {
             "text": message,
             "slack_channel": device_failure_channel
