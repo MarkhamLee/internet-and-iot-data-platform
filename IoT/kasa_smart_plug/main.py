@@ -4,8 +4,8 @@
 # Python script for receiving energy data from a TP Link Kasa TP254
 # smart plug and writing the data to InfluxDB
 import asyncio
-import gc
 import os
+import requests
 import sys
 from kasa import SmartPlug
 
@@ -15,31 +15,42 @@ sys.path.append(parent_dir)
 
 from iot_libraries.logging_util import logger  # noqa: E402
 from iot_libraries.influx_client import InfluxClient  # noqa: E402
+from iot_libraries.communications_utilities\
+    import IoTCommunications  # noqa: E402
+
+com_utilities = IoTCommunications
+
+# Load environmental variables
+BUCKET = os.environ['BUCKET']
+DEVICE_ALERT_WEBHOOK = os.environ['DEVICE_ALERT_WEBHOOK']
+DEVICE_ID = os.environ['DEVICE_ID']
+DEVICE_IP = os.environ['DEVICE_IP']
+SLEEP_INTERVAL = int(os.environ['INTERVAL'])
+ORG = os.environ['ORG']
+TABLE = os.environ['SMART_PLUG_TABLE']
+TAG_KEY = os.environ['TAG_KEY']
+TAG_VALUE = os.environ['TAG_VALUE']
+TOKEN = os.environ['TOKEN']
+URL = os.environ['URL']
+UPTIME_KUMA_WEBHOOK = os.environ['UPTIME_TOKEN']
 
 influxdb_write = InfluxClient()
 
+logger.info('Preparing base InfluxDB payload')
 
-async def get_plug_data(client: object, device_ip: str, interval: int,
-                        bucket: str, table: str):
-
-    # base payload
-    base_payload = {
-        "measurement": table,
-        "tags": {
-                "homelab monitoring": "energy consumption",
+# base payload
+BASE_PAYLOAD = {
+    "measurement": TABLE,
+    "tags": {
+                TAG_KEY: TAG_VALUE,
         }
     }
 
-    try:
-        dev = SmartPlug(device_ip)
-        logger.info(f'Connected to Kasa smart plug at: {device_ip}')
+# get client
+INFLUX_CLIENT = influxdb_write.influx_client(TOKEN, ORG, URL)
 
-    except Exception as e:
-        message = (f'Kasa smart plug connection unsuccessful with error: {e}')
-        logger.debug(message)
-        # TODO: add Slack Alerts
 
-    logger.info('starting monitoring loop...')
+async def get_plug_data(dev):
 
     while True:
 
@@ -47,54 +58,73 @@ async def get_plug_data(client: object, device_ip: str, interval: int,
         try:
             await dev.update()
 
-        except Exception as e:
-            logger.debug(f'connection error: {e}')
-
-        # split out data
-
-        payload = {
-            "power_usage": dev.emeter_realtime.power,
-            "voltage": dev.emeter_realtime.voltage,
-            "current": dev.emeter_realtime.current,
-            "device_id": dev.device_id
-        }
-
-        try:
+            # send out heartbeat
+            send_uptime_kuma_heartbeat()
 
             # write data to InfluxDB
-            influxdb_write.write_influx_data(client, base_payload,
-                                             payload, bucket)
+            write_data(dev)
 
         except Exception as e:
-            message = (f'InfluxDB write failed with error: {e}')
-            logger.debug(message)
-
-        # clean up RAM, container metrics show RAM usage creeping up daily
-        del payload
-        gc.collect()
+            logger.debug(f'Kasa Smart Plug connection error: {e} on device {DEVICE_ID}')  # noqa: E501
 
         # wait 30 seconds
-        await asyncio.sleep(interval)  # Sleep some time between updates
+        await asyncio.sleep(SLEEP_INTERVAL)  # Sleep some time between updates
+
+
+def send_uptime_kuma_heartbeat():
+
+    # TODO: check response to verify that response
+    # is proper, if not trigger alert
+    try:
+        requests.get(UPTIME_KUMA_WEBHOOK)
+
+    except Exception as e:
+        logger.info(f'Publishing of Uptime Kuma alert for {DEVICE_ID} failed with error: {e}')  # noqa: E501
+
+
+def write_data(device_data_object):
+
+    # parse payload
+    payload = {
+        "power_usage": device_data_object.emeter_realtime.power,
+        "voltage": device_data_object.emeter_realtime.voltage,
+        "current": device_data_object.emeter_realtime.current,
+        "device_id": device_data_object.device_id
+        }
+
+    try:
+
+        # write data to InfluxDB
+        influxdb_write.write_influx_data(INFLUX_CLIENT,
+                                         BASE_PAYLOAD,
+                                         payload,
+                                         BUCKET)
+
+    except Exception as e:
+
+        message = (f'InfluxDB write failed with error: {e}')
+        logger.debug(message)
 
 
 def main():
 
-    # Load operating parameters
-    INTERVAL = int(os.environ['INTERVAL'])
-    DEVICE_IP = os.environ['DEVICE_IP']
+    # connect to device
+    logger.info(f'Connecting to device: {DEVICE_ID}')
 
-    TOKEN = os.environ['TOKEN']
-    ORG = os.environ['ORG']
-    URL = os.environ['URL']
-    BUCKET = os.environ['BUCKET']
-    TABLE = os.environ['SMART_PLUG_TABLE']
-    INTERVAL = int(os.environ['INTERVAL'])
+    # TODO: write better reconnection logic
+    try:
+        device = SmartPlug(DEVICE_IP)
+        logger.info(f'Connected to Kasa Smart Plug, device ID: {DEVICE_ID}, starting monitorig....')  # noqa: E501
 
-    # get client
-    client = influxdb_write.influx_client(TOKEN, ORG, URL)
+    except Exception as e:
+        message = (f'Failed to connect to device ID: {DEVICE_ID} at {DEVICE_IP} with error: {e}')  # noqa: E501
+        logger.info(message)
+        com_utilities.send_slack_webhook(DEVICE_ALERT_WEBHOOK,
+                                         message)
+        sys.exit()
 
     # start device monitoring
-    asyncio.run(get_plug_data(client, DEVICE_IP, INTERVAL, BUCKET, TABLE))
+    asyncio.run(get_plug_data(device))
 
 
 if __name__ == "__main__":
