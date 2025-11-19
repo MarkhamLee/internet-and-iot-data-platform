@@ -32,7 +32,7 @@ TAG_KEY = os.environ['TAG_KEY']
 TAG_VALUE = os.environ['TAG_VALUE']
 TOKEN = os.environ['TOKEN']
 URL = os.environ['URL']
-UPTIME_KUMA_WEBHOOK = os.environ['UPTIME_TOKEN']
+UPTIME_KUMA_WEBHOOK = os.environ['UPTIME_KUMA_WEBHOOK']
 
 influxdb_write = InfluxClient()
 
