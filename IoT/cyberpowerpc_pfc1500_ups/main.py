@@ -8,9 +8,9 @@
 import gc
 import json
 import os
+import requests
 import sys
 from time import sleep
-from prometheus_client import Gauge, start_http_server
 import subprocess as sp
 
 
@@ -29,26 +29,18 @@ monitor_utilities = IoTCommunications()
 # to the UPS, not the IP of the UP itself
 # Since the server might support several UPS devices, we differentiate
 # between them with the metric port
-HEARTBEAT_FLAG = int(os.environ['HEARTBEAT_FLAG'])
-METRIC_PORT = int(os.environ['METRIC_PORT'])
 MQTT_BROKER = os.environ["MQTT_BROKER"]
 MQTT_USER = os.environ['MQTT_USER']
 MQTT_SECRET = os.environ['MQTT_SECRET']
 MQTT_PORT = int(os.environ['MQTT_PORT'])
 INTERVAL = int(os.environ['UPS_INTERVAL'])
 SLACK_WEBHOOK = os.environ['SLACK_HW_ALERTS']
+TAG_KEY = os.environ['TAG_KEY']
+TAG_VALUE = os.environ['TAG_VALUE']
 TOPIC = os.environ['UPS_TOPIC']
 UPS_ID = os.environ['UPS_ID']
 UPS_IP = os.environ['UPS_IP']
-
-
-if HEARTBEAT_FLAG == 1:
-    logger.info('Settiing up Prometheus heartbeat')
-    METRIC_NAME = (f'{UPS_ID}_HEARTBEAT')
-    heartbeat = Gauge(METRIC_NAME, UPS_ID)
-
-    logger.info('Starting metric server')
-    start_http_server(METRIC_PORT, addr=UPS_IP)
+UPTIME_KUMA_WEBHOOK = os.environ['UPTIME_KUMA_WEBHOOK']
 
 
 # start monitoring loop
@@ -72,11 +64,9 @@ def ups_monitoring(CMD: str, TOPIC: str, client: object):
         try:
             # query the UPS via bash to acquire data
             data = sp.check_output(CMD, shell=True)
+            send_uptime_kuma_heartbeat()
 
-            # successful data pull, so now we surface the device heartbeat
-            # just adding redundancy to the device monitoring
-            if HEARTBEAT_FLAG == 1:
-                heartbeat.set(1)
+            # successfully pinged the device, send heartbeat
 
         except Exception as e:
             logger.debug(f'Failed to read data from UPS: {UPS_ID} with error: {e}')  # noqa: E501
@@ -199,6 +189,17 @@ def parse_data(data: str) -> dict:
     }
 
     return payload
+
+
+def send_uptime_kuma_heartbeat():
+
+    # TODO: check response to verify that response
+    # is proper, if not trigger alert
+    try:
+        requests.get(UPTIME_KUMA_WEBHOOK)
+
+    except Exception as e:
+        logger.info(f'Publishing of Uptime Kuma alert for {UPS_ID} failed with error: {e}')  # noqa: E501
 
 
 def main():
