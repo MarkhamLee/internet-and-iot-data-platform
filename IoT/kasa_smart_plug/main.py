@@ -114,7 +114,7 @@ def main():
     # TODO: write better reconnection logic
     try:
         device = IotPlug(DEVICE_IP)
-        logger.info(f'Connected to Kasa Smart Plug, device ID: {DEVICE_ID}, starting monitorig....')  # noqa: E501
+        logger.info(f'Connected to Kasa Smart Plug, device ID: {DEVICE_ID}, starting monitoring....')  # noqa: E501
 
     except Exception as e:
         message = (f'Failed to connect to device ID: {DEVICE_ID} at {DEVICE_IP} with error: {e}')  # noqa: E501
