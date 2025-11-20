@@ -7,7 +7,7 @@ import asyncio
 import os
 import requests
 import sys
-from kasa import SmartPlug
+from kasa.iot import IotPlug
 
 
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -113,7 +113,7 @@ def main():
 
     # TODO: write better reconnection logic
     try:
-        device = SmartPlug(DEVICE_IP)
+        device = IotPlug(DEVICE_IP)
         logger.info(f'Connected to Kasa Smart Plug, device ID: {DEVICE_ID}, starting monitorig....')  # noqa: E501
 
     except Exception as e:
