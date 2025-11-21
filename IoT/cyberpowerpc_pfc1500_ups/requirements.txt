@@ -4,4 +4,3 @@ executing
 uuid
 clr==1.0.3
 requests==2.32.4
-prometheus_client==0.22.1

@@ -64,9 +64,9 @@ def ups_monitoring(CMD: str, TOPIC: str, client: object):
         try:
             # query the UPS via bash to acquire data
             data = sp.check_output(CMD, shell=True)
-            send_uptime_kuma_heartbeat()
-
+            
             # successfully pinged the device, send heartbeat
+            send_uptime_kuma_heartbeat()
 
         except Exception as e:
             logger.debug(f'Failed to read data from UPS: {UPS_ID} with error: {e}')  # noqa: E501
