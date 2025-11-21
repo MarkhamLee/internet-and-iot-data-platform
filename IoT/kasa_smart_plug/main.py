@@ -1,4 +1,4 @@
-# Markham Lee 2023 - 2024
+# Markham Lee 2023 - 2025
 # Finance, Productivity, IoT, & Weather dashboard
 # https://github.com/MarkhamLee/finance-productivity-iot-informational-weather-dashboard
 # Python script for receiving energy data from a TP Link Kasa TP254
@@ -79,7 +79,7 @@ def send_uptime_kuma_heartbeat():
         requests.get(UPTIME_KUMA_WEBHOOK)
 
     except Exception as e:
-        logger.info(f'Publishing of Uptime Kuma alert for {DEVICE_ID} failed with error: {e}')  # noqa: E501
+        logger.info(f'Publishing of Uptime Kuma heartbeat for {DEVICE_ID} failed with error: {e}')  # noqa: E501
 
 
 def write_data(device_data_object):
@@ -104,6 +104,7 @@ def write_data(device_data_object):
 
         message = (f'InfluxDB write failed with error: {e}')
         logger.debug(message)
+
 
 
 def main():
