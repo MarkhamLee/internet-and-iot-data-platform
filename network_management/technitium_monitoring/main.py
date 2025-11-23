@@ -37,7 +37,7 @@ TECHNITIUM_SERVER_IP = os.environ['TECHNITIUM_SERVER_IP']
 TECHNITIUM_TOKEN = os.environ['TECHNITIUM_TOKEN']
 TIME_HORIZON = os.environ['DASHBOARD_TIME_HORIZON']
 UTC_STATUS = os.environ['UTC_STATUS']
-
+UPTIME_KUMA_WEBHOOK = os.environ['UPTIME_KUMA_WEBHOOK']
 
 influx_client = create_influx_client(INFLUX_KEY, INFLUX_ORG, INFLUX_URL)
 
@@ -139,6 +139,17 @@ def prepare_payload(data: dict, failure_ratio, refusal_ratio):
     logger.info(f'Technitium DNS payload ready: {payload}')
 
     return payload
+
+
+def send_uptime_kuma_heartbeat():
+
+    # TODO: check response to verify that response
+    # is proper, if not trigger alert
+    try:
+        requests.get(UPTIME_KUMA_WEBHOOK)
+
+    except Exception as e:
+        logger.info(f'Publishing of Uptime Kuma alert for {DNS_ID} failed with error: {e}')  # noqa: E501
 
 
 def main():
