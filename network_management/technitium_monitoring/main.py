@@ -149,8 +149,9 @@ def send_uptime_kuma_heartbeat():
         requests.get(UPTIME_KUMA_WEBHOOK)
 
     except Exception as e:
-        logger.info(f'Publishing of Uptime Kuma alert for {DNS_ID} failed with error: {e}')  # noqa: E501
-
+        message = (f'Publishing of Uptime Kuma heartbeat for {DNS_ID} failed with error: {e}')  # noqa: E501
+        logger.info(message)
+        send_slack_webhook(DNS_ALERT_WEBHOOK, message)
 
 def main():
 
@@ -176,6 +177,10 @@ def main():
             finished_payload = prepare_payload(data,
                                                failure_ratio,
                                                refusal_ratio)
+            
+            # send heartbeat to uptime Kuma
+            send_uptime_kuma_heartbeat()
+            
             logger.info('Writing data to InfluxDB')
 
             write_data(base_payload,
