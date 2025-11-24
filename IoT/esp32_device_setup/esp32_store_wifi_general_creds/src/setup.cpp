@@ -24,6 +24,7 @@ need to tweak things for this to work with a different IDE.
 #include <WiFiManager.h> 
 #include <PicoMQTT.h>
 #include <ArduinoJson.h>
+#include <HTTPClient.h>
 #include <Preferences.h>  // this is a standard included library, don't add the one listed in packages
 
 #define LED 2
@@ -116,6 +117,10 @@ void setup() {
     Serial.println("MQTT credentials saved");
     Serial.println(mqtt_user);
 
+    const char* uptime_kuma_webhook = UPTIME_KUMA_WEBHOOK
+    prefs.putString("uptime_kuma_webhook", uptime_kuma_webhook);
+    Serial.println("Uptime Kuma data saved");
+
     prefs.end();
     */
 
@@ -139,11 +144,12 @@ void setup() {
     mqtt.client_id = device_id;
     mqtt.begin();
 
+    // Get URL for uptime Kuma heartbeat
+    String uptime_kuma_url = preferences.getString("uptime_kuma_webhook", "");
+
     // setup for external devices conn ected to the ESP32, e.g., climate sensors
 
-
 }
-
 
 void loop() {
 
@@ -179,8 +185,17 @@ void loop() {
   serializeJsonPretty(payload, Serial);
   Serial.println();
 
+  // send Uptime Kuma Heartbeat 
+  HTTPClient http;
+  http.begin(uptime_kuma_url);
+  int httpResponseCode = http.GET();
 
-  // sleep interval of two seconds
+  Serial.print("HTTP Response code: ");
+  Serial.println(httpResponseCode);
+  http.end();
+
+
+  // sleep interval of five seconds
   delay(5000);
  
 }
