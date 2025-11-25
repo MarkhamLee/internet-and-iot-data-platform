@@ -2,9 +2,11 @@ FROM python:slim-bookworm AS builder
 
 WORKDIR /app
 
-RUN apt-get update -y && apt-get install -y gcc python3-dev
+RUN apt-get update -y && apt-get install -y gcc python3-dev g++ libblas-dev liblapack-dev build-essential
 
-COPY /portainer_automated_deployment/requirements.txt .
+RUN pip install --upgrade pip setuptools wheel
+
+COPY /portainer_automated_redeployment/requirements.txt .
 
 RUN pip wheel --no-cache-dir --no-deps --wheel-dir /app/wheels -r requirements.txt
 
@@ -24,6 +26,6 @@ COPY ./portainer_common ./portainer_common
 
 WORKDIR /automation
 
-COPY ./portainer_automated_deployment ./
+COPY ./portainer_automated_redeployment ./
 
 ENTRYPOINT ["python3", "/automation/main.py"]
