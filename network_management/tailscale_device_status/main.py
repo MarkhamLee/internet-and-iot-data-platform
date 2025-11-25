@@ -95,7 +95,7 @@ def write_data(heartbeat, since_last_seen, latency, city):
         return response
     
 
-def send_uptime_kuma_heartbeat():
+def send_uptime_kuma_heartbeat(id):
 
     # TODO: check response to verify that response
     # is proper, if not trigger alert
@@ -103,7 +103,7 @@ def send_uptime_kuma_heartbeat():
         requests.get(UPTIME_KUMA_WEBHOOK)
 
     except Exception as e:
-        logger.info(f'Publishing of Uptime Kuma alert for {NODE_NAME} failed with error: {e}')  # noqa: E501
+        logger.info(f'Publishing of Uptime Kuma alert for {id} failed with error: {e}')  # noqa: E501
 
 
 def main():
@@ -135,7 +135,7 @@ def main():
 
         if last_seen < 120:
             # send Uptime Kuma heartbeat
-            send_uptime_kuma_heartbeat()
+            send_uptime_kuma_heartbeat(NODE_NAME)
 
         logger.info('Recording latency data')
 
