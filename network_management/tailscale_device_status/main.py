@@ -17,7 +17,8 @@ sys.path.append(parent_dir)
 from network_monitoring_libraries.\
     logging_utils import console_logging  # noqa: E402
 from network_monitoring_libraries.\
-    general_utils import send_slack_webhook, create_influx_client, write_influx_data  # noqa: E402, E501
+    general_utils import send_slack_webhook, create_influx_client,\
+        write_influx_data, send_uptime_kuma_heartbeat  # noqa: E402, E501
 from tailscale_library.tailscale_data import TailscaleData  # noqa: E402
 
 tailscale_data_utils = TailscaleData()
@@ -95,17 +96,6 @@ def write_data(heartbeat, since_last_seen, latency, city):
         return response
     
 
-def send_uptime_kuma_heartbeat(id):
-
-    # TODO: check response to verify that response
-    # is proper, if not trigger alert
-    try:
-        requests.get(UPTIME_KUMA_WEBHOOK)
-
-    except Exception as e:
-        logger.info(f'Publishing of Uptime Kuma alert for {id} failed with error: {e}')  # noqa: E501
-
-
 def main():
 
     while True:
@@ -135,7 +125,8 @@ def main():
 
         if last_seen < 120:
             # send Uptime Kuma heartbeat
-            send_uptime_kuma_heartbeat(NODE_NAME)
+            send_uptime_kuma_heartbeat(UPTIME_KUMA_WEBHOOK,
+                                       NODE_NAME)
 
         logger.info('Recording latency data')
 

@@ -85,3 +85,12 @@ def write_data(base_payload: dict,
         response = send_slack_webhook(slack_webhook, message)
         logger.debug(f'Slack pipeline failure alert sent with code: {response}')  # noqa: E501
         return response
+
+
+def send_uptime_kuma_heartbeat(uptime_kuma_webhook, id):
+
+    try:
+        requests.get(uptime_kuma_webhook)
+
+    except Exception as e:
+        logger.info(f'Publishing of Uptime Kuma alert for {id} failed with error: {e}')  # noqa: E501
