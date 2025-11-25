@@ -97,3 +97,15 @@ class IoTCommunications():
             logger.debug(f'Publishing of alert to Slack webhook failed, with error code {code}')  # noqa: E501
 
         return response.status_code
+    
+
+    @staticmethod
+    def send_uptime_kuma_heartbeat(id, uptime_kuma_webhook):
+
+        # TODO: check response to verify that response
+        # is proper, if not trigger alert
+        try:
+            requests.get(uptime_kuma_webhook)
+
+        except Exception as e:
+            logger.info(f'Publishing of Uptime Kuma alert for {id} failed with error: {e}')  # noqa: E501
