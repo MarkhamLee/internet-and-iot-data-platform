@@ -6,6 +6,7 @@
 # quality sensor and sending it to InfluxDB via Node-RED and MQTT.
 import serial
 import os
+import requests
 import sys
 from time import sleep
 
@@ -17,7 +18,7 @@ from iot_libraries.communications_utilities\
     import IoTCommunications  # noqa: E402
 
 DEVICE_ALERT_WEBHOOK = os.environ['DEVICE_ALERT_WEBHOOK']
-
+UPTIME_KUMA_WEBHOOK = os.environ['UPTIME_KUMA_HEARTBEAT']
 
 class AirQuality:
 
@@ -48,18 +49,18 @@ class AirQuality:
         try:
             self.serial_connection = serial.Serial(USB)
             logger.info(f'connected to Nova PM SDS011 Air Quality sensor at: {USB}')  # noqa: E501
+            self.usb_error_count = 0
 
         except Exception as e:
             message = (f'USB device connection failure on node: {self.NODE_DEVICE_ID}, with device: {USB} with error message: {e}, going to sleep...')  # noqa: E501
             logger.debug(message)
             self.com_utilities.send_slack_webhook(DEVICE_ALERT_WEBHOOK,
                                                   message)
-            # back-off limits/pod restart patterns are hard-coded into K8s,
-            # SO... we put the container to sleep for an hour to provide
-            # enough time to fix the physical issue w/o being spammed with
-            # constant restart and container back-off alerts
-            self.usb_error_count += 1
-            sleep(3600 * self.usb_error_count)
+            
+            # just exit the container, as fixing the issue will likely require
+            # manual intervention.
+            logger.debug('Air Quality sensor not available, exiting container')
+            sys.exit()
 
     # get air quality data, use bit shifting to isolate data
     def get_air_quality(self):
@@ -79,6 +80,10 @@ class AirQuality:
             # anomolous readings
             self.serial_connection.reset_input_buffer()
 
+            # send heartbeat to uptime Kuma
+            self.com_utilities.send_uptime_kuma_heartbeat(self.NODE_DEVICE_ID,
+                                                          UPTIME_KUMA_WEBHOOK)
+
             return pm2, pm10
 
         except Exception as e:
@@ -86,10 +91,7 @@ class AirQuality:
             logger.debug(message)
             self.com_utilities.send_slack_webhook(DEVICE_ALERT_WEBHOOK,
                                                   message)
-            # put container to sleep to avoid getting continuous container
-            # creation back off alerts
-            self.read_error_count += 1
-            sleep(3600 * self.read_error_count)
+            return 1
 
     # utility function that uses bit shifting to parse out
     # air quality data.

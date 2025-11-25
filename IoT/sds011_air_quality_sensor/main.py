@@ -22,6 +22,7 @@ com_utilities = IoTCommunications()
 # Load Environmental Variables
 AIR_ALERT_WEBHOOK = os.environ['CLIMATE_ALERT_WEBHOOK']
 DEVICE_ALERT_WEBHOOK = os.environ['DEVICE_ALERT_WEBHOOK']
+ERROR_SLEEP_DURATION = int(os.environ['ERROR_SLEEP_DURATION'])
 IOT_PIPELINE_ALERTS = os.environ['IOT_PIPELINE_ALERTS']
 DEVICE_ID = os.environ['DEVICE_ID']
 SENSOR_ID = os.environ['SENSOR_ID']
@@ -37,43 +38,40 @@ PM10_THRESHOLD = int(os.environ['PM10_THRESHOLD'])
 
 def air(client: object, quality: object, topic: str, interval: int) -> str:
 
-    error_n = 1
-
     while True:
 
-        pm2, pm10 = quality.get_air_quality()
+        air_data = quality.get_air_quality()
 
-        if pm2 > PM2_THRESHOLD or pm10 > PM10_THRESHOLD:
+        # checking for errors, actual air data is returned as a tuple
+        # while read errors return an integer
+        if not isinstance(air_data, tuple):
+            logger.info(f'Sensor read error, going to sleep for {ERROR_SLEEP_DURATION} minutes')
+            sleep(ERROR_SLEEP_DURATION)
+            continue
+        
+        payload = process_air_quality_data(air_data, client, topic)
 
-            send_threshold_alert(pm2, pm10)
+        logger.info(f'Sending payload {payload}')
+        send_data(payload)
 
-        payload = {
-            "pm2": pm2,
-            "pm10": pm10
-        }
+        sleep(interval)
 
-        payload = json.dumps(payload)
-        result = client.publish(topic, payload)
-        status = result[0]
 
-        sleep_duration = interval
+def process_air_quality_data(data):
 
-        if status != 0:
-            message = (f'Air quality MQTT publish failure on {DEVICE_ID}, status code: {status}')  # noqa: E501
-            logger.debug(message)  # noqa: E501
-            com_utilities.send_slack_webhook(IOT_PIPELINE_ALERTS, message)
-            sleep_duration = error_n * interval
-            error_n = (2 * error_n)
+    pm2, pm10 = data
 
-        error_n = 1  # reset error sleep interval
+    if pm2 > PM2_THRESHOLD or pm10 > PM10_THRESHOLD:
+        send_threshold_alert(pm2, pm10)
 
-        # given that this is a RAM constrained device, let's delete
-        # everything and do some garbage collection, watching things
-        # on htop the RAM usage was creeping upwards...
-        del payload, result, status, pm2, pm10
-        gc.collect()
+    # prepare payload 
+    payload = {
+        "pm2": pm2,
+        "pm10": pm10
+    }
 
-        sleep(sleep_duration)
+    # convert payload to json for MQTT
+    return json.dumps(payload)
 
 
 def send_threshold_alert(pm2, pm10):
@@ -84,22 +82,33 @@ def send_threshold_alert(pm2, pm10):
     com_utilities.send_slack_webhook(AIR_ALERT_WEBHOOK, message)
 
 
+def send_data(payload: dict, topic, client):
+
+    try: 
+        result = client.publish(topic, payload)
+        status = result[0]
+
+    except Exception as e:
+        message = (f'{DEVICE_ID} Failed to connect to MQTT broker with error: {e}')
+        logger.info(message)
+        com_utilities.send_slack_webhook(IOT_PIPELINE_ALERTS, message)
+
+    # secondary check, the except only catches connectivity errors, the below
+    # catches errors when the broker was available, but publishing to the topic
+    # failed.
+    if status != 0:
+        message = (f'Air quality MQTT publish failure for {DEVICE_ID} to topic: {topic}, with status code: {status}')  # noqa: E501
+        logger.debug(message)  # noqa: E501
+        com_utilities.send_slack_webhook(IOT_PIPELINE_ALERTS, message)
+        
+         # for simplicity just use the same duration for sensor and MQTT broker errors
+        sleep(ERROR_SLEEP_DURATION)  
+
 def main():
 
     # instantiate air quality class
-
-    try:
-        quality = AirQuality()
-        logger.info('Air quality class instantiated successfully')
-
-    except Exception as e:
-        message = (f'Air Quality Class failed to instantiate, with error {e}, going to sleep....')  # noqa: E501
-        logger.debug(message)
-        # TODO: make this more elegant, commented out the Slack alert
-        # because it's already handled by the device's class
-        # com_utilities.send_slack_alert(message,
-        # DEVICE_FAILURE_CHANNEL, DEVICE_ALERT_WEBHOOK)
-        sleep(1800)
+    quality = AirQuality()
+    logger.info('Air quality class instantiated successfully')
 
     # get unique client ID
     clientID = com_utilities.getClientID()
