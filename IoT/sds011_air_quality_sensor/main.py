@@ -49,10 +49,10 @@ def air(client: object, quality: object, topic: str, interval: int) -> str:
             sleep(ERROR_SLEEP_DURATION)
             continue
         
-        payload = process_air_quality_data(air_data, client, topic)
+        payload = process_air_quality_data(air_data)
 
         logger.info(f'Sending payload {payload}')
-        send_data(payload)
+        send_data(payload, topic, payload)
 
         sleep(interval)
 
