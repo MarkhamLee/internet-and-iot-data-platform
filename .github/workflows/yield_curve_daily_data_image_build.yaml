@@ -29,6 +29,6 @@ jobs:
         with:
           context: ./etl_pipelines/
           file: ./etl_pipelines/yield_curve_daily/Dockerfile
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           push: true
           tags: markhamlee/yieldcurve_daily:latest
