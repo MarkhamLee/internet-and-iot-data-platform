@@ -8,6 +8,7 @@
 import gc
 import json
 import os
+import requests
 import sys
 from time import sleep
 import subprocess as sp
@@ -24,15 +25,22 @@ from iot_libraries.communications_utilities\
 monitor_utilities = IoTCommunications()
 
 # load environmental variables
+# Note:  UPS IP is the IP of the mini server connected
+# to the UPS, not the IP of the UP itself
+# Since the server might support several UPS devices, we differentiate
+# between them with the metric port
 MQTT_BROKER = os.environ["MQTT_BROKER"]
 MQTT_USER = os.environ['MQTT_USER']
 MQTT_SECRET = os.environ['MQTT_SECRET']
 MQTT_PORT = int(os.environ['MQTT_PORT'])
 INTERVAL = int(os.environ['UPS_INTERVAL'])
 SLACK_WEBHOOK = os.environ['SLACK_HW_ALERTS']
+TAG_KEY = os.environ['TAG_KEY']
+TAG_VALUE = os.environ['TAG_VALUE']
 TOPIC = os.environ['UPS_TOPIC']
 UPS_ID = os.environ['UPS_ID']
 UPS_IP = os.environ['UPS_IP']
+UPTIME_KUMA_WEBHOOK = os.environ['UPTIME_KUMA_WEBHOOK']
 
 
 # start monitoring loop
@@ -56,6 +64,9 @@ def ups_monitoring(CMD: str, TOPIC: str, client: object):
         try:
             # query the UPS via bash to acquire data
             data = sp.check_output(CMD, shell=True)
+            
+            # successfully pinged the device, send heartbeat
+            send_uptime_kuma_heartbeat()
 
         except Exception as e:
             logger.debug(f'Failed to read data from UPS: {UPS_ID} with error: {e}')  # noqa: E501
@@ -178,6 +189,17 @@ def parse_data(data: str) -> dict:
     }
 
     return payload
+
+
+def send_uptime_kuma_heartbeat():
+
+    # TODO: check response to verify that response
+    # is proper, if not trigger alert
+    try:
+        requests.get(UPTIME_KUMA_WEBHOOK)
+
+    except Exception as e:
+        logger.info(f'Publishing of Uptime Kuma alert for {UPS_ID} failed with error: {e}')  # noqa: E501
 
 
 def main():

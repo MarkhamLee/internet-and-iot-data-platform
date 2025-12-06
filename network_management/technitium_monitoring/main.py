@@ -4,9 +4,11 @@
 # Script for pulling the dashboard data from Technitium and
 # sending alerts when issues like failed requests or server
 # errors occur.
+import json
 import os
 import requests
 import sys
+from jsonschema import validate
 from time import sleep
 
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -22,26 +24,26 @@ logger = console_logging('technitium_monitoring')
 
 
 BUCKET = os.environ['INFLUX_BUCKET']
+DNS_ALERT_WEBHOOK = os.environ['DNS_ALERT_WEBHOOK']
 DNS_ID = os.environ['DNS_ID']
 INFLUX_URL = os.environ['INFLUX_URL']
 INFLUX_KEY = os.environ['INFLUX_KEY']
 INFLUX_ORG = os.environ['INFLUX_ORG']
-SLEEP_DURATION = os.environ['SLEEP_DURATION']
-TABLE = os.environ['INFLUX_BUCKET']
+SLEEP_DURATION = int(os.environ['SLEEP_DURATION'])
 TAG_KEY = os.environ['TAG_KEY']
 TAG_VALUE = os.environ['TAG_VALUE']
+TECHNITIUM_DASHBOARD_MEASUREMENT = os.environ['TECHNITIUM_DASHBOARD_MEASUREMENT']  # noqa: E501
 TECHNITIUM_SERVER_IP = os.environ['TECHNITIUM_SERVER_IP']
 TECHNITIUM_TOKEN = os.environ['TECHNITIUM_TOKEN']
 TIME_HORIZON = os.environ['DASHBOARD_TIME_HORIZON']
-TIME_TYPE = os.environ['TIME_TYPE']
-DNS_ALERT_WEBHOOK = os.environ['DNS_ALERT_WEBHOOK']
+UTC_STATUS = os.environ['UTC_STATUS']
+UPTIME_KUMA_WEBHOOK = os.environ['UPTIME_KUMA_WEBHOOK']
 
 influx_client = create_influx_client(INFLUX_KEY, INFLUX_ORG, INFLUX_URL)
 
-
 logger.info('Creating base payload for writing to InfluxDB')
 base_payload = {
-    "measurement": TABLE,
+    "measurement": TECHNITIUM_DASHBOARD_MEASUREMENT,
     "tags": {
             TAG_KEY: TAG_VALUE,
     }
@@ -52,7 +54,7 @@ data_message = (f'Technitium status data for {DNS_ID}')
 
 def build_dashboard_data_url():
 
-    url = (f'http://{TECHNITIUM_SERVER_IP}:5380/api/dashboard/stats/get?token={TECHNITIUM_TOKEN}&type={TIME_HORIZON}&utc={TIME_TYPE}')  # noqa: E501
+    url = (f'http://{TECHNITIUM_SERVER_IP}:5380/api/dashboard/stats/get?token={TECHNITIUM_TOKEN}&type={TIME_HORIZON}&utc={UTC_STATUS}')  # noqa: E501
     logger.info(f'API connection URL created for {DNS_ID}')
 
     return url
@@ -64,12 +66,39 @@ def get_data(url: str):
 
         response = requests.post(url=url)
         status = response.json()['status']
-        logger.info(f'Technitium connection successful with status code: {status}')  # noqa: E501
+        response_data = response.json()
+        dns_stats = response_data['response']['stats']
+        logger.info(dns_stats)
+        return dns_stats, status
 
     except Exception as e:
-        logger.debug(f'Technitium API connection failed with error: {e}')
+        message = (f'DNS server connection on: {DNS_ID} failed with error: {e}')  # noqa: E501
+        logger.debug(message)
+        send_slack_webhook(DNS_ALERT_WEBHOOK, message)
+        data = 'no data'
 
-    return response, status
+        # ensure we have a connection status even if the connection failed
+        status = 'connection failure'
+        return data, status
+
+
+def validate_json_payload(data: dict, schema_file: dict) -> int:
+
+    with open(schema_file) as file:
+        schema = json.load(file)
+
+    # validate the data
+    try:
+        validate(instance=data, schema=schema)
+        logger.info('Data validation successful')
+        return 0
+
+    except Exception as e:
+        message = (f'Data validation failed with error: {e}')  # noqa: E501
+        logger.debug(message)
+        response = send_slack_webhook(DNS_ALERT_WEBHOOK, message)
+        logger.debug(f'Slack pipeline failure alert sent with code: {response}')  # noqa: E501
+        return 1
 
 
 def extract_alert_data(data: dict):
@@ -91,10 +120,9 @@ def extract_alert_data(data: dict):
 
 def prepare_payload(data: dict, failure_ratio, refusal_ratio):
 
-    # InfluxDB has fairly tight type setting so, we have to
-    # re-parse data and reset the type otherwise if it's a float one
-    # time and then float the next, it would reject types that are
-    # different from the first
+    # InfluxDB has fairly tight type requirements, e.g., if the
+    # first value is a 1 and it implies INT,it will reject subsequent
+    # values that are floats.
 
     payload = {
 
@@ -113,6 +141,18 @@ def prepare_payload(data: dict, failure_ratio, refusal_ratio):
     return payload
 
 
+def send_uptime_kuma_heartbeat():
+
+    # TODO: check response to verify that response
+    # is proper, if not trigger alert
+    try:
+        requests.get(UPTIME_KUMA_WEBHOOK)
+
+    except Exception as e:
+        message = (f'Publishing of Uptime Kuma heartbeat for {DNS_ID} failed with error: {e}')  # noqa: E501
+        logger.info(message)
+        send_slack_webhook(DNS_ALERT_WEBHOOK, message)
+
 def main():
 
     # build url
@@ -122,17 +162,33 @@ def main():
 
         logger.info('Getting Technitium data')
         data, status = get_data(dashboard_url)
-        failure_ratio, refusal_ratio = extract_alert_data(data)
-        finished_payload = prepare_payload(data,
-                                           failure_ratio,
-                                           refusal_ratio)
-        logger.info('Writing data to InfluxDB')
-        write_data(base_payload,
-                   finished_payload,
-                   influx_client,
-                   BUCKET,
-                   data_message,
-                   DNS_ALERT_WEBHOOK)
+
+        if status != 'ok':
+            logger.info(f'Connection issue, status is: {status}, going to sleep for {SLEEP_DURATION} seconds')  # noqa: E501
+            sleep(SLEEP_DURATION)
+            continue
+
+        logger.info('Validating data payload')
+
+        code = validate_json_payload(data, 'data_reference.json')
+
+        if code == 0:
+            failure_ratio, refusal_ratio = extract_alert_data(data)
+            finished_payload = prepare_payload(data,
+                                               failure_ratio,
+                                               refusal_ratio)
+            
+            # send heartbeat to uptime Kuma
+            send_uptime_kuma_heartbeat()
+            
+            logger.info('Writing data to InfluxDB')
+
+            write_data(base_payload,
+                       finished_payload,
+                       influx_client,
+                       BUCKET,
+                       data_message,
+                       DNS_ALERT_WEBHOOK)
         sleep(SLEEP_DURATION)
 
 

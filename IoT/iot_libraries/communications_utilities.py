@@ -2,7 +2,7 @@
 # Productivity, Weather, Personal, et al dashboard:
 # https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
 # General communication utilities for IoT devices
-import os
+# import os
 import uuid
 import requests
 from paho.mqtt import client as mqtt
@@ -57,7 +57,7 @@ class IoTCommunications():
     # method for sending slack alerts
     @staticmethod
     def send_slack_alert(message: str, device_failure_channel, alert_endpoint):
-        
+
         payload = {
             "text": message,
             "slack_channel": device_failure_channel
@@ -97,3 +97,15 @@ class IoTCommunications():
             logger.debug(f'Publishing of alert to Slack webhook failed, with error code {code}')  # noqa: E501
 
         return response.status_code
+    
+
+    @staticmethod
+    def send_uptime_kuma_heartbeat(id, uptime_kuma_webhook):
+
+        # TODO: check response to verify that response
+        # is proper, if not trigger alert
+        try:
+            requests.get(uptime_kuma_webhook)
+
+        except Exception as e:
+            logger.info(f'Publishing of Uptime Kuma alert for {id} failed with error: {e}')  # noqa: E501

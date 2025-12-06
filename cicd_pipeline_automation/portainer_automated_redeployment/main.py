@@ -1,9 +1,11 @@
+# WORK IN PROGRESS
 # API, IoT Data Platform, (C) Markham Lee 2023 - 2025
 # https://github.com/MarkhamLee/internet-and-iot-data-platform
 # Automates the redeployment of Docker containers in response to
 # the Docker image being updated.
 import os
 import sys
+from time import sleep
 
 
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -38,15 +40,19 @@ CICD_SLACK_WEBHOOK = os.environ['CICD_ALERT_SLACK_WEBHOOK']
 
 def main():
 
-    image_age = get_docker_image_age(USERNAME,
-                                     DOCKER_PAT,
-                                     NAMESPACE,
-                                     REPOSITORY,
-                                     TAG,
-                                     ARCH_CODE)
+    while True:
 
-    if image_age > IMAGE_AGE_THRESHOLD:
-        logger.info(f'New stable image available that is {image_age} hours old')  # noqa: E501
+        image_age = get_docker_image_age(USERNAME,
+                                         DOCKER_PAT,
+                                         NAMESPACE,
+                                         REPOSITORY,
+                                         TAG,
+                                         ARCH_CODE)
+
+        if image_age > IMAGE_AGE_THRESHOLD:
+            logger.info(f'New stable image available that is {image_age} hours old')  # noqa: E501
+
+        sleep(120)
 
 
 if __name__ == '__main__':

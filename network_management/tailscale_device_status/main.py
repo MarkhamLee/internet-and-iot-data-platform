@@ -4,6 +4,7 @@
 # https://github.com/MarkhamLee/internet-and-iot-data-platform
 # Pulling connection status and latency for a tailscale node
 import os
+import requests
 import sys
 import pytz
 from datetime import datetime
@@ -16,7 +17,8 @@ sys.path.append(parent_dir)
 from network_monitoring_libraries.\
     logging_utils import console_logging  # noqa: E402
 from network_monitoring_libraries.\
-    general_utils import send_slack_webhook, create_influx_client, write_influx_data  # noqa: E402, E501
+    general_utils import send_slack_webhook, create_influx_client,\
+        write_influx_data, send_uptime_kuma_heartbeat  # noqa: E402, E501
 from tailscale_library.tailscale_data import TailscaleData  # noqa: E402
 
 tailscale_data_utils = TailscaleData()
@@ -25,12 +27,12 @@ logger = console_logging('Tailscale_monitoring_logger')
 
 
 DEVICE_ID = os.environ['DEVICE_ID']
-TAILSCALE_API_KEY = os.environ['MARKHAMSLAB_TAILSCALE_DEVICE_STATUS_KEY']
+TAILSCALE_API_KEY = os.environ['TAILSCALE_API_KEY']
 TAILSCALE_BASE_URL = 'https://api.tailscale.com/api/v2'
 TAILNET_NAME = os.environ['TAILNET_NAME']
 DATE_TIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 NETWORK_ALERT_WEBHOOK = os.environ['NETWORK_ALERT_WEBHOOK']
-NODE_NAME = 'prod-node0'
+NODE_NAME = os.environ['TAILSCALE_NODE_NAME']
 LOCAL_CITY = os.environ['LOCALE']
 BUCKET = os.environ['INFLUX_NETWORK_MONITORING_BUCKET']
 INFLUX_URL = os.environ['INFLUX_URL']
@@ -38,6 +40,7 @@ INFLUX_KEY = os.environ['INFLUX_KEY']
 INFLUX_ORG = os.environ['INFLUX_ORG']
 SLEEP_DURATION = os.environ['SLEEP_DURATION']
 MEASUREMENT = os.environ['MEASUREMENT_NAME']
+UPTIME_KUMA_WEBHOOK = os.environ['UPTIME_KUMA_HEARTBEAT']
 
 
 def calculate_online_status(device_data: dict) -> float:
@@ -91,7 +94,7 @@ def write_data(heartbeat, since_last_seen, latency, city):
         response = send_slack_webhook(NETWORK_ALERT_WEBHOOK, message)
         logger.debug(f'Slack pipeline failure alert sent with code: {response}')  # noqa: E501
         return response
-
+    
 
 def main():
 
@@ -111,13 +114,19 @@ def main():
 
         if last_seen > 120:
 
-            heart_beat = 0
+            # this "heart beat" is redundant with uptime kuma integration
+            heart_beat = 0  
 
             # convert to minutes since an offline device's last
             # seen time can stretch into 100s of seconds.
             last_seen = round(last_seen / 60, 2)
             message = (f'Exit node problem: {NODE_NAME} was last seen: {last_seen} ago')  # noqa: E501
             send_slack_webhook(NETWORK_ALERT_WEBHOOK, message)
+
+        if last_seen < 120:
+            # send Uptime Kuma heartbeat
+            send_uptime_kuma_heartbeat(UPTIME_KUMA_WEBHOOK,
+                                       NODE_NAME)
 
         logger.info('Recording latency data')
 

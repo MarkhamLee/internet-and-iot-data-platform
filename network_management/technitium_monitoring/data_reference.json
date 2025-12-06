@@ -1,0 +1,26 @@
+{
+    "type": "object",   
+    "properties": {
+        "totalQueries": {"type": "number"},
+        "totalNoError": {"type": "number"},
+        "totalServerFailure": {"type": "number"},
+        "totalNxDomain": {"type": "number"},
+        "totalRefused": {"type": "number"},
+        "totalAuthoritative": {"type": "number"},
+        "totalRecursive": {"type": "number"},
+        "totalCached": {"type": "number"},
+        "totalBlocked": {"type": "number"},
+        "totalDropped": {"type": "number"},
+        "totalClients": {"type": "number"},
+        "zones": {"type": "number"},
+        "cachedEntries": {"type": "number"},
+        "allowedZones": {"type": "number"},
+        "blockedZones": {"type": "number"},
+        "allowListZones": {"type": "number"},
+        "blockListZones": {"type": "number"}
+    },
+
+    "required": ["totalQueries", "totalNoError", "totalServerFailure", "totalBlocked",
+                 "totalCached", "totalDropped", "totalClients"]
+
+}
