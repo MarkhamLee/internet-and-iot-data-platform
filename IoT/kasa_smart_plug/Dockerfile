@@ -1,4 +1,4 @@
-FROM python:3.12.2-slim as builder
+FROM python:slim-bookworm AS builder
 
 WORKDIR /app
 
@@ -7,7 +7,7 @@ COPY ./kasa_smart_plug/requirements.txt .
 RUN pip wheel --no-cache-dir --no-deps --wheel-dir /app/wheels -r requirements.txt
 
 
-FROM python:3.12.2-slim
+FROM python:slim-bookworm
 
 COPY --from=builder /app/wheels /wheels
 COPY --from=builder /app/requirements.txt .
