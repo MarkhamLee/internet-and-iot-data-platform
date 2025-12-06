@@ -1,4 +1,4 @@
-FROM python:alpine as builder
+FROM python:slim-bookworm AS builder
 
 WORKDIR /app
 
@@ -8,14 +8,14 @@ RUN pip install --upgrade pip setuptools wheel
 
 COPY /yield_curve_library/requirements.txt .
 
-RUN pip install --upgrade pip setuptools wheel
-
 RUN pip wheel --no-cache-dir --no-deps --wheel-dir /app/wheels -r requirements.txt
 
 
 
 # Final Stage 
-FROM python:alpine
+FROM python:slim-bookworm
+
+RUN apt-get update -y && apt-get install -y libpq5
 
 COPY --from=builder /app/wheels /wheels
 COPY --from=builder /app/requirements.txt .
