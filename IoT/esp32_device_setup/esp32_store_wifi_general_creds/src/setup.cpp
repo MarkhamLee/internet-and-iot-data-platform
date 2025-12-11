@@ -30,7 +30,7 @@ need to tweak things for this to work with a different IDE.
 #define LED 2
 
 String device_id = "esp_dev_device10";
-
+String uptimeKumaUrl;
 
 PicoMQTT::Client mqtt("");
 
