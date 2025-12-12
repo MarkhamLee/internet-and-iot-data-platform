@@ -32,31 +32,60 @@ public:
   String mqttTopic;
   String uptimeKumaUrl;
 
+
+  void loadEnvVars() {
+
+    Preferences prefs;
+
+    prefs.begin("credentials", false);
+    prefs.clear(); 
+
+    const char* mqttUser = MQTT_USER;
+    const char* mqttSecret = MQTT_SECRET;
+    const char* mqttHost = MQTT_HOST;
+    const char* mqttTopic = MQTT_TOPIC;
+    
+    prefs.putString("mqttUser", mqttUser);
+    prefs.putString("mqttSecret", mqttSecret);
+    prefs.putString("mqttHost", mqttHost);
+    prefs.putString("mqttTopic", mqttTopic);
+
+    Serial.println("MQTT credentials saved");
+    Serial.println(mqttUser);
+
+    const char* deviceId = DEVICE_ID;
+    prefs.putString("deviceId", deviceId);
+    Serial.println("Device ID saved: ");
+    Serial.println(deviceId);
+
+    const char* uptimeKumaWebhook = UPTIME_KUMA_WEBHOOK;
+    prefs.putString("uptimeKumaWebhook", uptimeKumaWebhook);
+    Serial.println("Uptime Kuma data saved");
+
+    prefs.end();
+
+  }
+
   void loadFromPreferences() {
     Preferences preferences;
     preferences.begin("credentials", false);
 
-    deviceId       = preferences.getString("device_id", "");
-    mqttHost       = preferences.getString("mqtt_host", "");
-    mqttUser       = preferences.getString("mqtt_user", "");
-    mqttSecret     = preferences.getString("mqtt_secret", "");
-    mqttTopic      = preferences.getString("mqtt_topic",
-                                           "/embedded/esp32_dht22_node1");
-    uptimeKumaUrl  = preferences.getString("uptime_kuma_webhook", "");
+    deviceId = preferences.getString("deviceId", "");
+    mqttHost = preferences.getString("mqttHost", "");
+    mqttUser = preferences.getString("mqttUser", "");
+    mqttSecret = preferences.getString("mqttSecret", "");
+    mqttTopic  = preferences.getString("mqttTopic", "");
+    uptimeKumaUrl  = preferences.getString("uptimeKumaWebhook", "");
 
     preferences.end();
 
     Serial.println("Configuration loaded from Preferences");
     Serial.print("Device ID: ");
     Serial.println(deviceId);
-    Serial.print("MQTT host: ");
-    Serial.println(mqttHost);
     Serial.print("MQTT user: ");
     Serial.println(mqttUser);
     Serial.print("MQTT topic: ");
     Serial.println(mqttTopic);
-    Serial.print("Uptime Kuma URL: ");
-    Serial.println(uptimeKumaUrl);
   }
 };
 
@@ -89,46 +118,18 @@ void setup() {
     Serial.println(WiFi.localIP());
   }
 
-
-  // uncomment out the preferences class below if/when you need to add 
-  // new creds for MQTT, webhooks, etc. 
-
-  /*
-  Preferences prefs;
-
-  prefs.begin("credentials", false);
-
-  // Comment out after you've saved the creds. Note: you can apply
-  // the below to any vars you want to store on the device. Just be
-  // mindful of the limited space.
-    
-  const char* mqtt_user = MQTT_USER;
-  const char* mqtt_secret = MQTT_SECRET;
-  const char* mqtt_host = MQTT_HOST;
-
-  prefs.putString("mqtt_user", mqtt_user);
-  prefs.putString("mqtt_secret", mqtt_secret);
-  prefs.putString("mqtt_host", mqtt_host);
-
-  Serial.println("MQTT credentials saved");
-  Serial.println(mqtt_user);
-
-  const char* uptime_kuma_webhook = UPTIME_KUMA_WEBHOOK
-  prefs.putString("uptime_kuma_webhook", uptime_kuma_webhook);
-  Serial.println("Uptime Kuma data saved");
-
-  prefs.end();
-  */
-
+  // save environmental variables to local storage
+  // one the data is saved you can comment this out
+  // config.loadEnvVars();
 
   // Load all configuration data
   config.loadFromPreferences();
 
   // MQTT setup using config
-  mqtt.host      = config.mqttHost;
-  mqtt.port      = 1883;
-  mqtt.username  = config.mqttUser;
-  mqtt.password  = config.mqttSecret;
+  mqtt.host = config.mqttHost;
+  mqtt.port = 1883;
+  mqtt.username = config.mqttUser;
+  mqtt.password = config.mqttSecret;
   mqtt.client_id = config.deviceId;
   mqtt.begin();
 
@@ -140,6 +141,7 @@ void setup() {
 }
 
 void loop() {
+
   mqtt.loop();
 
   digitalWrite(LED, HIGH);
@@ -151,10 +153,14 @@ void loop() {
     Serial.println("Failed to read from DHT sensor!");
     // TODO: add MQTT alert / counter for failures
   } else {
+
     // Build JSON payload
     JsonDocument payload;
     payload["temperature"] = tempC;
     payload["humidity"]    = humi;
+
+    // measureJson(payload);
+    // serializeJsonPretty(payload, Serial);
 
     // Publish to MQTT using topic from config
     auto publish = mqtt.begin_publish(config.mqttTopic, measureJson(payload));
@@ -165,12 +171,15 @@ void loop() {
 
     // Send Uptime Kuma heartbeat if configured
     if (config.uptimeKumaUrl.length() > 0) {
+
+      // uncomment out for testing
+      // Serial.println("Verifying entered the Kuma loop");
       HTTPClient http;
       http.begin(config.uptimeKumaUrl);
       int httpResponseCode = http.GET();
-      // Optional: log httpResponseCode
       http.end();
     }
+
   }
 
   // sleep interval of five seconds

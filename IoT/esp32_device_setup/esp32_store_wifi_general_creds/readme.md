@@ -4,8 +4,8 @@ The purpose of this sketch is to make it really simple to provision an ESP32 dev
 
 1) You'll need to run this twice, once to load and save the data on your ESP32 and another to turn off the bits that request/save/erase past data so unplugging the device from your laptop or power doesn't put you back to square one.
 2) These instructions are based on using Platformio with VS Code, so while some of the same principles apply, you'll need to modify the specific steps to fit that IDE. 
-3) I nearly always run this sketch while the device is connected to one of my Linux (Ubuntu) boxes, so while the environmental varible bits should work with Windows as well, you may run into some issues. 
-4) When you connect to the ESP32 device while connected to a breakout board, connect directly to the device via USB as that connetion will provide power and data, while the breakout board USB ports only provide power. 
+3) I nearly always run this sketch while the device is connected to one of my Linux (Ubuntu) boxes, so while the environmental variable bits "should" work on Windows it's quite possible you may need to do some troubleshooting to get it work in a Windows environment. 
+4) When you connect to the ESP32 device while connected to a breakout board, connect directly to the device via USB as that connection will provide power and data, while the breakout board USB ports only provide power. 
 
 
 ### Key Steps 
