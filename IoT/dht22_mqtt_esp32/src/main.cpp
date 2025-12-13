@@ -12,6 +12,7 @@
 #include <ArduinoJson.h>
 #include <HTTPClient.h>
 #include <Preferences.h>
+#include "secrets.h"
 
 #define DHT_SENSOR_PIN 21
 #define DHT_SENSOR_TYPE DHT22
@@ -33,33 +34,26 @@ public:
   String uptimeKumaUrl;
 
 
-  void loadEnvVars() {
+  void saveVars() {
 
     Preferences prefs;
 
     prefs.begin("credentials", false);
     prefs.clear(); 
-
-    const char* mqttUser = MQTT_USER;
-    const char* mqttSecret = MQTT_SECRET;
-    const char* mqttHost = MQTT_HOST;
-    const char* mqttTopic = MQTT_TOPIC;
     
-    prefs.putString("mqttUser", mqttUser);
-    prefs.putString("mqttSecret", mqttSecret);
-    prefs.putString("mqttHost", mqttHost);
-    prefs.putString("mqttTopic", mqttTopic);
+    prefs.putString("mqttUser", MQTT_USER);
+    prefs.putString("mqttSecret", MQTT_SECRET);
+    prefs.putString("mqttHost", MQTT_HOST);
+    prefs.putString("mqttTopic", MQTT_TOPIC);
 
     Serial.println("MQTT credentials saved");
-    Serial.println(mqttUser);
+    // Serial.println(mqttUser);
 
-    const char* deviceId = DEVICE_ID;
-    prefs.putString("deviceId", deviceId);
+    prefs.putString("deviceId", DEVICE_ID);
     Serial.println("Device ID saved: ");
-    Serial.println(deviceId);
+    // Serial.println(deviceId);
 
-    const char* uptimeKumaWebhook = UPTIME_KUMA_WEBHOOK;
-    prefs.putString("uptimeKumaWebhook", uptimeKumaWebhook);
+    prefs.putString("uptimeKumaUrl", UPTIME_KUMA_WEBHOOK);
     Serial.println("Uptime Kuma data saved");
 
     prefs.end();
@@ -75,7 +69,7 @@ public:
     mqttUser = preferences.getString("mqttUser", "");
     mqttSecret = preferences.getString("mqttSecret", "");
     mqttTopic  = preferences.getString("mqttTopic", "");
-    uptimeKumaUrl  = preferences.getString("uptimeKumaWebhook", "");
+    uptimeKumaUrl  = preferences.getString("uptimeKumaUrl", "");
 
     preferences.end();
 
@@ -86,6 +80,7 @@ public:
     Serial.println(mqttUser);
     Serial.print("MQTT topic: ");
     Serial.println(mqttTopic);
+
   }
 };
 
@@ -120,7 +115,7 @@ void setup() {
 
   // save environmental variables to local storage
   // one the data is saved you can comment this out
-  // config.loadEnvVars();
+  // config.saveVars();
 
   // Load all configuration data
   config.loadFromPreferences();
@@ -169,19 +164,24 @@ void loop() {
 
     digitalWrite(LED, LOW);
 
+
     // Send Uptime Kuma heartbeat if configured
     if (config.uptimeKumaUrl.length() > 0) {
 
-      // uncomment out for testing
+      digitalWrite(LED, HIGH);
+
       // Serial.println("Verifying entered the Kuma loop");
       HTTPClient http;
       http.begin(config.uptimeKumaUrl);
       int httpResponseCode = http.GET();
       http.end();
+
+      digitalWrite(LED, LOW);
+
     }
 
   }
 
-  // sleep interval of five seconds
-  delay(5000);
+  // sleep interval of 15 seconds
+  delay(15000);
 }
