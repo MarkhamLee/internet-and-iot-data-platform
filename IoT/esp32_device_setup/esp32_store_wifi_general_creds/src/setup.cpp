@@ -1,10 +1,13 @@
 /*
 This is a provisioning sketch for ESP32 devices, I use it to load the
-device with Wi-Fi and MQTT credentials. The first time you run it, it
-will spin up a web page for you to enter the Wi-Fi creds  and
-then it will load the MQTT creds from your local environment. Finally, it
-will send some test data to your MQTT broker to validate that everything
-works. Once everything is up and running you need to comment out the bits
+device with Wi-Fi creds, MQTT config data and an Uptime Kuma heartbeat 
+webook for use in monitoring the device's status. The first time you run
+it, it will spin up a web page for you to enter the Wi-Fi creds and
+then it will load the MQTT creds from your local environment. Next, it
+will send some test data to your MQTT broker and a "heartbeat" to Uptime
+Kuma to make sure everything works.
+
+Once everything is up and running you need to comment out the bits
 around loading the Wi-Fi creds and then comment out the bit about pulling
 the env vars and then re-load it to the device, you're doing this so the
 next time you plug in the device it won't erase creds or look for env vars
@@ -26,15 +29,78 @@ need to tweak things for this to work with a different IDE.
 #include <ArduinoJson.h>
 #include <HTTPClient.h>
 #include <Preferences.h>  // this is a standard included library, don't add the one listed in packages
+#include "secrets.h"
 
 #define LED 2
 
-String device_id = "esp_dev_device10";
-String uptimeKumaUrl;
-
 PicoMQTT::Client mqtt("");
 
-String topic = "/embedded/esp32_setup_verify";
+
+// Holds all device configuration loaded from NVS
+class DeviceConfig {
+public:
+  String deviceId;
+  String mqttHost;
+  String mqttUser;
+  String mqttSecret;
+  String mqttTopic;
+  String uptimeKumaUrl;
+
+
+  void saveVars() {
+
+    Preferences prefs;
+
+    prefs.begin("credentials", false);
+    prefs.clear(); 
+    
+    prefs.putString("mqttUser", MQTT_USER);
+    prefs.putString("mqttSecret", MQTT_SECRET);
+    prefs.putString("mqttHost", MQTT_HOST);
+    prefs.putString("mqttTopic", MQTT_TOPIC);
+
+    Serial.println("MQTT credentials saved");
+    // Serial.println(mqttUser);
+
+    prefs.putString("deviceId", DEVICE_ID);
+    Serial.println("Device ID saved: ");
+    // Serial.println(deviceId);
+
+    prefs.putString("uptimeKumaUrl", UPTIME_KUMA_WEBHOOK);
+    Serial.println("Uptime Kuma data saved");
+
+    prefs.end();
+
+  }
+
+  void loadFromPreferences() {
+    Preferences preferences;
+    preferences.begin("credentials", false);
+
+    deviceId = preferences.getString("deviceId", "");
+    mqttHost = preferences.getString("mqttHost", "");
+    mqttUser = preferences.getString("mqttUser", "");
+    mqttSecret = preferences.getString("mqttSecret", "");
+    mqttTopic  = preferences.getString("mqttTopic", "");
+    uptimeKumaUrl  = preferences.getString("uptimeKumaUrl", "");
+
+    preferences.end();
+
+    Serial.println("Configuration loaded from Preferences");
+    Serial.print("Device ID: ");
+    Serial.println(deviceId);
+    Serial.print("MQTT user: ");
+    Serial.println(mqttUser);
+    Serial.print("MQTT topic: ");
+    Serial.println(mqttTopic);
+
+  }
+};
+
+DeviceConfig config;
+
+
+// I use this same setup method for all of my ESP32 sketches
 
 void setup() {  
 
@@ -82,72 +148,26 @@ void setup() {
     }
 
     digitalWrite(LED,LOW);
-    // end Wi-Fi Manager setup 
 
-    // MQTT creds - saving to device
-    // Use preferences + "getenv" to load environmental variables and save
-    // to the device. In this case, we're loading and saving MQTT creds. 
-    // Comment out after saving the data to the device, it won't be needed
-    // for subsequent code updates unless you change the creds.
+    // save environmental variables to local storage
+    // one the data is saved you can comment this out
+    // config.saveVars();
 
-    // Instantiate the preferences class
-
-    // The second time you run this, comment out everything between
-    // "Preferences prefs" and "prefs.end()", as there is no need
-    // to reload the env variables the second time as they're already
-    // stored on the device.
-    
-    /*
-    Preferences prefs;
-
-    prefs.begin("credentials", false);
-
-    // Comment out after you've saved the creds. Note: you can apply
-    // the below to any vars you want to store on the device. Just be
-    // mindful of the limited space.
-    
-    const char* mqtt_user = MQTT_USER;
-    const char* mqtt_secret = MQTT_SECRET;
-    const char* mqtt_host = MQTT_HOST;
-
-    prefs.putString("mqtt_user", mqtt_user);
-    prefs.putString("mqtt_secret", mqtt_secret);
-    prefs.putString("mqtt_host", mqtt_host);
-
-    Serial.println("MQTT credentials saved");
-    Serial.println(mqtt_user);
-
-    const char* uptime_kuma_webhook = UPTIME_KUMA_WEBHOOK
-    prefs.putString("uptime_kuma_webhook", uptime_kuma_webhook);
-    Serial.println("Uptime Kuma data saved");
-
-    prefs.end();
-    */
+    // Load all configuration data
+    config.loadFromPreferences();
 
     // load MQTT creds and setup the MQTT client
-    Preferences preferences;
+    config.loadFromPreferences();
 
-    preferences.begin("credentials", false);
-
-    preferences.putString("DEVICE_ID", device_id);
-
-    // get MQTT creds
-    String host = preferences.getString("mqtt_host", "");
-    String user = preferences.getString("mqtt_user", "");
-    String secret = preferences.getString("mqtt_secret", "");
-
-    // MQTT setup
-    mqtt.host=host;
-    mqtt.port=1883;
-    mqtt.username=user;
-    mqtt.password=secret;
-    mqtt.client_id = device_id;
+    // MQTT setup using config
+    mqtt.host = config.mqttHost;
+    mqtt.port = 1883;
+    mqtt.username = config.mqttUser;
+    mqtt.password = config.mqttSecret;
+    mqtt.client_id = config.deviceId;
     mqtt.begin();
 
-    // Get URL for uptime Kuma heartbeat
-    String uptime_kuma_url = preferences.getString("uptime_kuma_webhook", "");
-
-    // setup for external devices conn ected to the ESP32, e.g., climate sensors
+    // setup for external devices connected to the ESP32, e.g., climate sensors
 
 }
 
@@ -168,18 +188,20 @@ void loop() {
   //Add data to the JSON document
   //Test data to make sure Wi-Fi and MQTT are working  
   
-  payload["device_id"] = device_id;
+  payload["device_id"] = config.deviceId;
   payload["key1"] = 1;
   payload["key2"] = 2;
   payload["key3"] = 3;
 
   // send MQTT message
   Serial.println("Sending MQTT message: ");
-  auto publish = mqtt.begin_publish(topic, measureJson(payload));
+  auto publish = mqtt.begin_publish(config.mqttTopic, measureJson(payload));
   serializeJson(payload, publish);
   publish.send();
 
   digitalWrite(LED,LOW); // if you don't see blue led flashing for activity, something is wrong.
+
+  digitalWrite(LED,HIGH); 
 
   // output payload in json format for monitoring and testing, can be commented out
   serializeJsonPretty(payload, Serial);
@@ -187,15 +209,17 @@ void loop() {
 
   // send Uptime Kuma Heartbeat 
   HTTPClient http;
-  http.begin(uptime_kuma_url);
+  http.begin(config.uptimeKumaUrl);
   int httpResponseCode = http.GET();
 
   Serial.print("HTTP Response code: ");
   Serial.println(httpResponseCode);
   http.end();
 
+  digitalWrite(LED,LOW);
 
-  // sleep interval of five seconds
-  delay(5000);
+
+  // sleep interval of two seconds
+  delay(2000);
  
 }

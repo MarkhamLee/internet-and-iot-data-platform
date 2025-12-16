@@ -10,6 +10,10 @@ The purpose of this sketch is to make it really simple to provision an ESP32 dev
 
 ### Key Steps 
 
+There are two different approaches for storing environmental variables:
+
+#### Variables in your local environment
+
 1) Add the environmental variables you want to store on the ESP32 to your local environment. 
 2) Add the variable names to the platformio.ini file as per the below, notice the "-D" you need to put in front of the environmental varible name, with no spaces, it's similar to using "$VAR_NAME" in Linux.
 
@@ -20,30 +24,36 @@ build_flags =
 	-DMQTT_HOST=\"${sysenv.MQTT_HOST}\"
 ~~~
 
-3. When you open the folder in Platformio using the same platformio.ini file as I have this in tihs repo, it will automatically populate the libraries/dependencies for you.
-4. Once you have things ready to go, upload the code to the device, it will compile the code and then upload the binary to your device. 
+#### Variables in a "Secrets.h" file **Recommended**
 
-5. Once the upload is finished click the monitoring icon at the bottom of the screen so you can keep an eye on your progress.
+Put the variables in a "secrets.h" file (.gitignore is already setup to ignore it), if you're using Webhooks or the Uptime Kuma capabilities you'll have to go this route as Platformio and webhooks with special characters don't play nicely. 
 
-6. Firing up the device will cause it to spin up a local Wi-Fi network, which whose SSID name will be the same first parameter in the block of code  below followed by the password, which is the 2nd parameter.
+
+#### Opening and Managing the project
+
+1. When you open the folder in Platformio using the same platformio.ini file as I have this in this repo, it will automatically populate the libraries/dependencies for you.
+2. Once you have things ready to go, upload the code to the device, it will compile the code and then upload the binary to your device. 
+
+3. Once the upload is finished click the monitoring icon at the bottom of the screen so you can keep an eye on your progress.
+
+4. Firing up the device will cause it to spin up a local Wi-Fi network, which whose SSID name will be the same first parameter in the block of code  below followed by the password, which is the 2nd parameter.
 
 ~~~
     bool res;
     res = wm.autoConnect("esp_setup1", "password");
 ~~~
 
-7. When you connect to it, you'll enter the password (in this case, it's "password") and then Wi-Fi capture will take you to a screen like the below: 
+5. When you connect to it, you'll enter the password (in this case, it's "password") and then Wi-Fi capture will take you to a screen like the below: 
 
 ![Dashboard Thumbnail](images/wifi_manager.png)  
 
 
+6.  Click "Configure WiFi" and you should see a list of available networks, if you don't just click back and try again. 
 
-8.  Click "Configure WiFi" and you should see a list of available networks, if you don't just click back and try again. 
-
-9. Clicking the name of an SSID will populate it into the box below, just enter in your creds and connect. 
+7. Clicking the name of an SSID will populate it into the box below, just enter in your creds and connect. 
 
 ![Dashboard Thumbnail](images/enter-ssid-creds.png)  
 
-10. After the above the device will load and save the MQTT creds, connect to the broker and send the test payload every 5 seconds. 
+8. After the above the device will load and save the MQTT creds, connect to the broker and send the test payload every 5 seconds. 
 
-11. Comment out the relevant parts and re-load the sketch, once you've verified that the payloads are coming through I would connect the device to a non computer power source and verify that the data still comes through. 
+9. Comment out the relevant parts and re-load the sketch, once you've verified that the payloads are coming through I would connect the device to a non computer power source and verify that the data still comes through. 

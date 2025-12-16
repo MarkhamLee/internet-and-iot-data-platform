@@ -8,6 +8,8 @@
 ; Please visit documentation for the other options and examples
 ; https://docs.platformio.org/page/projectconf.html
 
+; This is a sample of the platformio.ini file with the build flags included
+
 [env:esp32dev]
 platform = espressif32
 board = esp32dev
@@ -19,3 +21,8 @@ lib_deps =
 	knolleary/PubSubClient@^2.8
 	mlesniew/PicoMQTT@^0.3.8
 	bblanchon/ArduinoJson@^7.0.4
+
+build_flags =
+	-DMQTT_USER=\"${sysenv.MQTT_USER}\"
+	-DMQTT_SECRET=\"${sysenv.MQTT_SECRET}\"
+	-DMQTT_HOST=\"${sysenv.MQTT_HOST}\"
