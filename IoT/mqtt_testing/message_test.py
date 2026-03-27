@@ -14,7 +14,7 @@ com_utilities = IoTCommunications()
 
 # Load connection variables
 TOPIC = '/test/topic'
-MQTT_BROKER = os.environ['MQTT_BROKER']
+MQTT_BROKER = os.environ['MQTT_HOST']
 MQTT_USER = os.environ['MQTT_USER']
 MQTT_SECRET = os.environ['MQTT_SECRET']
 MQTT_PORT = int(os.environ['MQTT_PORT'])
