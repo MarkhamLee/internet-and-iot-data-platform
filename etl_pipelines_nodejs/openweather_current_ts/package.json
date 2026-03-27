@@ -22,7 +22,7 @@
     "@typescript-eslint/parser": "^8.57.2",
     "axios": "^1.11.0",
     "esbuild": "^0.25.0",
-     "eslint": "^9.7.0",
+    "eslint": "^8.57.0",
     "eslint-plugin-react": "^7.22.0",
     "jest": "^30.3.0",
     "ts-jest": "^29.1.2",
