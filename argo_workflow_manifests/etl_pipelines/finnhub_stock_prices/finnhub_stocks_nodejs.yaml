@@ -20,7 +20,7 @@ spec:
     templates:
       - name: load-stock-data
         node_selector:
-          node_type: etl_node_arm64
+          k3s_role: x86_worker
         container:
           image: markhamlee/finnhub_stockprice_nodejs:latest
           command: ["node"]
