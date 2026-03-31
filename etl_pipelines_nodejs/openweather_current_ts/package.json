@@ -20,10 +20,10 @@
     "@types/node": "^18.19.1",
     "@typescript-eslint/eslint-plugin": "^8.57.2",
     "@typescript-eslint/parser": "^8.57.2",
-    "axios": "^1.11.0",
+    "axios": "1.11.0",
     "esbuild": "^0.25.0",
     "eslint": "^8.57.0",
-    "eslint-plugin-react": "^7.22.0",
+    "eslint-plugin-react": "^7.32.0",
     "jest": "^30.3.0",
     "ts-jest": "^29.1.2",
     "typescript": "^5.3.3"
