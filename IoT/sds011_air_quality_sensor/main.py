@@ -4,7 +4,6 @@
 # This script retrieves air quality data from a Nova PM SDS011 Air Quality
 # sensor connected via USB and then sends the data off to an MQTT broker
 import json
-import gc
 import os
 import sys
 from time import sleep
@@ -45,10 +44,10 @@ def air(client: object, quality: object, topic: str, interval: int) -> str:
         # checking for errors, actual air data is returned as a tuple
         # while read errors return an integer
         if not isinstance(air_data, tuple):
-            logger.info(f'Sensor read error, going to sleep for {ERROR_SLEEP_DURATION} minutes')
+            logger.info(f'Sensor read error, going to sleep for {ERROR_SLEEP_DURATION} minutes')  # noqa: E501
             sleep(ERROR_SLEEP_DURATION)
             continue
-        
+
         payload = process_air_quality_data(air_data)
 
         logger.info(f'Sending payload {payload}')
@@ -64,7 +63,7 @@ def process_air_quality_data(data):
     if pm2 > PM2_THRESHOLD or pm10 > PM10_THRESHOLD:
         send_threshold_alert(pm2, pm10)
 
-    # prepare payload 
+    # prepare payload
     payload = {
         "pm2": pm2,
         "pm10": pm10
@@ -84,12 +83,12 @@ def send_threshold_alert(pm2, pm10):
 
 def send_data(payload: dict, topic, client):
 
-    try: 
+    try:
         result = client.publish(topic, payload)
         status = result[0]
 
     except Exception as e:
-        message = (f'{DEVICE_ID} Failed to connect to MQTT broker with error: {e}')
+        message = (f'{DEVICE_ID} Failed to connect to MQTT broker with error: {e}')  # noqa: E501
         logger.info(message)
         com_utilities.send_slack_webhook(IOT_PIPELINE_ALERTS, message)
 
@@ -100,9 +99,11 @@ def send_data(payload: dict, topic, client):
         message = (f'Air quality MQTT publish failure for {DEVICE_ID} to topic: {topic}, with status code: {status}')  # noqa: E501
         logger.debug(message)  # noqa: E501
         com_utilities.send_slack_webhook(IOT_PIPELINE_ALERTS, message)
-        
-         # for simplicity just use the same duration for sensor and MQTT broker errors
-        sleep(ERROR_SLEEP_DURATION)  
+
+        # for simplicity just use the same duration for sensor and
+        # MQTT broker errors
+        sleep(ERROR_SLEEP_DURATION)
+
 
 def main():
 

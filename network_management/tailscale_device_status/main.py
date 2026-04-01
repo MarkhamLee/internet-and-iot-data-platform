@@ -4,7 +4,7 @@
 # https://github.com/MarkhamLee/internet-and-iot-data-platform
 # Pulling connection status and latency for a tailscale node
 import os
-import requests
+# import requests
 import sys
 import pytz
 from datetime import datetime
@@ -17,8 +17,8 @@ sys.path.append(parent_dir)
 from network_monitoring_libraries.\
     logging_utils import console_logging  # noqa: E402
 from network_monitoring_libraries.\
-    general_utils import send_slack_webhook, create_influx_client,\
-        write_influx_data, send_uptime_kuma_heartbeat  # noqa: E402, E501
+    general_utils import send_slack_webhook, create_influx_client, \
+    write_influx_data, send_uptime_kuma_heartbeat  # noqa: E402, E501
 from tailscale_library.tailscale_data import TailscaleData  # noqa: E402
 
 tailscale_data_utils = TailscaleData()
@@ -94,7 +94,7 @@ def write_data(heartbeat, since_last_seen, latency, city):
         response = send_slack_webhook(NETWORK_ALERT_WEBHOOK, message)
         logger.debug(f'Slack pipeline failure alert sent with code: {response}')  # noqa: E501
         return response
-    
+
 
 def main():
 
@@ -115,7 +115,7 @@ def main():
         if last_seen > 120:
 
             # this "heart beat" is redundant with uptime kuma integration
-            heart_beat = 0  
+            heart_beat = 0
 
             # convert to minutes since an offline device's last
             # seen time can stretch into 100s of seconds.

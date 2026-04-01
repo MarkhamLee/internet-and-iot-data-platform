@@ -64,7 +64,7 @@ def ups_monitoring(CMD: str, TOPIC: str, client: object):
         try:
             # query the UPS via bash to acquire data
             data = sp.check_output(CMD, shell=True)
-            
+
             # successfully pinged the device, send heartbeat
             send_uptime_kuma_heartbeat()
 
