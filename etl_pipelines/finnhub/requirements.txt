@@ -2,4 +2,4 @@ jsonschema
 influxdb-client
 finnhub-python
 slack_sdk
-requests
+requests==2.33.0

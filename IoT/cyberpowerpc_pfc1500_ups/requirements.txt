@@ -2,5 +2,5 @@ paho-mqtt==2.1.0
 entrypoints
 executing
 uuid
-clr==1.0.3
-requests==2.32.4
+clr==1.0..
+requests==2.33.0

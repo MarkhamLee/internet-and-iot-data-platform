@@ -1,5 +1,5 @@
 python-kasa==0.10.2
 asyncio==3.4.3
 influxdb-client==1.49.0
-requests==2.32.4
+requests==2.33.0
 paho-mqtt==2.1.0

@@ -3,7 +3,7 @@ lxml
 python-dateutil 
 pyzmq
 reactivex==4.0.4
-requests
+requests==2.33.0
 soupsieve 
 stack-data 
 urllib3==2.6.0

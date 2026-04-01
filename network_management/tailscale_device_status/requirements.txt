@@ -1,4 +1,4 @@
-requests==2.32.4
+requests==2.33.0
 pytz==2025.2
 influxdb-client==1.49.0
 jsonschema==4.25.0

@@ -4,6 +4,6 @@ joblib
 numpy
 pandas
 pillow
-requests
+requests==2.33.0
 Werkzeug
 slack_sdk
