@@ -18,6 +18,7 @@
 #define DHT_SENSOR_TYPE DHT22
 #define LED 2
 
+
 DHT dht_sensor(DHT_SENSOR_PIN, DHT_SENSOR_TYPE);
 
 // MQTT client (host, creds, etc. set in setup)
