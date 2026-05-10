@@ -1,16 +1,13 @@
-# Markham Lee (C) 2023 - 2024
-# productivity-music-stocks-weather-IoT-dashboard
-# https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
+# Markham Lee (C) 2023 - 2026
+# Internet and IoT Data Platform
+# https://github.com/MarkhamLee/internet-and-iot-data-platform
 # general utilities to aid ETL pipelines
-
+# TODO: modify this so that the Alert Webhook is passed from the
+# importing script, not imported locally.
 import requests
 import os
 from jsonschema import validate
 from etl_library.logging_util import logger  # noqa: E402
-
-# load Slack Webhook URL for sending pipeline failure alerts
-WEBHOOK_URL = os.environ['ALERT_WEBHOOK']
-
 
 class EtlUtilities():
 
@@ -21,7 +18,9 @@ class EtlUtilities():
     # validates a given json vs previously defined schema - i.e., verify that
     # the data is in the desired format.
     @staticmethod
-    def validate_json(data: dict, schema: dict) -> int:
+    def validate_json(data: dict,
+                      schema: dict,
+                      failure_webhook) -> int:
 
         # validate the data
         try:
@@ -31,7 +30,7 @@ class EtlUtilities():
         except Exception as e:
             message = (f'Data validation failed for the pipeline for openweather current, with error: {e}')  # noqa: E501
             logger.debug(message)
-            response = EtlUtilities.send_slack_webhook(WEBHOOK_URL, message)
+            response = EtlUtilities.send_slack_webhook(failure_webhook, message)
             logger.debug(f'Slack pipeline failure alert sent with code: {response}')  # noqa: E501
             return 1, response
 
