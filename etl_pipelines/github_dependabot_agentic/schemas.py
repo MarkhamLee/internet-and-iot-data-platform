@@ -41,3 +41,7 @@ class ReviewResult(BaseModel):
 
 class ReviewResponse(BaseModel):
     results: List[ReviewResult] = Field(default_factory=list)
+
+
+class SimpleQuestionResponse(BaseModel):
+    answer: str
