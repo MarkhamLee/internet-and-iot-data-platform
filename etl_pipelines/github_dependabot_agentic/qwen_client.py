@@ -1,3 +1,9 @@
+# (C) Markham Lee 2023 - 2026
+# https://github.com/MarkhamLee/internet-and-iot-data-platform
+# client for sending prompts/requests to a Qwen model hosted on
+# Ollama. Inputs are the URL of the Ollama instance, model name,
+# approved model list, prompt parameters, and the response model
+# that you'll need to select from the schemas file.
 import json
 import requests
 from pydantic import BaseModel, ValidationError
