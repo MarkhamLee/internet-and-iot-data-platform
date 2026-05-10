@@ -9,11 +9,11 @@ import json
 import os
 import requests
 import sys
+from logging_util import console_logging
 
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(parent_dir)
 
-from etl_library.logging_util import logger  # noqa: E402
 from etl_library.general_utilities import EtlUtilities  # noqa: E402
 from github_library.github_agent_utilities import GitHubUtilities  # noqa: E402
 
@@ -44,6 +44,8 @@ OLLAMA_URL = 'https://ollama.local.markhamslab.com'
 MODEL_URL = (f"{OLLAMA_URL}/api/tags")
 TIMEOUT = (3, 10)  # connect, read
 APPROVED_MODELS = {"qwen3.5:9b", "llama3.2:3b"}
+
+logger = console_logging(PIPELINE_NAME)
 
 
 def fetch_models_response():
@@ -128,24 +130,28 @@ def normalize_alert(alert: dict) -> dict:
         }
 
 
-def prepare_llm_payload(data):
-
-    alert_count = len(data)
-
-    payload = {
-        "source": "github_dependabot",
-        "pipeline_name": PIPELINE_NAME,
-        "repository": REPO_NAME,
-        "filters": {
-            "state": "open"
-        },
-        "alert_count": alert_count,
-        "alerts": data,
-    }
-
-    logger.info(f"{alert_count} open Dependabot alerts retrieved for {REPO_NAME}")
+def prepare_llm_payload(alerts):
     
-    return payload
+    return {
+        "task": "review_dependabot_alerts",
+        "repository": REPO_NAME,
+        "instructions": {
+            "goal": (
+                "Review each open Dependabot alert and assess practical remediation "
+                "priority, likely impact, and recommended next action."
+            ),
+            "output_format": "json",
+            "per_alert_fields": [
+                "alert_number",
+                "priority",
+                "risk_summary",
+                "recommended_action",
+                "reasoning",
+                "confidence"
+            ]
+        },
+        "alerts": alerts
+    }
 
 
 def main():

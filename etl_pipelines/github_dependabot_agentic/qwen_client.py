@@ -34,7 +34,7 @@ class QwenClient:
 
         request_body = {
             "model": self.model,
-            "prompt": f"{prompt}\n\nPayload:\n{json.dumps(payload, indent=2)}",
+            "prompt": (f'{prompt}\n\nPayload:\n{json.dumps(payload, indent=2)}'),
             "stream": False,
             "format": response_model.model_json_schema(),
             "options": {
@@ -52,20 +52,15 @@ class QwenClient:
             )
             response.raise_for_status()
         except RequestException as exc:
-            raise RuntimeError(f"Qwen request failed for model {self.model}: {exc}") from exc
+            raise RuntimeError(f'Qwen request failed for model {self.model}: {exc}') from exc
 
         try:
             data = response.json()
         except ValueError as exc:
-            raise RuntimeError(
-                f"Ollama returned invalid JSON. status={response.status_code}, "
-                f"body={response.text[:500]}"
-            ) from exc
+            raise RuntimeError(f"'Ollama returned invalid JSON. status={response.status_code}, body={response.text[:500]}") from exc
 
         if "response" not in data:
-            raise RuntimeError(
-                f"Ollama response missing 'response' field: {json.dumps(data)[:500]}"
-            )
+            raise RuntimeError(f"Ollama response missing 'response' field: {json.dumps(data)[:500]}")
 
         try:
             validated = response_model.model_validate_json(data["response"])
