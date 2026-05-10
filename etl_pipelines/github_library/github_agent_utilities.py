@@ -1,5 +1,5 @@
 # (C) Markham Lee 2023 - 2024
-# https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
+# https://github.com/MarkhamLee/internet-and-iot-data-platform
 # General utilities for pulling data from the GitHub API
 
 import os
@@ -26,8 +26,10 @@ class GitHubUtilities():
     # generic data retrieval method - once the URL is created/you have
     # the right endpoint, the data retrieval process is always the same.
     def get_github_data(self, token: str,
-                        full_url: str, pipeline_name: str,
-                        repo_name: str) -> dict:
+                        full_url: str,
+                        pipeline_name: str,
+                        repo_name: str,
+                        PIPELINE_FAILURE_WEBHOOK) -> dict:
 
         headers = {
             "Authorization": f"Bearer {token}",
@@ -45,7 +47,7 @@ class GitHubUtilities():
             logger.debug(message)
 
             WEBHOOK_URL = os.environ['ALERT_WEBHOOK']
-            response = self.etl_utilities.send_slack_webhook(WEBHOOK_URL,
+            response = self.etl_utilities.send_slack_webhook(PIPELINE_FAILURE_WEBHOOK,
                                                              message)
             logger.debug(f'Slack pipeline failure alert sent with code: {response}')  # noqa: E501
             sys.exit()

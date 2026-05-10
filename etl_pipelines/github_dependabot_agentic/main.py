@@ -1,5 +1,5 @@
-# (C) Markham Lee 2023 - 2024
-# https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
+# (C) Markham Lee 2023 - 2026
+# https://github.com/MarkhamLee/internet-and-iot-data-platform
 # Connects to the GitHub API to retrieve dependabot alerts on security
 # vulnerabilities, counts the alerts with a status other than "fixed" and
 # then writes that data to InfluxDB. In instances when there are unresolved
@@ -24,7 +24,7 @@ etl_utilities = EtlUtilities()
 github_utilities = GitHubUtilities()
 
 # load Slack Webhook URL variable for sending pipeline failure alerts
-WEBHOOK_URL = os.environ['PIPELINE_FAILURE_WEBHOOK']
+PIPELINE_FAILURE_WEBHOOK = os.environ['PIPELINE_FAILURE_WEBHOOK']
 
 # load Slack Webhook for sending dependabot alerts
 DEPENDABOT_SLACK_WEBHOOK = os.environ['DEPENDABOT_SLACK_WEBHOOK']
@@ -88,17 +88,64 @@ def build_url(endpoint: str):
 
 def get_dependabot_data(full_url: str, token: str) -> dict:
 
-    github_utilities = GitHubUtilities()
-
     data = github_utilities.get_github_data(token,
                                             full_url,
                                             PIPELINE_NAME,
-                                            REPO_NAME)
+                                            REPO_NAME,
+                                            PIPELINE_FAILURE_WEBHOOK)
     return data
 
 
+def normalize_alert(alert: dict) -> dict:
+    
+    advisory = alert.get("security_advisory", {}) or {}
+    vuln = alert.get("security_vulnerability", {}) or {}
+    pkg = vuln.get("package", {}) or {}
+    first_patched = vuln.get("first_patched_version", {}) or {}
+    dependency = alert.get("dependency", {}) or {}
+    manifest = alert.get("manifest") or dependency.get("manifest_path")
+
+    return {
+        "alert_number": alert.get("number"),
+        "state": alert.get("state"),
+        "dependency": {
+            "package_name": pkg.get("name"),
+            "ecosystem": pkg.get("ecosystem"),
+            "manifest_path": manifest,
+            "scope": dependency.get("scope"),
+            "relationship": dependency.get("relationship"),
+            },
+            "severity": advisory.get("severity"),
+            "summary": advisory.get("summary"),
+            "description": advisory.get("description"),
+            "cve_id": advisory.get("cve_id"),
+            "ghsa_id": advisory.get("ghsa_id"),
+            "vulnerable_version_range": vuln.get("vulnerable_version_range"),
+            "first_patched_version": first_patched.get("identifier"),
+            "created_at": alert.get("created_at"),
+            "updated_at": alert.get("updated_at"),
+            "html_url": alert.get("html_url"),
+        }
 
 
+def prepare_llm_payload(data):
+
+    alert_count = len(data)
+
+    payload = {
+        "source": "github_dependabot",
+        "pipeline_name": PIPELINE_NAME,
+        "repository": REPO_NAME,
+        "filters": {
+            "state": "open"
+        },
+        "alert_count": alert_count,
+        "alerts": data,
+    }
+
+    logger.info(f"{alert_count} open Dependabot alerts retrieved for {REPO_NAME}")
+    
+    return payload
 
 
 def main():
@@ -114,14 +161,44 @@ def main():
         logger.debug(exc, file=sys.stderr)
         sys.exit(1)
 
-
     # build URL
     full_url = build_url(ALERTS_ENDPOINT)
 
     # get GitHub dependabot alerts data
-    data = get_dependabot_data(full_url, GITHUB_TOKEN)
+    data = github_utilities.get_github_data(GITHUB_TOKEN,
+                                            full_url,
+                                            PIPELINE_NAME,
+                                            REPO_NAME,
+                                            PIPELINE_FAILURE_WEBHOOK)
 
+    alert_count = len(data)
+
+    if alert_count == 0:
+        logger.info('No security alerts, exiting')
+        sys.exit()
     
+    logger.info(f'{alert_count} dependabot alerts identified')
+    # get normalized dependabot data 
+    
+    logger.info('Normalizing dependabot data')
+    normalized_alerts = [normalize_alert(alert) for alert in data]
+
+    logger.info('Preparing LLM payload')
+    payload = prepare_llm_payload(normalized_alerts)
+
+    # retrieve research state, i.e., which of these have been
+    # researched and if so, how long has it been since they were last
+    # research 
+
+    # decision gate send reminder slack or research 
+
+
+    # IF researching, send payload to Qwen 
+    # add call to Quen 
+
+    # Receive data back, update Postgres
+    # Send detailed Slack Report  
+
 
 
 
