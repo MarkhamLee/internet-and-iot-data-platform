@@ -1,8 +1,9 @@
 # (C) Markham Lee 2023 - 2026
 # https://github.com/MarkhamLee/internet-and-iot-data-platform
 # defining schemas to better manage data quality
-
-from typing import List, Literal, Optional
+from datetime import datetime
+from langgraph.graph.message import add_messages
+from typing import List, Literal, Optional, Annotated, TypedDict
 from pydantic import BaseModel, Field
 
 
@@ -45,3 +46,29 @@ class ReviewResponse(BaseModel):
 
 class SimpleQuestionResponse(BaseModel):
     answer: str
+
+
+class DependabotRiskAssessment(BaseModel):
+    package: str
+    ecosystem: str
+    current_version: str
+    suggested_version: str
+    severity: Literal["critical", "high", "medium", "low"]
+    cve_summary: str
+    breaking_change_risk: Literal["low", "medium", "high"]
+    breaking_change_rationale: str
+    usage_in_codebase: str
+    recommendation: Literal["apply_immediately", "apply_with_testing", "defer", "skip"]
+    suggested_pr_description: str
+
+class AlertAgentState(TypedDict):
+    messages: Annotated[list, add_messages]
+    alert_id: str
+    repo: str
+    alert_data: dict                          # raw GitHub API response
+    code_context: str                         # relevant code from repo
+    registry_data: dict                       # PyPI/npm research results
+    assessment: DependabotRiskAssessment | None
+    last_researched_at: datetime | None
+    slack_message_ts: str | None
+    skip_research: bool
