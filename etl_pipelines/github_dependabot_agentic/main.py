@@ -96,6 +96,10 @@ def main():
     if len(alert_data) < 1:
         logger.info('No dependabot alerts available')
         sys.exit(1)
+
+    logger.info('Writing dependabot data to Postgres')
+    
+
     
     llm_payload = prepare_llm_payload(alert_data)
 
