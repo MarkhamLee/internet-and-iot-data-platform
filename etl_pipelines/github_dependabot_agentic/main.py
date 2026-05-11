@@ -9,7 +9,7 @@ import requests
 import sys
 from logging_util import console_logging
 from github_client import GitHubClient
-from qwen_client import QwenClient
+from ai_agents.dependabot_agent.qwen_client import QwenClient
 
 
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -100,7 +100,6 @@ def main():
     logger.info('Writing dependabot data to Postgres')
     
 
-    
     llm_payload = prepare_llm_payload(alert_data)
 
 
