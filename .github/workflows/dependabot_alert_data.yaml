@@ -1,4 +1,4 @@
-name: yield_curve_raw_data_image_build
+name: dependabot_alert_data
 
 on:
   push:
