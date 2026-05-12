@@ -5,8 +5,10 @@ from langchain_core.messages import HumanMessage
 
 app = FastAPI()
 
+
 class RunRequest(BaseModel):
     input: str
+
 
 @app.post("/run")
 async def run_agent(req: RunRequest):
@@ -14,6 +16,7 @@ async def run_agent(req: RunRequest):
         {"messages": [HumanMessage(content=req.input)]}
     )
     return {"output": result["messages"][-1].content}
+
 
 @app.get("/health")
 def health():
