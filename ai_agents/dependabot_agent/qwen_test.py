@@ -1,4 +1,3 @@
-import sys
 from qwen_client import QwenClient
 from schemas import SimpleQuestionResponse
 
