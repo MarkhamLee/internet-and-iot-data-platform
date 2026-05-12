@@ -58,8 +58,12 @@ class DependabotRiskAssessment(BaseModel):
     breaking_change_risk: Literal["low", "medium", "high"]
     breaking_change_rationale: str
     usage_in_codebase: str
-    recommendation: Literal["apply_immediately", "apply_with_testing", "defer", "skip"]
+    recommendation: Literal["apply_immediately",
+                            "apply_with_testing",
+                            "defer",
+                            "skip"]
     suggested_pr_description: str
+
 
 class AlertAgentState(TypedDict):
     messages: Annotated[list, add_messages]
