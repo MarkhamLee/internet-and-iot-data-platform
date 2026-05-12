@@ -1,7 +1,7 @@
 # (C) Markham Lee 2023 - 2026
 # https://github.com/MarkhamLee/internet-and-iot-data-platform
 # Postgres client for synching and upserting of GitHub dependabot
-# data
+# back-end data for the dependabot research agent.
 import psycopg
 from datetime import datetime, timezone
 from psycopg import DatabaseError
