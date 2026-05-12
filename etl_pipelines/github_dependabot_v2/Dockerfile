@@ -6,7 +6,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-COPY requirements.txt .
+COPY github_dependabot_v2/requirements.txt .
 
 RUN pip install --upgrade pip && \
     pip wheel --no-cache-dir --no-deps --wheel-dir /app/wheels -r requirements.txt
@@ -21,15 +21,16 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 WORKDIR /etl
 
 COPY --from=builder /app/wheels /wheels
-COPY --from=builder /app/requirements.txt /etl/requirements.txt
+COPY --from=builder /app/requirements.txt .
 
 RUN pip install --no-cache-dir /wheels/* && \
     rm -rf /wheels && \
     useradd --create-home --uid 10001 appuser
 
-COPY ./etl_library /etl/etl_library
-COPY ./github_dependabot_v2 /etl
+COPY ./etl_library ./etl_library
 
-USER appuser
+WORKDIR /etl
 
-CMD ["python", "/etl/main.py"]
+COPY ./github_dependabot_v2 ./
+
+ENTRYPOINT ["python", "/etl/main.py"]
