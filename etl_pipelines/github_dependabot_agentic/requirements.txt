@@ -1,7 +1,0 @@
-requests
-typing
-pydantic
-langchain
-langchain_ollama
-langchain_core
-langgraph
