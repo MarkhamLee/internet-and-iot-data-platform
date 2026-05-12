@@ -36,14 +36,14 @@ class QwenClient:
 
         self.temperature = temperature
 
-        logger.info("Validating Ollama server connection and retrieving model list")
+        logger.info("Validating Ollama server connection and retrieving model list")  # noqa: E501
         response = self.verify_ollama_server(
             f"{self.ollama_url}/api/tags",
             self.timeout,
         )
 
         self.available_models = self.get_model_list(response, self.model_list)
-        logger.info(f"The available approved models are: {self.available_models}")
+        logger.info(f"The available approved models are: {self.available_models}")  # noqa: E501
 
         if self.model not in self.available_models:
             raise RuntimeError(
@@ -118,16 +118,14 @@ class QwenClient:
             ) from exc
 
         if "response" not in data:
-            raise RuntimeError(
-                f"Ollama response missing 'response' field: {json.dumps(data)[:500]}"
-            )
+            raise RuntimeError(f"Ollama response missing 'response' field: {json.dumps(data)[:500]}")  # noqa: E501
 
         response_text = data.get("response", "")
 
         if not isinstance(response_text, str) or not response_text.strip():
             raise RuntimeError(
                 "Ollama returned an empty response field. "
-                f"done={data.get('done')}, done_reason={data.get('done_reason')}, "
+                f"done={data.get('done')}, done_reason={data.get('done_reason')}, "  # noqa: E501
                 f"prompt_eval_count={data.get('prompt_eval_count')}, "
                 f"eval_count={data.get('eval_count')}, "
                 f"full_response={json.dumps(data)[:1000]}"
@@ -140,19 +138,16 @@ class QwenClient:
                 f"Model output failed Pydantic validation: {exc}"
             ) from exc
         except ValueError as exc:
-            raise RuntimeError(
-                f"Model returned invalid JSON in response field: {response_text[:500]}"
-            ) from exc
+            raise RuntimeError(f"Model returned invalid JSON in response field: {response_text[:500]}") from exc  # noqa: E501
 
         duration = round(perf_counter() - start, 2)
-        logger.info(
-            "Qwen query completed in %s seconds; model=%s; prompt_eval_count=%s; eval_count=%s; done=%s; done_reason=%s",
-            duration,
-            self.model,
-            data.get("prompt_eval_count"),
-            data.get("eval_count"),
-            data.get("done"),
-            data.get("done_reason"),
-        )
+        logger.info("Qwen query completed in %s seconds; model=%s; prompt_eval_count=%s; eval_count=%s; done=%s; done_reason=%s",  # noqa: E501
+                    duration,
+                    self.model,
+                    data.get("prompt_eval_count"),
+                    data.get("eval_count"),
+                    data.get("done"),
+                    data.get("done_reason"),
+                    )
 
         return validated

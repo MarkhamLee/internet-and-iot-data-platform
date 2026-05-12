@@ -8,32 +8,32 @@ from logging_util import console_logging
 
 logger = console_logging('Agent Utilities')
 
+
 class AgentUtilities():
-     
+
     def __init__(self):
-          
+
         pass
 
-    
     @staticmethod
     def send_slack_webhook(url: str, message: str):
 
-            headers = {
-                'Content-type': 'application/json'
+        headers = {
+            'Content-type': 'application/json'
 
-            }
+        }
 
-            payload = {
+        payload = {
                 "text": message
-            }
+        }
 
-            response = requests.post(url, headers=headers, json=payload)
+        response = requests.post(url, headers=headers, json=payload)
 
-            code = response.status_code
+        code = response.status_code
 
-            if code != 200:
-                logger.debug(f'Publishing of alert to Slack webhook failed with response code: {code}')  # noqa: E501
-            else:
-                logger.debug(f'Publishing of alert to Slack webhook suceeded with code: {code}')  # noqa: E501
+        if code != 200:
+            logger.debug(f'Publishing of alert to Slack webhook failed with response code: {code}')  # noqa: E501
+        else:
+            logger.debug(f'Publishing of alert to Slack webhook suceeded with code: {code}')  # noqa: E501
 
-            return code
+        return code
