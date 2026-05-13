@@ -4,11 +4,12 @@
 import sys
 import os
 from os import getenv
-
+from schemas import AlertReviewResponse, AlertReviewWrite
+from time import perf_counter
 from logging_util import console_logging
 from postgres_review_repository import PostgresReviewRepository
 from qwen_client import QwenClient
-from schemas import AlertReviewResponse, AlertReviewWrite
+
 
 logger = console_logging("Dependabot review orchestrator")
 
@@ -35,7 +36,7 @@ POSTGRES_SECRET = os.environ['DEPENDABOT_AGENT_POSTGRES']
 POSTGRES_USER_NAME = os.environ['POSTGRES_USER_DEPENDABOT']
 POSTGRES_HOST = os.environ['POSTGRES_HOST_K3S']
 POSTGRES_PORT = 5432
-APPROVED_MODELS = ["qwen3.5:9b", "llama3.2:3b"]
+APPROVED_MODELS = {"qwen3.5:9b", "llama3.2:3b"}
 
 
 def get_required_env(name: str) -> str:
@@ -106,6 +107,7 @@ def main() -> None:
     logger.info("Reviewing %s alerts one at a time", len(alerts))
 
     reviewed_count = 0
+    start = perf_counter()
 
     for alert in alerts:
         logger.info("Reviewing alert_id=%s", alert.alert_id)
@@ -171,9 +173,13 @@ def main() -> None:
         # Optional: break here during debugging to process just one alert
         # break
 
+    duration = round(perf_counter() - start, 2)
+
     logger.info(
-        "Dependabot review workflow completed successfully; reviewed=%s",
+        "Dependabot review workflow completed successfully; "
+        "reviewed %s alerts in %s seconds",
         reviewed_count,
+        duration,
     )
 
 
