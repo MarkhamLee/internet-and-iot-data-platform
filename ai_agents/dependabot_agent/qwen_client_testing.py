@@ -1,3 +1,4 @@
+import os
 from qwen_client import QwenClient
 from schemas import SimpleQuestionResponse
 
@@ -9,9 +10,10 @@ PROMPT = (
 PAYLOAD = {"question": "What is GitHub Dependabot?"}
 
 APPROVED_MODELS = {"qwen3.5:9b", "llama3.2:3b"}
+OLLAMA_URL = os.environ['OLLAMA_BASE_URL']
 
 client = QwenClient(
-    ollama_url="https://ollama.local.markhamslab.com",
+    ollama_url=OLLAMA_URL,
     model="qwen3.5:9b",
     approved_models=APPROVED_MODELS
 )
