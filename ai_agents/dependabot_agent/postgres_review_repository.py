@@ -4,7 +4,11 @@
 import json
 import psycopg
 from psycopg.rows import dict_row
+
+from logging_util import console_logging
 from schemas import AlertRecord, AlertReviewWrite
+
+logger = console_logging("Postgres review repository")
 
 
 class PostgresReviewRepository:
@@ -38,7 +42,16 @@ class PostgresReviewRepository:
         postgres_password: str | None = None,
     ):
         if dsn:
-            return psycopg.connect(dsn)
+            logger.info("Connecting to Postgres using DSN")
+            return psycopg.connect(dsn, autocommit=True)
+
+        logger.info(
+            "Connecting to Postgres using parameters host=%s port=%s dbname=%s user=%s",  # noqa: E501
+            db_host,
+            db_port,
+            database,
+            postgres_user,
+        )
 
         params = {
             "host": db_host,
@@ -48,7 +61,7 @@ class PostgresReviewRepository:
             "password": postgres_password,
         }
 
-        return psycopg.connect(**params)
+        return psycopg.connect(**params, autocommit=True)
 
     def connect(self) -> None:
         if self.conn is None or self.conn.closed:
@@ -61,8 +74,19 @@ class PostgresReviewRepository:
                 postgres_password=self.postgres_password,
             )
 
+            with self.conn.cursor() as cur:
+                cur.execute("select current_database(), current_user, current_schema()")  # noqa: E501
+                db_name, db_user, db_schema = cur.fetchone()
+                logger.info(
+                    "Postgres connection established database=%s user=%s schema=%s",  # noqa: E501
+                    db_name,
+                    db_user,
+                    db_schema,
+                )
+
     def close(self) -> None:
         if self.conn is not None and not self.conn.closed:
+            logger.info("Closing Postgres connection")
             self.conn.close()
 
     def __enter__(self):
@@ -100,9 +124,16 @@ class PostgresReviewRepository:
             LIMIT %s
         """
 
+        logger.info(
+            "Fetching alerts needing review repo_full_name=%s limit=%s",
+            repo_full_name,
+            limit,
+        )
+
         with self.conn.cursor(row_factory=dict_row) as cur:
             cur.execute(sql, params)
             rows = cur.fetchall()
+            logger.info("Fetched %s alerts needing review", len(rows))
 
         return [AlertRecord.model_validate(row) for row in rows]
 
@@ -148,6 +179,11 @@ class PostgresReviewRepository:
 
         with self.conn.cursor() as cur:
             cur.execute(sql, payload)
+            logger.info(
+                "Inserted review rowcount=%s alert_id=%s",
+                cur.rowcount,
+                review.alert_id,
+            )
 
     def mark_alert_reviewed(
         self,
@@ -174,6 +210,11 @@ class PostgresReviewRepository:
 
         with self.conn.cursor() as cur:
             cur.execute(sql, payload)
+            logger.info(
+                "Updated alert rowcount=%s alert_id=%s",
+                cur.rowcount,
+                alert_id,
+            )
 
     def save_review_result(
         self,
@@ -183,9 +224,23 @@ class PostgresReviewRepository:
     ) -> None:
         self.connect()
 
+        logger.info("Saving review result for alert_id=%s", review.alert_id)
+
         with self.conn.transaction():
             self.insert_review(review)
             self.mark_alert_reviewed(
                 alert_id=review.alert_id,
                 latest_research_json=latest_research_json,
             )
+
+        with self.conn.cursor(row_factory=dict_row) as cur:
+            cur.execute(
+                """
+                SELECT alert_id, needs_review, last_researched_at
+                FROM dependabot_alerts
+                WHERE alert_id = %s
+                """,
+                (review.alert_id,),
+            )
+            row = cur.fetchone()
+            logger.info("Post-write alert state for %s: %s", review.alert_id, row)  # noqa: E501
