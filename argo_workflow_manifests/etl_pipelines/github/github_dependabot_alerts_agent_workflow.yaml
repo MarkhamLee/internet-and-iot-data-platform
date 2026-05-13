@@ -4,7 +4,7 @@ metadata:
   name: dependabot-alerts-research-agent
   namespace: argo
 spec:
-  schedule: "0 * * * *"
+  schedule: "0 0 * * *"
   timezone: "America/Los_Angeles"
   startingDeadlineSeconds: 0
   concurrencyPolicy: Replace
