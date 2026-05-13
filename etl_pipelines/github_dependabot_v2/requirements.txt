@@ -1,5 +1,4 @@
 requests==2.33.1
-typing==3.7.4.3
 pydantic==2.13.4
 langgraph==1.1.10
-psycopg==3.3.4
+psycopg[binary]==3.3.4

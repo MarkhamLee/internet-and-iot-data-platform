@@ -2,7 +2,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: CronWorkflow
 metadata:
-  name: dependabot-alert-status-data-platform
+  name: dependabot-alerts-research-agent
   namespace: argo
 spec:
   schedule: "0 * * * *"
@@ -13,15 +13,15 @@ spec:
   successfulJobsHistoryLimit: 5
   suspend: false
   workflowSpec:
-    entrypoint: dependabot-alert-status-data-platform
+    entrypoint: dependabot-alerts-research-agent
     imagePullSecrets:
-    - name: docker-secrets
+    - name: docker-creds
     templates:
-      - name: github-dependabot-alert-data-platform
+      - name: dependabot-alerts-research-agent
         node_selector:
           work_type: tasks
         container:
-          image: "markhamlee/github_dependabot_agent_data"
+          image: "markhamlee/github_dependabot_research_agent"
           command: ["python3"]
           args: ["/etl/main.py", "GitHub Dependabot Alert Status Scheduled on: {{workflow.scheduledTime}}"]
           resources: 
@@ -62,28 +62,38 @@ spec:
           - name: POSTGRES_DEPENDABOT_DATABASE
             valueFrom:
               secretKeyRef:
-              key: DEPENDABOT_ALERT_DATABASE
-              name: DEPENDABOT_POSTGRES_DATA
+              key: DEPENDABOT_POSTGRES_DATABASE
+              name: dependabot-postgres-data
           - name: DEPENDABOT_AGENT_POSTGRES
             valueFrom:
               secretKeyRef:
               key: POSTGRES_DEPENDABOT_SECRET
-              name: DEPENDABOT_POSTGRES_DATA          
+              name: dependabot-postgres-data          
           - name: POSTGRES_USER_DEPENDABOT
             valueFrom:
               secretKeyRef:
-              key: POSTGRES_DEPENDABOT_USER
-              name: DEPENDABOT_POSTGRES_DATA          
+              key: POSTGRES_USER_DEPENDABOT
+              name: dependabot-postgres-data          
           - name: POSTGRES_HOST_K3S
             valueFrom:
               secretKeyRef:
               key: POSTGRES_HOST
-              name: DEPENDABOT_POSTGRES_DATA       
+              name: dependabot-postgres-data      
+          - name: DEPENDABOT_ALERT_STATUS_TABLE
+            valueFrom:
+              secretKeyRef:
+              key: DEPENDABOT_ALERT_STATUS_TABLE
+              name: dependabot-postgres-data 
+          - name: DEPENDABOT_ALERT_REVIEW_TABLE
+            valueFrom:
+              secretKeyRef:
+              key: DEPENDABOT_ALERT_REVIEW_TABLE
+              name: dependabot-postgres-data 
           - name: OLLAMA_URL
             valueFrom:
               secretKeyRef:
               key: OLLAMA_URL_K3S
-              name: OLLAMA_SECRETS 
+              name: ollama-secrets
           - name: REPO_NAME
             value: internet-and-iot-data-platform 
           - name: GITHUB_PIPELINE_NAME
