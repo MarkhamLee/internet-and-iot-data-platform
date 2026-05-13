@@ -15,11 +15,11 @@ spec:
   workflowSpec:
     entrypoint: dependabot-alert-status-data-platform
     imagePullSecrets:
-    - name: docker-secrets
+    - name: docker-creds
     templates:
-      - name: github-dependabot-alert-data-platform
+      - name: dependabot-alert-status-data-platform
         node_selector:
-          work_type: tasks
+          k3s_role: x86_worker
         container:
           image: "markhamlee/github_dependabot_agent_data"
           command: ["python3"]
@@ -48,37 +48,42 @@ spec:
             valueFrom:
               configMapKeyRef:
                 key: ALERTS_ENDPOINT
-                name: key-etl-variables
+                name: github-variables
           - name: GITHUB_API_BASE_URL
             valueFrom:
               configMapKeyRef:
                 key: GITHUB_BASE_URL
-                name: key-etl-variables
+                name: github-variables
           - name: REPO_BASE
             valueFrom:
               configMapKeyRef:
                 key: REPO_BASE
-                name: key-etl-variables   
+                name: github-variables  
           - name: POSTGRES_DEPENDABOT_DATABASE
             valueFrom:
               secretKeyRef:
-              key: DEPENDABOT_ALERT_DATABASE
-              name: DEPENDABOT_POSTGRES_DATA
+                key: DEPENDABOT_ALERT_DATABASE
+                name: dependabot-postgres-data
           - name: DEPENDABOT_AGENT_POSTGRES
             valueFrom:
               secretKeyRef:
-              key: POSTGRES_DEPENDABOT_SECRET
-              name: DEPENDABOT_POSTGRES_DATA          
+                key: POSTGRES_DEPENDABOT_SECRET
+                name: dependabot-postgres-data          
           - name: POSTGRES_USER_DEPENDABOT
             valueFrom:
               secretKeyRef:
-              key: POSTGRES_DEPENDABOT_USER
-              name: DEPENDABOT_POSTGRES_DATA          
+                key: POSTGRES_DEPENDABOT_USER
+                name: dependabot-postgres-data        
           - name: POSTGRES_HOST_K3S
             valueFrom:
               secretKeyRef:
-              key: POSTGRES_HOST
-              name: DEPENDABOT_POSTGRES_DATA          
+                key: POSTGRES_HOST
+                name: dependabot-postgres-data  
+          - name: DEPENDABOT_ALERT_STATUS_TABLE
+            valueFrom:
+              secretKeyRef:
+                key: DEPENDABOT_ALERT_STATUS_TABLE
+                name: dependabot-postgres-data  
           - name: REPO_NAME
             value: internet-and-iot-data-platform 
           - name: GITHUB_PIPELINE_NAME
