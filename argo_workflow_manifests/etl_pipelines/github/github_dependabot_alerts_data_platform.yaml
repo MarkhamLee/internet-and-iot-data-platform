@@ -1,4 +1,3 @@
-# Workflow for pulling in GitHub dependabot alert data
 apiVersion: argoproj.io/v1alpha1
 kind: CronWorkflow
 metadata:
@@ -29,17 +28,17 @@ spec:
               memory: 256Mi
               cpu: 200m
           env:
-          - name: ALERT_WEBHOOK
+          - name: PIPELINE_FAILURE_WEBHOOK
             valueFrom:
               secretKeyRef:
                 key: WEBHOOK_ETL_ALERTS
                 name: slack-webhook-pipeline-failures
-          - name: SECURITY_SLACK_WEBHOOK
+          - name: DEPENDABOT_SLACK_WEBHOOK
             valueFrom:
               secretKeyRef:
                 key: SECURITY_SLACK_WEBHOOK
                 name: slack-github-alerts       
-          - name: GITHUB_TOKEN
+          - name: GITHUB_DEPENDABOT_TOKEN
             valueFrom:
               secretKeyRef:
                 key: GITHUB_TOKEN

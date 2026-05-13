@@ -1,4 +1,3 @@
-# Workflow for pulling in GitHub dependabot alert data
 apiVersion: argoproj.io/v1alpha1
 kind: CronWorkflow
 metadata:
@@ -21,25 +20,25 @@ spec:
         node_selector:
           work_type: tasks
         container:
-          image: "markhamlee/github_dependabot_research_agent"
+          image: "markhamlee/github_dependabot_alert_review:latest"
           command: ["python3"]
-          args: ["/etl/main.py", "GitHub Dependabot Alert Status Scheduled on: {{workflow.scheduledTime}}"]
+          args: ["/agents/main.py", "GitHub Dependabot Alert Status Scheduled on: {{workflow.scheduledTime}}"]
           resources: 
             limits:
               memory: 256Mi
               cpu: 200m
           env:
-          - name: ALERT_WEBHOOK
+          - name: PIPELINE_FAILURE_WEBHOOK
             valueFrom:
               secretKeyRef:
                 key: WEBHOOK_ETL_ALERTS
                 name: slack-webhook-pipeline-failures
-          - name: SECURITY_SLACK_WEBHOOK
+          - name: DEPENDABOT_SLACK_WEBHOOK
             valueFrom:
               secretKeyRef:
                 key: SECURITY_SLACK_WEBHOOK
                 name: slack-github-alerts       
-          - name: GITHUB_TOKEN
+          - name: GITHUB_DEPENDABOT_TOKEN
             valueFrom:
               secretKeyRef:
                 key: GITHUB_TOKEN
@@ -48,52 +47,52 @@ spec:
             valueFrom:
               configMapKeyRef:
                 key: ALERTS_ENDPOINT
-                name: key-etl-variables
+                name: github-variables
           - name: GITHUB_API_BASE_URL
             valueFrom:
               configMapKeyRef:
                 key: GITHUB_BASE_URL
-                name: key-etl-variables
+                name: github-variables
           - name: REPO_BASE
             valueFrom:
               configMapKeyRef:
                 key: REPO_BASE
-                name: key-etl-variables   
+                name: github-variables
           - name: POSTGRES_DEPENDABOT_DATABASE
             valueFrom:
               secretKeyRef:
-              key: DEPENDABOT_POSTGRES_DATABASE
-              name: dependabot-postgres-data
+                key: DEPENDABOT_ALERT_DATABASE
+                name: dependabot-postgres-data
           - name: DEPENDABOT_AGENT_POSTGRES
             valueFrom:
               secretKeyRef:
-              key: POSTGRES_DEPENDABOT_SECRET
-              name: dependabot-postgres-data          
+                key: POSTGRES_DEPENDABOT_SECRET
+                name: dependabot-postgres-data          
           - name: POSTGRES_USER_DEPENDABOT
             valueFrom:
               secretKeyRef:
-              key: POSTGRES_USER_DEPENDABOT
-              name: dependabot-postgres-data          
+                key: POSTGRES_DEPENDABOT_USER
+                name: dependabot-postgres-data          
           - name: POSTGRES_HOST_K3S
             valueFrom:
               secretKeyRef:
-              key: POSTGRES_HOST
-              name: dependabot-postgres-data      
+                key: POSTGRES_HOST
+                name: dependabot-postgres-data      
           - name: DEPENDABOT_ALERT_STATUS_TABLE
             valueFrom:
               secretKeyRef:
-              key: DEPENDABOT_ALERT_STATUS_TABLE
-              name: dependabot-postgres-data 
+                key: DEPENDABOT_ALERT_STATUS_TABLE
+                name: dependabot-postgres-data 
           - name: DEPENDABOT_ALERT_REVIEW_TABLE
             valueFrom:
               secretKeyRef:
-              key: DEPENDABOT_ALERT_REVIEW_TABLE
-              name: dependabot-postgres-data 
-          - name: OLLAMA_URL
+                key: DEPENDABOT_ALERT_REVIEW_TABLE
+                name: dependabot-postgres-data 
+          - name: OLLAMA_BASE_URL
             valueFrom:
               secretKeyRef:
-              key: OLLAMA_URL_K3S
-              name: ollama-secrets
+                key: OLLAMA_URL_K3S
+                name: ollama-secrets
           - name: REPO_NAME
             value: internet-and-iot-data-platform 
           - name: GITHUB_PIPELINE_NAME
