@@ -1,0 +1,94 @@
+# Workflow for pulling in GitHub dependabot alert data
+apiVersion: argoproj.io/v1alpha1
+kind: CronWorkflow
+metadata:
+  name: dependabot-alert-status-data-platform
+  namespace: argo
+spec:
+  schedule: "0 * * * *"
+  timezone: "America/Los_Angeles"
+  startingDeadlineSeconds: 0
+  concurrencyPolicy: Replace
+  failedJobsHistoryLimit: 3
+  successfulJobsHistoryLimit: 5
+  suspend: false
+  workflowSpec:
+    entrypoint: dependabot-alert-status-data-platform
+    imagePullSecrets:
+    - name: docker-secrets
+    templates:
+      - name: github-dependabot-alert-data-platform
+        node_selector:
+          work_type: tasks
+        container:
+          image: "markhamlee/github_dependabot_agent_data"
+          command: ["python3"]
+          args: ["/etl/main.py", "GitHub Dependabot Alert Status Scheduled on: {{workflow.scheduledTime}}"]
+          resources: 
+            limits:
+              memory: 256Mi
+              cpu: 200m
+          env:
+          - name: ALERT_WEBHOOK
+            valueFrom:
+              secretKeyRef:
+                key: WEBHOOK_ETL_ALERTS
+                name: slack-webhook-pipeline-failures
+          - name: SECURITY_SLACK_WEBHOOK
+            valueFrom:
+              secretKeyRef:
+                key: SECURITY_SLACK_WEBHOOK
+                name: slack-github-alerts       
+          - name: GITHUB_TOKEN
+            valueFrom:
+              secretKeyRef:
+                key: GITHUB_TOKEN
+                name: github-api-token    
+          - name: ALERTS_ENDPOINT
+            valueFrom:
+              configMapKeyRef:
+                key: ALERTS_ENDPOINT
+                name: key-etl-variables
+          - name: GITHUB_API_BASE_URL
+            valueFrom:
+              configMapKeyRef:
+                key: GITHUB_BASE_URL
+                name: key-etl-variables
+          - name: REPO_BASE
+            valueFrom:
+              configMapKeyRef:
+                key: REPO_BASE
+                name: key-etl-variables   
+          - name: POSTGRES_DEPENDABOT_DATABASE
+            valueFrom:
+              secretKeyRef:
+              key: DEPENDABOT_ALERT_DATABASE
+              name: DEPENDABOT_POSTGRES_DATA
+          - name: DEPENDABOT_AGENT_POSTGRES
+            valueFrom:
+              secretKeyRef:
+              key: POSTGRES_DEPENDABOT_SECRET
+              name: DEPENDABOT_POSTGRES_DATA          
+          - name: POSTGRES_USER_DEPENDABOT
+            valueFrom:
+              secretKeyRef:
+              key: POSTGRES_DEPENDABOT_USER
+              name: DEPENDABOT_POSTGRES_DATA          
+          - name: POSTGRES_HOST_K3S
+            valueFrom:
+              secretKeyRef:
+              key: POSTGRES_HOST
+              name: DEPENDABOT_POSTGRES_DATA       
+          - name: OLLAMA_URL
+            valueFrom:
+              secretKeyRef:
+              key: OLLAMA_URL_K3S
+              name: OLLAMA_SECRETS 
+          - name: REPO_NAME
+            value: internet-and-iot-data-platform 
+          - name: GITHUB_PIPELINE_NAME
+            value: dependabot_alerts_data_platform
+          - name: REPO_SHORT_NAME
+            value: data_platform
+          - name: REPO_FULL_NAME
+            value: markhamlee/internet-and-iot-data-platform
