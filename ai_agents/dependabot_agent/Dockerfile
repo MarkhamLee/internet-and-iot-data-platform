@@ -18,7 +18,7 @@ FROM python:3.12-slim-bookworm
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
-WORKDIR /ai_agents
+WORKDIR /agents
 
 COPY --from=builder /app/wheels /wheels
 COPY --from=builder /app/requirements.txt .
@@ -31,4 +31,4 @@ COPY --chown=appuser:appuser ./dependabot_agent ./
 
 USER appuser
 
-ENTRYPOINT ["python", "/ai_agents/main.py"]
+ENTRYPOINT ["python", "/agents/main.py"]
