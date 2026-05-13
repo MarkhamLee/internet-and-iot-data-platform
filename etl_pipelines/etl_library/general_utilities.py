@@ -5,9 +5,10 @@
 # TODO: modify this so that the Alert Webhook is passed from the
 # importing script, not imported locally.
 import requests
-import os
+# import os
 from jsonschema import validate
 from etl_library.logging_util import logger  # noqa: E402
+
 
 class EtlUtilities():
 
@@ -30,7 +31,7 @@ class EtlUtilities():
         except Exception as e:
             message = (f'Data validation failed for the pipeline for openweather current, with error: {e}')  # noqa: E501
             logger.debug(message)
-            response = EtlUtilities.send_slack_webhook(failure_webhook, message)
+            response = EtlUtilities.send_slack_webhook(failure_webhook, message)  # noqa: E501
             logger.debug(f'Slack pipeline failure alert sent with code: {response}')  # noqa: E501
             return 1, response
 
