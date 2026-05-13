@@ -8,8 +8,8 @@ WORKDIR /app
 
 COPY github_dependabot_v2/requirements.txt .
 
-RUN pip install --upgrade pip && \
-    pip wheel --no-cache-dir --no-deps --wheel-dir /app/wheels -r requirements.txt
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip wheel --no-cache-dir --wheel-dir /app/wheels -r requirements.txt
 
 
 # Final stage
@@ -27,10 +27,9 @@ RUN pip install --no-cache-dir /wheels/* && \
     rm -rf /wheels && \
     useradd --create-home --uid 10001 appuser
 
-COPY ./etl_library ./etl_library
+COPY --chown=appuser:appuser ./etl_library ./etl_library
+COPY --chown=appuser:appuser ./github_dependabot_v2 ./
 
-WORKDIR /etl
-
-COPY ./github_dependabot_v2 ./
+USER appuser
 
 ENTRYPOINT ["python", "/etl/main.py"]
