@@ -2,12 +2,10 @@
 # https://github.com/MarkhamLee/internet-and-iot-data-platform
 # Building and sending Slack messages
 from __future__ import annotations
-
 import os
 import requests
 import sys
 from datetime import datetime
-
 from schemas import PageReviewResult, TrackedPageState
 
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
