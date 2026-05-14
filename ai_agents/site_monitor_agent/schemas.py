@@ -1,9 +1,12 @@
 # (C) Markham Lee 2023 - 2026
 # https://github.com/MarkhamLee/internet-and-iot-data-platform
 # Data schemas for site monitoring agent
+
 from __future__ import annotations
+
 from datetime import datetime
 from typing import Literal, Optional
+
 from pydantic import BaseModel, Field, HttpUrl
 
 
@@ -15,7 +18,9 @@ class PageReviewResult(BaseModel):
         description="Whether the page is currently in the desired state."
     )
     confidence: float = Field(ge=0.0, le=1.0)
-    summary: str = Field(description="Short human-readable summary of the page state.")  # noqa: E501
+    summary: str = Field(
+        description="Short human-readable summary of the page state."
+    )
     evidence: list[str] = Field(default_factory=list)
     extracted_price: Optional[str] = None
     extracted_title: Optional[str] = None
@@ -49,3 +54,7 @@ class TrackedPageState(BaseModel):
     last_slack_message_type: Optional[str] = None
     last_review_summary: Optional[str] = None
     last_state_key: Optional[str] = None
+    last_http_etag: Optional[str] = None
+    last_http_last_modified: Optional[str] = None
+    last_content_hash: Optional[str] = None
+    last_llm_reviewed_hash: Optional[str] = None
