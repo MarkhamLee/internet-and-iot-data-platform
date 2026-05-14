@@ -1,7 +1,9 @@
 create table if not exists page_watch_current (
     page_key text primary key,
     url text not null,
-    current_status text not null check (current_status in ('desired', 'undesired', 'unknown')),
+    current_status text not null check (
+        current_status in ('desired', 'undesired', 'unknown')
+    ),
     first_seen_at timestamptz not null,
     last_checked_at timestamptz not null,
     state_changed_at timestamptz not null,
