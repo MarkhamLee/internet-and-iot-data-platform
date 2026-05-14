@@ -2,7 +2,7 @@
 # Internet & IoT Data Platform
 # https://github.com/MarkhamLee/internet-and-iot-data-platform
 import requests
-from logging_util import console_logging
+from agent_library.logging_util import console_logging
 
 logger = console_logging('agent_utilities_logs')
 
