@@ -12,10 +12,11 @@ import os
 import re
 import sys
 from datetime import UTC, datetime
+from typing import Any
 
 from config import load_config
 from content_extractor import extract_review_payload
-from diff_service import determine_event_type
+from diff_service import determine_event_type, should_invoke_llm
 from page_fetcher import fetch_page
 from schemas import PageReviewResult
 from state_store import StateStore
@@ -55,7 +56,7 @@ def normalize_text(value: str) -> str:
     return value
 
 
-def canonicalize_review_payload(payload: dict) -> dict:
+def canonicalize_review_payload(payload: dict[str, Any]) -> dict[str, Any]:
     selector_hits = [
         {
             "selector": item.get("selector"),
@@ -64,10 +65,17 @@ def canonicalize_review_payload(payload: dict) -> dict:
         for item in payload.get("selector_hits", [])
     ]
 
+    selector_hits.\
+        sort(key=lambda item: (str(item["selector"]), str(item["text"])))
+
+    button_texts = sorted(normalize_text(text) for
+                          text in payload.get("button_texts", []))
+
     return {
         "final_url": payload.get("final_url"),
         "pattern_hits": sorted(payload.get("pattern_hits", [])),
         "selector_hits": selector_hits,
+        "button_texts": button_texts,
         "page_text_excerpt": normalize_text(payload.get("page_text_excerpt", "")),  # noqa: E501
         "desired_state_description": payload.get("desired_state_description"),
         "undesired_state_description": payload.get("undesired_state_description"),  # noqa: E501
@@ -75,7 +83,7 @@ def canonicalize_review_payload(payload: dict) -> dict:
     }
 
 
-def compute_content_hash(payload: dict) -> str:
+def compute_content_hash(payload: dict[str, Any]) -> str:
     canonical = canonicalize_review_payload(payload)
     encoded = json.dumps(
         canonical,
@@ -97,6 +105,8 @@ def main() -> None:
         timeout=(10, app.timeout_seconds),
         temperature=0,
     )
+
+    force_review_after_hours = getattr(app, "force_review_after_hours", None)
 
     for target in app.targets:
         if not target.enabled:
@@ -132,6 +142,15 @@ def main() -> None:
                 "No remote change detected via HTTP validators for page_key=%s; skipping LLM",  # noqa: E501
                 target.page_key,
             )
+            store.touch_page_check(
+                page_key=target.page_key,
+                url=str(target.url),
+                now=now,
+                http_etag=fetch_result.etag,
+                http_last_modified=fetch_result.last_modified,
+                content_hash=previous.last_content_hash,
+                previous=previous,
+            )
             continue
 
         review_payload = extract_review_payload(fetch_result, target)
@@ -143,12 +162,19 @@ def main() -> None:
 
         content_hash = compute_content_hash(review_payload)
 
-        if previous and previous.last_content_hash == content_hash:
-            logger.info(
-                "No meaningful content change detected for page_key=%s; skipping LLM",  # noqa: E501
-                target.page_key,
-            )
+        should_review, review_reason = should_invoke_llm(
+            previous=previous,
+            content_hash=content_hash,
+            now=now,
+            force_review_after_hours=force_review_after_hours,
+        )
 
+        if not should_review:
+            logger.info(
+                "Skipping LLM for page_key=%s reason=%s",
+                target.page_key,
+                review_reason,
+            )
             store.touch_page_check(
                 page_key=target.page_key,
                 url=str(target.url),
@@ -161,8 +187,9 @@ def main() -> None:
             continue
 
         logger.info(
-            "Content change detected for page_key=%s; invoking Qwen",
+            "Invoking Qwen for page_key=%s reason=%s",
             target.page_key,
+            review_reason,
         )
 
         try:

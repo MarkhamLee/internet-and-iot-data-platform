@@ -2,10 +2,13 @@
 # https://github.com/MarkhamLee/internet-and-iot-data-platform
 # Page fetcher for site monitoring agent
 from __future__ import annotations
+
+from dataclasses import dataclass
+from datetime import UTC, datetime
+from typing import Optional
+
 import requests
 from bs4 import BeautifulSoup
-from datetime import datetime, UTC
-from schemas import FetchResult
 
 
 DEFAULT_HEADERS = {
@@ -14,9 +17,47 @@ DEFAULT_HEADERS = {
 }
 
 
-# TODO: change this to try/except and add logging for errors
-def fetch_page(url: str, timeout: int = 30) -> FetchResult:
-    response = requests.get(url, headers=DEFAULT_HEADERS, timeout=timeout)
+@dataclass(slots=True)
+class FetchResult:
+    url: str
+    status_code: int
+    final_url: str
+    fetched_at: datetime
+    html: str
+    text: str
+    etag: Optional[str] = None
+    last_modified: Optional[str] = None
+    not_modified: bool = False
+
+
+def fetch_page(
+    url: str,
+    etag: str | None = None,
+    last_modified: str | None = None,
+    timeout: int = 30,
+) -> FetchResult:
+    headers = dict(DEFAULT_HEADERS)
+
+    if etag:
+        headers["If-None-Match"] = etag
+    if last_modified:
+        headers["If-Modified-Since"] = last_modified
+
+    response = requests.get(url, headers=headers, timeout=timeout)
+
+    if response.status_code == 304:
+        return FetchResult(
+            url=url,
+            status_code=304,
+            final_url=str(response.url or url),
+            fetched_at=datetime.now(UTC),
+            html="",
+            text="",
+            etag=response.headers.get("ETag", etag),
+            last_modified=response.headers.get("Last-Modified", last_modified),
+            not_modified=True,
+        )
+
     response.raise_for_status()
 
     html = response.text
@@ -31,4 +72,6 @@ def fetch_page(url: str, timeout: int = 30) -> FetchResult:
         html=html,
         text=text,
         etag=response.headers.get("ETag"),
-        last_modified=response.headers.get("Last-Modified"),)
+        last_modified=response.headers.get("Last-Modified"),
+        not_modified=False,
+    )
