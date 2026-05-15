@@ -1,6 +1,3 @@
-# WIP
-# TODO: add more logging messages so progress can be tracked
-# Use perf counter to time page evaluation
 # (C) Markham Lee 2023 - 2026
 # https://github.com/MarkhamLee/internet-and-iot-data-platform
 # Orchestrator / primary script
@@ -12,6 +9,7 @@ import os
 import re
 import sys
 from datetime import UTC, datetime
+from time import perf_counter
 from typing import Any
 
 from config import load_config
@@ -20,11 +18,7 @@ from diff_service import determine_event_type, should_invoke_llm
 from page_fetcher import fetch_page
 from schemas import PageReviewResult
 from state_store import StateStore
-
-from ai_agents.site_monitor_agent.slack_messaging import (
-    build_slack_message,
-    send_slack_webhook,
-)
+from slack_messaging import build_slack_message, send_slack_webhook
 
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(parent_dir)
@@ -65,20 +59,21 @@ def canonicalize_review_payload(payload: dict[str, Any]) -> dict[str, Any]:
         for item in payload.get("selector_hits", [])
     ]
 
-    selector_hits.\
-        sort(key=lambda item: (str(item["selector"]), str(item["text"])))
-
-    button_texts = sorted(normalize_text(text) for
-                          text in payload.get("button_texts", []))
+    selector_hits.sort(key=lambda item: (str(item["selector"]),
+                                         str(item["text"])))
+    button_texts = sorted(normalize_text(text)
+                          for text in payload.get("button_texts", []))
 
     return {
         "final_url": payload.get("final_url"),
         "pattern_hits": sorted(payload.get("pattern_hits", [])),
         "selector_hits": selector_hits,
         "button_texts": button_texts,
-        "page_text_excerpt": normalize_text(payload.get("page_text_excerpt", "")),  # noqa: E501
+        "page_text_excerpt": normalize_text(payload.
+                                            get("page_text_excerpt", "")),
         "desired_state_description": payload.get("desired_state_description"),
-        "undesired_state_description": payload.get("undesired_state_description"),  # noqa: E501
+        "undesired_state_description": payload.
+        get("undesired_state_description"),
         "custom_prompt": payload.get("custom_prompt"),
     }
 
@@ -99,16 +94,25 @@ def main() -> None:
     store = StateStore(app.postgres_dsn)
 
     client = QwenClient(
-        ollamaurl=app.ollama_url,
+        ollama_url=app.ollama_url,
         model=app.qwen_model,
-        approvedmodels=set(app.approved_models),
-        timeout=(10, app.timeout_seconds),
+        approved_models=set(app.approved_models),
+        timeout=(10, 180),
         temperature=0,
     )
 
     force_review_after_hours = getattr(app, "force_review_after_hours", None)
 
+    overall_start = perf_counter()
+    logger.info(
+        "Starting review of web site targets count=%s force_review_after_hours=%s",  # noqa: E501
+        len(app.targets),
+        force_review_after_hours,
+    )
+
     for target in app.targets:
+        target_start = perf_counter()
+
         if not target.enabled:
             logger.info("Skipping disabled target page_key=%s",
                         target.page_key)
@@ -122,18 +126,28 @@ def main() -> None:
                     target.url)
 
         try:
+            logger.info("Fetching page page_key=%s url=%s",
+                        target.page_key,
+                        target.url)
             fetch_result = fetch_page(
                 str(target.url),
                 etag=previous.last_http_etag if previous else None,
                 last_modified=previous.
                 last_http_last_modified if previous else None,
             )
-        except Exception as exc:
+            logger.info(
+                "Fetch completed page_key=%s status_code=%s final_url=%s etag_present=%s last_modified_present=%s",  # noqa: E501
+                target.page_key,
+                fetch_result.status_code,
+                fetch_result.final_url,
+                bool(fetch_result.etag),
+                bool(fetch_result.last_modified),
+            )
+        except Exception:
             logger.exception(
-                "Fetch failed for page_key=%s url=%s error=%s",
+                "Fetch failed for page_key=%s url=%s",
                 target.page_key,
                 target.url,
-                exc,
             )
             continue
 
@@ -150,6 +164,12 @@ def main() -> None:
                 http_last_modified=fetch_result.last_modified,
                 content_hash=previous.last_content_hash,
                 previous=previous,
+            )
+            target_duration = round(perf_counter() - target_start, 2)
+            logger.info(
+                "Completed target page_key=%s duration_seconds=%s",
+                target.page_key,
+                target_duration,
             )
             continue
 
@@ -184,6 +204,12 @@ def main() -> None:
                 content_hash=content_hash,
                 previous=previous,
             )
+            target_duration = round(perf_counter() - target_start, 2)
+            logger.info(
+                "Completed target page_key=%s duration_seconds=%s",
+                target.page_key,
+                target_duration,
+            )
             continue
 
         logger.info(
@@ -198,12 +224,18 @@ def main() -> None:
                 payload=review_payload,
                 response_model=PageReviewResult,
             )
-        except Exception as exc:
+            logger.info(
+                "Qwen review completed page_key=%s page_status=%s confidence=%.3f state_key=%s",  # noqa: E501
+                target.page_key,
+                review.page_status,
+                review.confidence,
+                review.normalized_state_key,
+            )
+        except Exception:
             logger.exception(
-                "Qwen review failed for page_key=%s url=%s error=%s",
+                "Qwen review failed for page_key=%s url=%s",
                 target.page_key,
                 target.url,
-                exc,
             )
             continue
 
@@ -214,10 +246,24 @@ def main() -> None:
             reminder_interval_minutes=target.reminder_interval_minutes,
         )
 
+        logger.info(
+            "Review outcome page_key=%s event_type=%s should_send=%s page_status=%s confidence=%.3f",  # noqa: E501
+            target.page_key,
+            event_type,
+            should_send,
+            review.page_status,
+            review.confidence,
+        )
+
         slack_sent = False
         sent_at = None
 
         if should_send:
+            logger.info(
+                "Sending Slack message page_key=%s event_type=%s",
+                target.page_key,
+                event_type,
+            )
             try:
                 slack_payload = build_slack_message(
                     page_key=target.page_key,
@@ -234,18 +280,31 @@ def main() -> None:
                 if status_code == 200:
                     slack_sent = True
                     sent_at = now
-                else:
-                    logger.warning(
-                        "Slack webhook returned non-200 for page_key=%s code=%s",  # noqa: E501
+                    logger.info(
+                        "Slack send succeeded page_key=%s event_type=%s status_code=%s",  # noqa: E501
                         target.page_key,
+                        event_type,
                         status_code,
                     )
-            except Exception as exc:
+                else:
+                    logger.warning(
+                        "Slack webhook returned non-200 page_key=%s event_type=%s code=%s",  # noqa: E501
+                        target.page_key,
+                        event_type,
+                        status_code,
+                    )
+            except Exception:
                 logger.exception(
-                    "Slack send failed for page_key=%s error=%s",
+                    "Slack send failed for page_key=%s event_type=%s",
                     target.page_key,
-                    exc,
+                    event_type,
                 )
+        else:
+            logger.info(
+                "No Slack message needed page_key=%s event_type=%s",
+                target.page_key,
+                event_type,
+            )
 
         try:
             store.save_result(
@@ -262,14 +321,28 @@ def main() -> None:
                 content_hash=content_hash,
                 llm_invoked=True,
             )
-        except Exception as exc:
-            logger.exception(
-                "Failed to persist result for page_key=%s error=%s",
+            logger.info(
+                "Persisted result page_key=%s event_type=%s slack_sent=%s",
                 target.page_key,
-                exc,
+                event_type,
+                slack_sent,
+            )
+        except Exception:
+            logger.exception(
+                "Failed to persist result for page_key=%s event_type=%s",
+                target.page_key,
+                event_type,
             )
 
-    logger.info("Site monitor run completed")
+        target_duration = round(perf_counter() - target_start, 2)
+        logger.info(
+            "Completed target page_key=%s duration_seconds=%s",
+            target.page_key,
+            target_duration,
+        )
+
+    overall_duration = round(perf_counter() - overall_start, 2)
+    logger.info("Site monitor run completed in %s seconds", overall_duration)
 
 
 if __name__ == "__main__":

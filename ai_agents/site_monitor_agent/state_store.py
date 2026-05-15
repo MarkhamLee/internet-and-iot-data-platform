@@ -2,13 +2,10 @@
 # https://github.com/MarkhamLee/internet-and-iot-data-platform
 # Stores output of page comparisons in Postgres
 from __future__ import annotations
-
 from datetime import datetime
 from typing import Any
-
 import psycopg
 from psycopg.rows import dict_row
-
 from schemas import PageReviewResult, TrackedPageState
 
 
