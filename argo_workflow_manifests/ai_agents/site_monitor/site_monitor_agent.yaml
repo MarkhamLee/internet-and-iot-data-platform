@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: CronWorkflow
 metadata:
-  name: dependabot-alert-status-data-platform
+  name: site-monitor-agent
   namespace: argo
 spec:
   schedule: "0 0 * * *"
@@ -15,46 +15,57 @@ spec:
     entrypoint: site-monitor-agent
     imagePullSecrets:
     - name: docker-creds
+    volumes:
+      - name: site-monitor-config-volume
+        configMap:
+          name: site-monitor-config
     templates:
       - name: site-monitor-agent
-        node_selector:
+        nodeSelector:
           k3s_role: x86_worker
         container:
-          image: "markhamlee/"
+          image: "markhamlee/site_monitor_agent:latest"
           command: ["python3"]
-          args: ["/etl/main.py", "Web site change monitor Scheduled on: {{workflow.scheduledTime}}"]
-          resources: 
+          args: ["/agents/main.py"]
+          resources:
             limits:
               memory: 256Mi
               cpu: 200m
           env:
-          - name: PIPELINE_FAILURE_WEBHOOK
-            valueFrom:
-              secretKeyRef:
-                key: WEBHOOK_ETL_ALERTS
-                name: slack-webhook-pipeline-failures
-          - name: SITE_MONITOR_SLACK_WEBHOOK
-            valueFrom:
-              secretKeyRef:
-                key: SITE_MONITOR_SLACK_WEBHOOK
-                name: site-monitor-variables
-          - name: POSTGRES_SITE_MONITOR_DSN
-            valueFrom:
-              secretKeyRef:
-                key: POSTGRES_SITE_MONITOR_DSN
-                name: postgres-site-monitor-data
-          - name: OLLAMA_BASE_URL
-            valueFrom:
-              secretKeyRef:
-                key: OLLAMA_URL_K3S
-                name: ollama-secrets
-          - name: APPROVED_MODELS
-            valueFrom:
-              secretKeyRef:
-                key: APPROVED_MODELS_SITE_MONITOR
-                name: ollama-model-data
-          - name: QWEN_MODEL
-            valueFrom:
-              secretKeyRef:
-                key: QWEN_MODEL
-                name: ollama-model-site-monitor
+            - name: REVIEW_CONFIG_PATH
+              value: /agents/config/mounting_targets.yml
+            - name: PIPELINE_FAILURE_WEBHOOK
+              valueFrom:
+                secretKeyRef:
+                  key: WEBHOOK_ETL_ALERTS
+                  name: slack-webhook-pipeline-failures
+            - name: SITE_MONITOR_SLACK_WEBHOOK
+              valueFrom:
+                secretKeyRef:
+                  key: SITE_MONITOR_SLACK_WEBHOOK
+                  name: site-monitor-variables
+            - name: POSTGRES_SITE_MONITOR_DSN
+              valueFrom:
+                secretKeyRef:
+                  key: POSTGRES_SITE_MONITOR_DSN
+                  name: postgres-site-monitor-data
+            - name: OLLAMA_BASE_URL
+              valueFrom:
+                secretKeyRef:
+                  key: OLLAMA_URL_K3S
+                  name: ollama-secrets
+            - name: APPROVED_MODELS
+              valueFrom:
+                secretKeyRef:
+                  key: APPROVED_MODELS_SITE_MONITOR
+                  name: ollama-model-data
+            - name: QWEN_MODEL
+              valueFrom:
+                secretKeyRef:
+                  key: QWEN_MODEL
+                  name: ollama-model-data
+          volumeMounts:
+            - name: site-monitor-config-volume
+              mountPath: /agents/config/mounting_targets.yml
+              subPath: mounting_targets.yml
+              readOnly: true
