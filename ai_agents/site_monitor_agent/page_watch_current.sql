@@ -1,4 +1,3 @@
-sql
 create table if not exists page_watch_current (
     page_key text primary key,
     url text not null,

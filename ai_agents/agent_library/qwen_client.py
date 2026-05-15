@@ -10,7 +10,7 @@ from pydantic import BaseModel, ValidationError
 from requests.exceptions import RequestException
 from time import perf_counter
 from typing import Type
-from logging_util import console_logging
+from agent_library.logging_util import console_logging
 
 
 logger = console_logging("Qwen client")
