@@ -27,7 +27,9 @@ RUN pip install --no-cache-dir /wheels/* && \
     rm -rf /wheels && \
     useradd --create-home --uid 10001 appuser
 
+COPY --chown=appuser:appuser ./agent_library ./
 COPY --chown=appuser:appuser ./site_monitor_agent ./
+
 
 USER appuser
 
