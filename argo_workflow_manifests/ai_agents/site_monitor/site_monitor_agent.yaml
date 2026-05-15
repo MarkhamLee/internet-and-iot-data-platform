@@ -1,0 +1,60 @@
+apiVersion: argoproj.io/v1alpha1
+kind: CronWorkflow
+metadata:
+  name: dependabot-alert-status-data-platform
+  namespace: argo
+spec:
+  schedule: "0 0 * * *"
+  timezone: "America/Los_Angeles"
+  startingDeadlineSeconds: 0
+  concurrencyPolicy: Replace
+  failedJobsHistoryLimit: 3
+  successfulJobsHistoryLimit: 5
+  suspend: false
+  workflowSpec:
+    entrypoint: site-monitor-agent
+    imagePullSecrets:
+    - name: docker-creds
+    templates:
+      - name: site-monitor-agent
+        node_selector:
+          k3s_role: x86_worker
+        container:
+          image: "markhamlee/"
+          command: ["python3"]
+          args: ["/etl/main.py", "Web site change monitor Scheduled on: {{workflow.scheduledTime}}"]
+          resources: 
+            limits:
+              memory: 256Mi
+              cpu: 200m
+          env:
+          - name: PIPELINE_FAILURE_WEBHOOK
+            valueFrom:
+              secretKeyRef:
+                key: WEBHOOK_ETL_ALERTS
+                name: slack-webhook-pipeline-failures
+          - name: SITE_MONITOR_SLACK_WEBHOOK
+            valueFrom:
+              secretKeyRef:
+                key: SITE_MONITOR_SLACK_WEBHOOK
+                name: site-monitor-variables
+          - name: POSTGRES_SITE_MONITOR_DSN
+            valueFrom:
+              secretKeyRef:
+                key: POSTGRES_SITE_MONITOR_DSN
+                name: postgres-site-monitor-data
+          - name: OLLAMA_BASE_URL
+            valueFrom:
+              secretKeyRef:
+                key: OLLAMA_URL_K3S
+                name: ollama-secrets
+          - name: APPROVED_MODELS
+            valueFrom:
+              secretKeyRef:
+                key: APPROVED_MODELS_SITE_MONITOR
+                name: ollama-model-data
+          - name: QWEN_MODEL
+            valueFrom:
+              secretKeyRef:
+                key: QWEN_MODEL
+                name: ollama-model-site-monitor
