@@ -18,8 +18,6 @@ FROM python:3.12-slim-bookworm
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
-WORKDIR /agents
-
 COPY --from=builder /app/wheels /wheels
 COPY --from=builder /app/requirements.txt .
 
@@ -28,8 +26,10 @@ RUN pip install --no-cache-dir /wheels/* && \
     useradd --create-home --uid 10001 appuser
 
 COPY --chown=appuser:appuser ./agent_library ./
-COPY --chown=appuser:appuser ./site_monitor_agent ./
 
+WORKDIR /agents
+
+COPY --chown=appuser:appuser ./site_monitor_agent ./
 
 USER appuser
 
