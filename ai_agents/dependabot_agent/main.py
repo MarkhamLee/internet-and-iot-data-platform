@@ -6,9 +6,13 @@ import os
 from os import getenv
 from schemas import AlertReviewResponse, AlertReviewWrite
 from time import perf_counter
-from logging_util import console_logging
 from postgres_review_repository import PostgresReviewRepository
-from qwen_client import QwenClient
+
+parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(parent_dir)
+
+from agent_library.logging_util import console_logging  # noqa: E402
+from agent_library.qwen_client import QwenClient  # noqa: E402
 
 
 logger = console_logging("Dependabot review orchestrator")
