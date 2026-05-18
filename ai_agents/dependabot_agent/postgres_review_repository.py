@@ -101,24 +101,11 @@ class PostgresReviewRepository:
     def fetch_alert_groups_needing_review(
         self,
         *,
-        repo_full_name: str | None = None,
         limit: int = 25,
     ) -> list[AlertGroup]:
         self.connect()
 
-        where_clauses = [
-            "github_state = 'open'",
-            "needs_review = TRUE",
-        ]
-        params: list = []
-
-        if repo_full_name:
-            where_clauses.append("repo_full_name = %s")
-            params.append(repo_full_name)
-
-        params.append(limit)
-
-        sql = f"""
+        sql = """
             SELECT
                 repo_full_name,
                 package_name,
@@ -136,25 +123,25 @@ class PostgresReviewRepository:
                 array_agg(alert_id      ORDER BY alert_number ASC) AS alert_ids,
                 array_agg(alert_number  ORDER BY alert_number ASC) AS alert_numbers
             FROM dependabot_alerts
-            WHERE {' AND '.join(where_clauses)}
+            WHERE github_state = 'open'
+            AND needs_review = TRUE
             GROUP BY repo_full_name, package_name, ecosystem
             ORDER BY MIN(alert_number) ASC
             LIMIT %s
         """
 
-        logger.info(
-            "Fetching alert groups needing review repo_full_name=%s limit=%s",
-            repo_full_name,
-            limit,
-        )
+        logger.info("Fetching alert groups needing review limit=%s", limit)
 
         with self.conn.cursor(row_factory=dict_row) as cur:
-            cur.execute(sql, params)
+            cur.execute(sql, [limit])
             rows = cur.fetchall()
 
+        repos = sorted({row["repo_full_name"] for row in rows})
         logger.info(
-            "Fetched %s alert groups needing review",
+            "Fetched %s alert groups across %s repos: %s",
             len(rows),
+            len(repos),
+            ", ".join(repos),
         )
 
         return [AlertGroup.model_validate(row) for row in rows]

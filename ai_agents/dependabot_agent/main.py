@@ -100,7 +100,6 @@ def main() -> None:
     slack_webhook_url = get_required_env("DEPENDABOT_SLACK_WEBHOOK")
     qwen_model = "qwen3.5:9b"
 
-    repo_full_name = getenv("REPO_FULL_NAME")
     prompt_version = getenv("PROMPT_VERSION", "v1")
     review_limit = int(getenv("REVIEW_LIMIT", "25"))
 
@@ -121,7 +120,6 @@ def main() -> None:
         postgres_password=POSTGRES_SECRET,
     ) as repository:
         groups = repository.fetch_alert_groups_needing_review(
-            repo_full_name=repo_full_name,
             limit=review_limit,
         )
 
