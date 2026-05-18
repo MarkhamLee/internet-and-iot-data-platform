@@ -1,97 +1,115 @@
 # (C) Markham Lee 2023 - 2026
 # https://github.com/MarkhamLee/internet-and-iot-data-platform
-# defining schemas to better manage data quality
+from __future__ import annotations
 from datetime import datetime
-from typing import Any, List, Literal, Optional
-
-from pydantic import BaseModel, ConfigDict, Field
-
-
-Priority = Literal["critical", "high", "medium", "low"]
-Confidence = Literal["high", "medium", "low"]
-ReviewReason = Literal[
-    "new_alert",
-    "alert_changed",
-    "stale_research",
-    "manual_recheck",
-]
+from typing import Literal
+from pydantic import BaseModel
 
 
 class AlertRecord(BaseModel):
-    model_config = ConfigDict(extra="ignore")
-
     alert_id: str
-    repo_owner: str
-    repo_name: str
-    repo_full_name: str
-    repo_html_url: Optional[str] = None
-    repo_api_url: Optional[str] = None
     alert_number: int
-    github_state: str
+    repo_owner: str | None = None
+    repo_name: str | None = None
+    repo_full_name: str
+    repo_html_url: str | None = None
+    repo_api_url: str | None = None
+    github_state: str | None = None
     package_name: str
     ecosystem: str
-    manifest_path: Optional[str] = None
-    scope: Optional[str] = None
-    relationship: Optional[str] = None
-    severity: Optional[str] = None
-    summary: Optional[str] = None
-    description: Optional[str] = None
-    cve_id: Optional[str] = None
-    ghsa_id: Optional[str] = None
-    vulnerable_version_range: Optional[str] = None
-    first_patched_version: Optional[str] = None
-    alert_html_url: Optional[str] = None
-    source_fingerprint: str
-    review_group_key: str
+    manifest_path: str | None = None
+    scope: str | None = None
+    relationship: str | None = None
+    severity: str | None = None
+    summary: str | None = None
+    description: str | None = None
+    cve_id: str | None = None
+    ghsa_id: str | None = None
+    vulnerable_version_range: str | None = None
+    first_patched_version: str | None = None
+    alert_html_url: str | None = None
+    source_fingerprint: str | None = None
+    review_group_key: str | None = None
     needs_review: bool = True
-    review_reason: Optional[ReviewReason] = None
-
-    first_seen_at: Optional[datetime] = None
-    last_seen_open_at: Optional[datetime] = None
-    last_state_change_at: Optional[datetime] = None
-    last_synced_at: Optional[datetime] = None
-    last_researched_at: Optional[datetime] = None
-    resolved_at: Optional[datetime] = None
-
-    latest_research_json: Optional[dict[str, Any]] = None
-    slack_channel_id: Optional[str] = None
-    slack_message_ts: Optional[str] = None
+    review_reason: str | None = None
+    first_seen_at: datetime | None = None
+    last_seen_open_at: datetime | None = None
+    last_state_change_at: datetime | None = None
+    last_synced_at: datetime | None = None
+    last_researched_at: datetime | None = None
+    latest_research_json: dict | None = None
+    slack_channel_id: str | None = None
+    slack_message_ts: str | None = None
+    slack_notified_at: datetime | None = None
     reminder_count: int = 0
-    raw_alert_json: dict[str, Any] = Field(default_factory=dict)
+    resolved_at: datetime | None = None
+    raw_alert_json: dict | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
 
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
 
-
-class AlertReviewResult(BaseModel):
+class DependabotRiskAssessment(BaseModel):
     alert_id: str
-    alert_number: int
-    priority: Priority
+    package: str
+    ecosystem: str
+    severity: Literal["critical", "high", "medium", "low"]
+    current_version: str | None = None
+    suggested_version: str | None = None
+    cve_summary: str
+    usage_in_codebase: str
+    breaking_change_risk: Literal["low", "medium", "high", "critical"]
+    breaking_change_rationale: str
+    recommendation: Literal[
+        "apply_immediately", "apply_with_testing", "defer", "skip"
+    ]
+    suggested_pr_description: str
+    priority: Literal["critical", "high", "medium", "low"]
+    confidence: Literal["high", "medium", "low"]
     risk_summary: str
-    recommended_action: str
     reasoning: str
-    confidence: Confidence
 
 
 class AlertReviewResponse(BaseModel):
-    results: List[AlertReviewResult] = Field(default_factory=list)
+    results: list[DependabotRiskAssessment]
 
 
 class AlertReviewWrite(BaseModel):
     alert_id: str
     repo_full_name: str
-    review_group_key: str
-    review_reason: ReviewReason
+    review_group_key: str | None = None
+    review_reason: str
     model_name: str
     prompt_version: str
     recommendation: str
-    priority: Priority
-    confidence: Confidence
+    priority: str
+    confidence: str
     risksummary: str
     reasoning: str
-    research_json: dict[str, Any] = Field(default_factory=dict)
-    assessment_json: dict[str, Any] = Field(default_factory=dict)
+    current_version: str | None = None
+    suggested_version: str | None = None
+    cve_summary: str | None = None
+    usage_in_codebase: str | None = None
+    breaking_change_risk: str | None = None
+    breaking_change_rationale: str | None = None
+    suggested_pr_description: str | None = None
+    research_json: dict
+    assessment_json: dict
 
 
-class SimpleQuestionResponse(BaseModel):
-    answer: str
+class AlertGroup(BaseModel):
+    repo_full_name: str
+    package_name: str
+    ecosystem: str
+    severity: str | None
+    summary: str | None
+    description: str | None
+    cve_id: str | None
+    ghsa_id: str | None
+    vulnerable_version_range: str | None
+    first_patched_version: str | None
+    review_group_key: str | None
+    review_reason: str | None
+    # Per-manifest members of the group
+    manifest_paths: list[str]
+    alert_ids: list[str]
+    alert_numbers: list[int]
