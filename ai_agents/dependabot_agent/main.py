@@ -97,7 +97,7 @@ def build_group_payload(group: AlertGroup) -> dict:
 
 def main() -> None:
     ollama_url = get_required_env("OLLAMA_BASE_URL")
-    slack_webhook_url = get_required_env("SLACK_DEPENDABOT_WEBHOOK_URL")
+    slack_webhook_url = get_required_env("DEPENDABOT_SLACK_WEBHOOK")
     qwen_model = "qwen3.5:9b"
 
     repo_full_name = getenv("REPO_FULL_NAME")

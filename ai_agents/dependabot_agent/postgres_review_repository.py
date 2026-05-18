@@ -7,8 +7,8 @@ import psycopg
 from psycopg.rows import dict_row
 
 from logging_util import console_logging
-from schemas import AlertGroup, AlertRecord, \
-    AlertReviewWrite, DependabotRiskAssessment
+from schemas import AlertGroup, AlertRecord, AlertReviewWrite, \
+    StoredRiskAssessment
 
 logger = console_logging("Postgres review repository")
 
@@ -76,15 +76,15 @@ class PostgresReviewRepository:
                 postgres_password=self.postgres_password,
             )
 
-        with self.conn.cursor() as cur:
-            cur.execute("select current_database(), current_user, current_schema()")  # noqa: E501
-            db_name, db_user, db_schema = cur.fetchone()
-            logger.info(
-                "Postgres connection established database=%s user=%s schema=%s",  # noqa: E501
-                db_name,
-                db_user,
-                db_schema,
-            )
+            with self.conn.cursor() as cur:
+                cur.execute("select current_database(), current_user, current_schema()")  # noqa: E501
+                db_name, db_user, db_schema = cur.fetchone()
+                logger.info(
+                    "Postgres connection established database=%s user=%s schema=%s",  # noqa: E501
+                    db_name,
+                    db_user,
+                    db_schema,
+                )
 
     def close(self) -> None:
         if self.conn is not None and not self.conn.closed:
@@ -128,13 +128,13 @@ class PostgresReviewRepository:
                 MIN(description)                    AS description,
                 MIN(cve_id)                         AS cve_id,
                 MIN(ghsa_id)                        AS ghsa_id,
-                MIN(vulnerable_version_range)       AS vulnerable_version_range,  # noqa: E501
+                MIN(vulnerable_version_range)       AS vulnerable_version_range,
                 MIN(first_patched_version)          AS first_patched_version,
                 MIN(review_group_key)               AS review_group_key,
                 MIN(review_reason)                  AS review_reason,
-                array_agg(manifest_path ORDER BY alert_number ASC) AS manifest_paths,  # noqa: E501
-                array_agg(alert_id      ORDER BY alert_number ASC) AS alert_ids,  # noqa: E501
-                array_agg(alert_number  ORDER BY alert_number ASC) AS alert_numbers  # noqa: E501
+                array_agg(manifest_path ORDER BY alert_number ASC) AS manifest_paths,
+                array_agg(alert_id      ORDER BY alert_number ASC) AS alert_ids,
+                array_agg(alert_number  ORDER BY alert_number ASC) AS alert_numbers
             FROM dependabot_alerts
             WHERE {' AND '.join(where_clauses)}
             GROUP BY repo_full_name, package_name, ecosystem
@@ -173,14 +173,11 @@ class PostgresReviewRepository:
             SELECT *
             FROM dependabot_alerts
             WHERE github_state = 'open'
-              AND needs_review = FALSE
-              AND (
+            AND needs_review = FALSE
+            AND (
                 slack_notified_at IS NULL
-                OR (
-                    slack_message_ts IS NOT NULL
-                    AND slack_notified_at < %(cutoff)s
-                )
-              )
+                OR slack_message_ts < %(cutoff)s
+            )
             ORDER BY alert_number ASC
         """
 
@@ -200,7 +197,7 @@ class PostgresReviewRepository:
     def fetch_latest_assessment(
         self,
         alert_id: str,
-    ) -> DependabotRiskAssessment | None:
+    ) -> StoredRiskAssessment | None:
         self.connect()
 
         sql = """
@@ -235,7 +232,7 @@ class PostgresReviewRepository:
 
         assessment_json = row.get("assessment_json") or {}
 
-        return DependabotRiskAssessment(
+        return StoredRiskAssessment(
             alert_id=row["alert_id"],
             manifest_path=assessment_json.get("manifest_path", ""),
             package=assessment_json.get("package", ""),

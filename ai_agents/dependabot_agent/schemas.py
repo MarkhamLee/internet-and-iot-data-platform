@@ -74,6 +74,7 @@ class AlertGroup(BaseModel):
 
 
 class DependabotRiskAssessment(BaseModel):
+    """LLM output model — strict enums enforced."""
     alert_id: str
     manifest_path: str
     package: str
@@ -91,6 +92,31 @@ class DependabotRiskAssessment(BaseModel):
     suggested_pr_description: str
     priority: Literal["critical", "high", "medium", "low"]
     confidence: Literal["high", "medium", "low"]
+    risk_summary: str
+    reasoning: str
+
+
+class StoredRiskAssessment(BaseModel):
+
+    """Read model for assessments loaded from the DB —
+    tolerates legacy free-text values.
+    """
+
+    alert_id: str
+    manifest_path: str
+    package: str
+    ecosystem: str
+    severity: str
+    current_version: str | None = None
+    suggested_version: str | None = None
+    cve_summary: str
+    usage_in_codebase: str
+    breaking_change_risk: str
+    breaking_change_rationale: str
+    recommendation: str
+    suggested_pr_description: str
+    priority: str
+    confidence: str
     risk_summary: str
     reasoning: str
 
