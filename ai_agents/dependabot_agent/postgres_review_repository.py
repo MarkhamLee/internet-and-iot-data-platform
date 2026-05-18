@@ -2,11 +2,12 @@
 # https://github.com/MarkhamLee/internet-and-iot-data-platform
 # repository for reading pending dependabot alerts and writing alert reviews
 import json
+from datetime import datetime, timedelta, timezone
 import psycopg
 from psycopg.rows import dict_row
 
 from logging_util import console_logging
-from schemas import AlertRecord, AlertReviewWrite
+from schemas import AlertRecord, AlertReviewWrite, DependabotRiskAssessment
 
 logger = console_logging("Postgres review repository")
 
@@ -74,15 +75,15 @@ class PostgresReviewRepository:
                 postgres_password=self.postgres_password,
             )
 
-            with self.conn.cursor() as cur:
-                cur.execute("select current_database(), current_user, current_schema()")  # noqa: E501
-                db_name, db_user, db_schema = cur.fetchone()
-                logger.info(
-                    "Postgres connection established database=%s user=%s schema=%s",  # noqa: E501
-                    db_name,
-                    db_user,
-                    db_schema,
-                )
+        with self.conn.cursor() as cur:
+            cur.execute("select current_database(), current_user, current_schema()")  # noqa: E501
+            db_name, db_user, db_schema = cur.fetchone()
+            logger.info(
+                "Postgres connection established database=%s user=%s schema=%s",  # noqa: E501
+                db_name,
+                db_user,
+                db_schema,
+            )
 
     def close(self) -> None:
         if self.conn is not None and not self.conn.closed:
@@ -137,6 +138,144 @@ class PostgresReviewRepository:
 
         return [AlertRecord.model_validate(row) for row in rows]
 
+    def fetch_alerts_needing_slack_notification(
+        self,
+        *,
+        reminder_interval_hours: int = 24,
+    ) -> list[AlertRecord]:
+        self.connect()
+
+        cutoff = datetime.\
+            now(tz=timezone.utc) - timedelta(hours=reminder_interval_hours)
+
+        sql = """
+            SELECT *
+            FROM dependabot_alerts
+            WHERE github_state = 'open'
+              AND needs_review = FALSE
+              AND (
+                slack_notified_at IS NULL
+                OR (
+                    slack_message_ts IS NOT NULL
+                    AND slack_notified_at < %(cutoff)s
+                )
+              )
+            ORDER BY alert_number ASC
+        """
+
+        logger.info(
+            "Fetching alerts needing Slack notification reminder_interval_hours=%s",  # noqa: E501
+            reminder_interval_hours,
+        )
+
+        with self.conn.cursor(row_factory=dict_row) as cur:
+            cur.execute(sql, {"cutoff": cutoff})
+            rows = cur.fetchall()
+            logger.info("Fetched %s alerts needing Slack notification",
+                        len(rows))
+
+        return [AlertRecord.model_validate(row) for row in rows]
+
+    def fetch_latest_assessment(
+        self,
+        alert_id: str,
+    ) -> DependabotRiskAssessment | None:
+        self.connect()
+
+        sql = """
+            SELECT
+                alert_id,
+                recommendation,
+                priority       AS severity,
+                confidence,
+                risksummary    AS risk_summary,
+                reasoning,
+                current_version,
+                suggested_version,
+                cve_summary,
+                usage_in_codebase,
+                breaking_change_risk,
+                breaking_change_rationale,
+                suggested_pr_description,
+                assessment_json
+            FROM dependabot_alert_reviews
+            WHERE alert_id = %s
+            ORDER BY reviewed_at DESC
+            LIMIT 1
+        """
+
+        with self.conn.cursor(row_factory=dict_row) as cur:
+            cur.execute(sql, (alert_id,))
+            row = cur.fetchone()
+
+        if row is None:
+            logger.warning("No assessment found for alert_id=%s", alert_id)
+            return None
+
+        assessment_json = row.get("assessment_json") or {}
+
+        return DependabotRiskAssessment(
+            alert_id=row["alert_id"],
+            package=assessment_json.get("package", ""),
+            ecosystem=assessment_json.get("ecosystem", ""),
+            severity=assessment_json.get("severity", row["severity"]),
+            current_version=row["current_version"],
+            suggested_version=row["suggested_version"],
+            cve_summary=row["cve_summary"] or "",
+            usage_in_codebase=row["usage_in_codebase"] or "",
+            breaking_change_risk=row["breaking_change_risk"] or "low",
+            breaking_change_rationale=row["breaking_change_rationale"] or "",
+            recommendation=row["recommendation"],
+            suggested_pr_description=row["suggested_pr_description"] or "",
+            priority=row["severity"],
+            confidence=row["confidence"],
+            risk_summary=row["risk_summary"] or "",
+            reasoning=row["reasoning"] or "",
+        )
+
+    def mark_alert_slack_notified(
+        self,
+        *,
+        alert_id: str,
+        is_reminder: bool,
+        notified_at: datetime,
+    ) -> None:
+        self.connect()
+
+        if is_reminder:
+            sql = """
+                UPDATE dependabot_alerts
+                SET
+                    slack_message_ts  = %(notified_at)s,
+                    reminder_count    = COALESCE(reminder_count, 0) + 1,
+                    updated_at        = NOW()
+                WHERE alert_id = %(alert_id)s
+            """
+        else:
+            sql = """
+                UPDATE dependabot_alerts
+                SET
+                    slack_notified_at = %(notified_at)s,
+                    slack_message_ts  = %(notified_at)s,
+                    reminder_count    = 0,
+                    updated_at        = NOW()
+                WHERE alert_id = %(alert_id)s
+            """
+
+        payload = {
+            "alert_id": alert_id,
+            "notified_at": notified_at,
+        }
+
+        with self.conn.cursor() as cur:
+            cur.execute(sql, payload)
+            logger.info(
+                "Marked alert Slack notified rowcount=%s alert_id=%s is_reminder=%s",  # noqa: E501
+                cur.rowcount,
+                alert_id,
+                is_reminder,
+            )
+
     def insert_review(self, review: AlertReviewWrite) -> None:
         self.connect()
 
@@ -153,6 +292,13 @@ class PostgresReviewRepository:
                 confidence,
                 risksummary,
                 reasoning,
+                current_version,
+                suggested_version,
+                cve_summary,
+                usage_in_codebase,
+                breaking_change_risk,
+                breaking_change_rationale,
+                suggested_pr_description,
                 research_json,
                 assessment_json
             )
@@ -168,6 +314,13 @@ class PostgresReviewRepository:
                 %(confidence)s,
                 %(risksummary)s,
                 %(reasoning)s,
+                %(current_version)s,
+                %(suggested_version)s,
+                %(cve_summary)s,
+                %(usage_in_codebase)s,
+                %(breaking_change_risk)s,
+                %(breaking_change_rationale)s,
+                %(suggested_pr_description)s,
                 %(research_json)s::jsonb,
                 %(assessment_json)s::jsonb
             )
@@ -196,10 +349,10 @@ class PostgresReviewRepository:
         sql = """
             UPDATE dependabot_alerts
             SET
-                needs_review = FALSE,
-                last_researched_at = NOW(),
+                needs_review         = FALSE,
+                last_researched_at   = NOW(),
                 latest_research_json = %(latest_research_json)s::jsonb,
-                updated_at = NOW()
+                updated_at           = NOW()
             WHERE alert_id = %(alert_id)s
         """
 
