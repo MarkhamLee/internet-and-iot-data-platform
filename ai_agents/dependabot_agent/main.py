@@ -5,7 +5,7 @@ import sys
 import os
 from os import getenv
 from datetime import datetime, timezone
-from schemas import AlertReviewResponse, AlertReviewWrite
+from schemas import AlertGroup, AlertReviewResponse, AlertReviewWrite
 from time import perf_counter
 from logging_util import console_logging
 from postgres_review_repository import PostgresReviewRepository
@@ -21,32 +21,38 @@ from agent_library.\
 logger = console_logging("Dependabot review orchestrator")
 
 REVIEW_PROMPT = """
-You are reviewing a single GitHub Dependabot alert for a software repository.
+You are reviewing a group of GitHub Dependabot alerts for the same vulnerable
+package across one or more manifest files in a repository.
 
 Your task:
-- Review the alert in the payload.
-- Identify the currently installed (vulnerable) version and the suggested safe
-  upgrade version based on the vulnerable_version_range and
-  first_patched_version.
-- Assign a remediation priority: critical, high, medium, or low.
-- Write a short cve_summary explaining the vulnerability in plain language.
-- Describe how the package is likely used in the codebase based on its name,
-  ecosystem, manifest path, scope, and relationship.
-- Assess breaking_change_risk (low, medium, high, critical) and explain your
-  rationale in breaking_change_rationale.
-- Recommend one of: apply_immediately, apply_with_testing, defer, skip.
-- Write a suggested_pr_description suitable for a pull request description.
-- Write a short risk_summary in plain language.
-- Explain your reasoning briefly.
-- Set confidence to high, medium, or low.
+- Review the alert group in the payload.
+- For EACH manifest_path in the payload, return one result containing:
+  - The alert_id that corresponds to that manifest_path
+  (provided in the payload).
+  - The manifest_path itself.
+  - Identify the currently installed (vulnerable) version and suggested safe
+    upgrade version based on vulnerable_version_range and
+    first_patched_version.
+  - Assign a remediation priority: critical, high, medium, or low.
+  - Write a short cve_summary explaining the vulnerability in plain language.
+  - Describe how the package is likely used based on its manifest path, scope,
+    ecosystem, and relationship.
+  - Assess breaking_change_risk (low, medium, high, critical) and explain your
+    rationale in breaking_change_rationale.
+  - Recommend one of: apply_immediately, apply_with_testing, defer, skip.
+  - Write a suggested_pr_description suitable for a pull request description.
+  - Write a short risk_summary in plain language.
+  - Explain your reasoning briefly.
+  - Set confidence to high, medium, or low.
 
 Guidance:
-- Consider package ecosystem, severity, manifest path, scope, relationship,
-  and whether the package appears runtime-related.
+- The vulnerability details (CVE, severity, version range) are the same for all
+  manifest paths — only the usage context and breaking change risk may differ
+  between paths.
 - Prioritize runtime production dependencies over development-only dependencies
   when risk is otherwise similar.
 - Prefer practical engineering judgment over generic security wording.
-- Return exactly one result for the alert_id in the payload.
+- Return exactly one result per manifest_path — no more, no fewer.
 """.strip()
 
 POSTGRES_DATABASE = os.environ['POSTGRES_DEPENDABOT_DATABASE']
@@ -65,34 +71,33 @@ def get_required_env(name: str) -> str:
     return value
 
 
-def build_review_payload(alert: dict) -> dict:
+def build_group_payload(group: AlertGroup) -> dict:
     return {
-        "task": "review_single_dependabot_alert",
-        "alert": {
-            "alert_id": alert["alert_id"],
-            "alert_number": alert["alert_number"],
-            "repo_full_name": alert["repo_full_name"],
-            "package_name": alert["package_name"],
-            "ecosystem": alert["ecosystem"],
-            "manifest_path": alert.get("manifest_path"),
-            "scope": alert.get("scope"),
-            "relationship": alert.get("relationship"),
-            "severity": alert.get("severity"),
-            "summary": alert.get("summary"),
-            "description": alert.get("description"),
-            "cve_id": alert.get("cve_id"),
-            "ghsa_id": alert.get("ghsa_id"),
-            "vulnerable_version_range": alert.get("vulnerable_version_range"),
-            "first_patched_version": alert.get("first_patched_version"),
-            "alert_html_url": alert.get("alert_html_url"),
-            "review_reason": alert.get("review_reason"),
+        "task": "review_dependabot_alert_group",
+        "group": {
+            "repo_full_name": group.repo_full_name,
+            "package_name": group.package_name,
+            "ecosystem": group.ecosystem,
+            "severity": group.severity,
+            "summary": group.summary,
+            "description": group.description,
+            "cve_id": group.cve_id,
+            "ghsa_id": group.ghsa_id,
+            "vulnerable_version_range": group.vulnerable_version_range,
+            "first_patched_version": group.first_patched_version,
+            "review_reason": group.review_reason,
+            "manifests": [
+                {"alert_id": alert_id, "manifest_path": path}
+                for alert_id, path in zip(group.alert_ids,
+                                          group.manifest_paths)
+            ],
         },
     }
 
 
 def main() -> None:
     ollama_url = get_required_env("OLLAMA_BASE_URL")
-    slack_webhook_url = get_required_env("DEPENDABOT_SLACK_WEBHOOK")
+    slack_webhook_url = get_required_env("SLACK_DEPENDABOT_WEBHOOK_URL")
     qwen_model = "qwen3.5:9b"
 
     repo_full_name = getenv("REPO_FULL_NAME")
@@ -107,7 +112,7 @@ def main() -> None:
         temperature=0,
     )
 
-    # Phase 1: Fetch alerts needing review
+    # Phase 1: Fetch alert groups needing review
     with PostgresReviewRepository(
         db_host=POSTGRES_HOST,
         db_port=POSTGRES_PORT,
@@ -115,96 +120,119 @@ def main() -> None:
         postgres_user=POSTGRES_USER_NAME,
         postgres_password=POSTGRES_SECRET,
     ) as repository:
-        alerts = repository.fetch_alerts_needing_review(
+        groups = repository.fetch_alert_groups_needing_review(
             repo_full_name=repo_full_name,
             limit=review_limit,
         )
 
-    if not alerts:
-        logger.info("No alerts require review")
+    if not groups:
+        logger.info("No alert groups require review")
     else:
-        logger.info("Reviewing %s alerts one at a time", len(alerts))
+        total_alerts = sum(len(g.alert_ids) for g in groups)
+        logger.info(
+            "Reviewing %s alert groups covering %s alerts",
+            len(groups),
+            total_alerts,
+        )
 
         reviewed_count = 0
         start = perf_counter()
 
-        for alert in alerts:
-            logger.info("Reviewing alert_id=%s", alert.alert_id)
+        for group in groups:
+            logger.info(
+                "Reviewing group package=%s ecosystem=%s manifest_count=%s",
+                group.package_name,
+                group.ecosystem,
+                len(group.manifest_paths),
+            )
 
-            payload = build_review_payload(alert.model_dump(mode="python"))
+            payload = build_group_payload(group)
             response = qwen_client.generate_structured_response(
                 prompt=REVIEW_PROMPT,
                 payload=payload,
                 response_model=AlertReviewResponse,
             )
 
-            logger.info("Qwen response received for alert_id=%s",
-                        alert.alert_id)
-
-            if len(response.results) != 1:
-                raise RuntimeError(
-                    f"Expected exactly one review result for alert_id={alert.alert_id}, "  # noqa: E501
-                    f"got {len(response.results)}"
-                )
-
-            review = response.results[0]
-            if review.alert_id != alert.alert_id:
-                raise RuntimeError(
-                    f"Review alert_id mismatch. expected={alert.alert_id}, "
-                    f"got={review.alert_id}"
-                )
-
-            review_write = AlertReviewWrite(
-                alert_id=alert.alert_id,
-                repo_full_name=alert.repo_full_name,
-                review_group_key=alert.review_group_key,
-                review_reason=alert.review_reason or "manual_recheck",
-                model_name=qwen_client.model,
-                prompt_version=prompt_version,
-                recommendation=review.recommendation,
-                priority=review.priority,
-                confidence=review.confidence,
-                risksummary=review.risk_summary,
-                reasoning=review.reasoning,
-                current_version=review.current_version,
-                suggested_version=review.suggested_version,
-                cve_summary=review.cve_summary,
-                usage_in_codebase=review.usage_in_codebase,
-                breaking_change_risk=review.breaking_change_risk,
-                breaking_change_rationale=review.breaking_change_rationale,
-                suggested_pr_description=review.suggested_pr_description,
-                research_json=alert.model_dump(mode="json"),
-                assessment_json=review.model_dump(mode="json"),
+            logger.info(
+                "Qwen response received package=%s result_count=%s",
+                group.package_name,
+                len(response.results),
             )
 
-            # Phase 2: Write review result
-            with PostgresReviewRepository(
-                db_host=POSTGRES_HOST,
-                db_port=POSTGRES_PORT,
-                database=POSTGRES_DATABASE,
-                postgres_user=POSTGRES_USER_NAME,
-                postgres_password=POSTGRES_SECRET,
-            ) as repository:
-                repository.save_review_result(
-                    review=review_write,
-                    latest_research_json={
-                        "model_name": qwen_client.model,
-                        "prompt_version": prompt_version,
-                        "review": review.model_dump(mode="json"),
-                    },
+            if len(response.results) != len(group.manifest_paths):
+                raise RuntimeError(
+                    f"Result count mismatch for package={group.package_name}. "
+                    f"expected={len(group.manifest_paths)} got={len(response.results)}"  # noqa: E501
                 )
 
-            reviewed_count += 1
-            logger.info("Completed review for alert_id=%s", alert.alert_id)
+            for review in response.results:
+                alert_id = group.alert_id_for_path(review.manifest_path)
 
-            # Optional: break here during debugging to process just one alert
-            # break
+                if alert_id is None:
+                    raise RuntimeError(
+                        f"Unrecognised manifest_path={review.manifest_path} "
+                        f"in response for package={group.package_name}"
+                    )
+
+                if review.alert_id != alert_id:
+                    raise RuntimeError(
+                        f"Review alert_id mismatch for manifest_path={review.manifest_path}. "  # noqa: E501
+                        f"expected={alert_id} got={review.alert_id}"
+                    )
+
+                review_write = AlertReviewWrite(
+                    alert_id=alert_id,
+                    repo_full_name=group.repo_full_name,
+                    review_group_key=group.review_group_key,
+                    review_reason=group.review_reason or "manual_recheck",
+                    model_name=qwen_client.model,
+                    prompt_version=prompt_version,
+                    recommendation=review.recommendation,
+                    priority=review.priority,
+                    confidence=review.confidence,
+                    risksummary=review.risk_summary,
+                    reasoning=review.reasoning,
+                    current_version=review.current_version,
+                    suggested_version=review.suggested_version,
+                    cve_summary=review.cve_summary,
+                    usage_in_codebase=review.usage_in_codebase,
+                    breaking_change_risk=review.breaking_change_risk,
+                    breaking_change_rationale=review.breaking_change_rationale,
+                    suggested_pr_description=review.suggested_pr_description,
+                    research_json=group.model_dump(mode="json"),
+                    assessment_json=review.model_dump(mode="json"),
+                )
+
+                # Phase 2: Write each review result
+                with PostgresReviewRepository(
+                    db_host=POSTGRES_HOST,
+                    db_port=POSTGRES_PORT,
+                    database=POSTGRES_DATABASE,
+                    postgres_user=POSTGRES_USER_NAME,
+                    postgres_password=POSTGRES_SECRET,
+                ) as repository:
+                    repository.save_review_result(
+                        review=review_write,
+                        latest_research_json={
+                            "model_name": qwen_client.model,
+                            "prompt_version": prompt_version,
+                            "review": review.model_dump(mode="json"),
+                        },
+                    )
+
+                reviewed_count += 1
+                logger.info(
+                    "Completed review for alert_id=%s manifest_path=%s",
+                    alert_id,
+                    review.manifest_path,
+                )
 
         duration = round(perf_counter() - start, 2)
         logger.info(
             "Dependabot review workflow completed successfully; "
-            "reviewed %s alerts in %s seconds",
+            "reviewed %s alerts across %s groups in %s seconds",
             reviewed_count,
+            len(groups),
             duration,
         )
 
@@ -231,7 +259,15 @@ def main() -> None:
 
     for alert in alerts_to_notify:
         is_reminder = alert.slack_notified_at is not None
-        assessment = repository.fetch_latest_assessment(alert.alert_id)
+
+        with PostgresReviewRepository(
+            db_host=POSTGRES_HOST,
+            db_port=POSTGRES_PORT,
+            database=POSTGRES_DATABASE,
+            postgres_user=POSTGRES_USER_NAME,
+            postgres_password=POSTGRES_SECRET,
+        ) as repository:
+            assessment = repository.fetch_latest_assessment(alert.alert_id)
 
         if assessment is None:
             logger.warning(
@@ -244,14 +280,20 @@ def main() -> None:
             reminder_count = (alert.reminder_count or 0) + 1
             blocks = build_reminder_blocks(assessment,
                                            reminder_count=reminder_count)
-            fallback = f"Reminder #{reminder_count}: {alert.package_name} upgrade still pending ({alert.repo_full_name})"  # noqa: E501
+            fallback = (
+                f"Reminder #{reminder_count}: {alert.package_name} "
+                f"upgrade still pending ({alert.repo_full_name})"
+            )
         else:
             blocks = build_report_blocks(
                 assessment,
                 repo=alert.repo_full_name,
                 cve_id=alert.cve_id,
             )
-            fallback = f"New Dependabot alert: {alert.package_name} [{alert.severity}] in {alert.repo_full_name}"  # noqa: E501
+            fallback = (
+                f"New Dependabot alert: {alert.package_name} "
+                f"[{alert.severity}] in {alert.repo_full_name}"
+            )
 
         payload = build_slack_payload(blocks, fallback_text=fallback)
         status_code = send_slack_webhook_block(slack_webhook_url, payload)

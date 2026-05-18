@@ -7,7 +7,8 @@ import psycopg
 from psycopg.rows import dict_row
 
 from logging_util import console_logging
-from schemas import AlertRecord, AlertReviewWrite, DependabotRiskAssessment
+from schemas import AlertGroup, AlertRecord, \
+    AlertReviewWrite, DependabotRiskAssessment
 
 logger = console_logging("Postgres review repository")
 
@@ -97,19 +98,19 @@ class PostgresReviewRepository:
     def __exit__(self, exc_type, exc, tb):
         self.close()
 
-    def fetch_alerts_needing_review(
+    def fetch_alert_groups_needing_review(
         self,
         *,
         repo_full_name: str | None = None,
         limit: int = 25,
-    ) -> list[AlertRecord]:
+    ) -> list[AlertGroup]:
         self.connect()
 
         where_clauses = [
             "github_state = 'open'",
             "needs_review = TRUE",
         ]
-        params = []
+        params: list = []
 
         if repo_full_name:
             where_clauses.append("repo_full_name = %s")
@@ -118,15 +119,31 @@ class PostgresReviewRepository:
         params.append(limit)
 
         sql = f"""
-            SELECT *
+            SELECT
+                repo_full_name,
+                package_name,
+                ecosystem,
+                MIN(severity)                       AS severity,
+                MIN(summary)                        AS summary,
+                MIN(description)                    AS description,
+                MIN(cve_id)                         AS cve_id,
+                MIN(ghsa_id)                        AS ghsa_id,
+                MIN(vulnerable_version_range)       AS vulnerable_version_range,  # noqa: E501
+                MIN(first_patched_version)          AS first_patched_version,
+                MIN(review_group_key)               AS review_group_key,
+                MIN(review_reason)                  AS review_reason,
+                array_agg(manifest_path ORDER BY alert_number ASC) AS manifest_paths,  # noqa: E501
+                array_agg(alert_id      ORDER BY alert_number ASC) AS alert_ids,  # noqa: E501
+                array_agg(alert_number  ORDER BY alert_number ASC) AS alert_numbers  # noqa: E501
             FROM dependabot_alerts
             WHERE {' AND '.join(where_clauses)}
-            ORDER BY alert_number ASC
+            GROUP BY repo_full_name, package_name, ecosystem
+            ORDER BY MIN(alert_number) ASC
             LIMIT %s
         """
 
         logger.info(
-            "Fetching alerts needing review repo_full_name=%s limit=%s",
+            "Fetching alert groups needing review repo_full_name=%s limit=%s",
             repo_full_name,
             limit,
         )
@@ -134,9 +151,13 @@ class PostgresReviewRepository:
         with self.conn.cursor(row_factory=dict_row) as cur:
             cur.execute(sql, params)
             rows = cur.fetchall()
-            logger.info("Fetched %s alerts needing review", len(rows))
 
-        return [AlertRecord.model_validate(row) for row in rows]
+        logger.info(
+            "Fetched %s alert groups needing review",
+            len(rows),
+        )
+
+        return [AlertGroup.model_validate(row) for row in rows]
 
     def fetch_alerts_needing_slack_notification(
         self,
@@ -186,9 +207,9 @@ class PostgresReviewRepository:
             SELECT
                 alert_id,
                 recommendation,
-                priority       AS severity,
+                priority                AS severity,
                 confidence,
-                risksummary    AS risk_summary,
+                risksummary             AS risk_summary,
                 reasoning,
                 current_version,
                 suggested_version,
@@ -216,6 +237,7 @@ class PostgresReviewRepository:
 
         return DependabotRiskAssessment(
             alert_id=row["alert_id"],
+            manifest_path=assessment_json.get("manifest_path", ""),
             package=assessment_json.get("package", ""),
             ecosystem=assessment_json.get("ecosystem", ""),
             severity=assessment_json.get("severity", row["severity"]),
@@ -246,9 +268,9 @@ class PostgresReviewRepository:
             sql = """
                 UPDATE dependabot_alerts
                 SET
-                    slack_message_ts  = %(notified_at)s,
-                    reminder_count    = COALESCE(reminder_count, 0) + 1,
-                    updated_at        = NOW()
+                    slack_message_ts = %(notified_at)s,
+                    reminder_count   = COALESCE(reminder_count, 0) + 1,
+                    updated_at       = NOW()
                 WHERE alert_id = %(alert_id)s
             """
         else:
@@ -262,10 +284,7 @@ class PostgresReviewRepository:
                 WHERE alert_id = %(alert_id)s
             """
 
-        payload = {
-            "alert_id": alert_id,
-            "notified_at": notified_at,
-        }
+        payload = {"alert_id": alert_id, "notified_at": notified_at}
 
         with self.conn.cursor() as cur:
             cur.execute(sql, payload)

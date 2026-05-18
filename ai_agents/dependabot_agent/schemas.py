@@ -48,8 +48,34 @@ class AlertRecord(BaseModel):
     updated_at: datetime | None = None
 
 
+class AlertGroup(BaseModel):
+    repo_full_name: str
+    package_name: str
+    ecosystem: str
+    severity: str | None = None
+    summary: str | None = None
+    description: str | None = None
+    cve_id: str | None = None
+    ghsa_id: str | None = None
+    vulnerable_version_range: str | None = None
+    first_patched_version: str | None = None
+    review_group_key: str | None = None
+    review_reason: str | None = None
+    manifest_paths: list[str]
+    alert_ids: list[str]
+    alert_numbers: list[int]
+
+    def alert_id_for_path(self, manifest_path: str) -> str | None:
+        """Look up the alert_id corresponding to a given manifest_path."""
+        for path, alert_id in zip(self.manifest_paths, self.alert_ids):
+            if path == manifest_path:
+                return alert_id
+        return None
+
+
 class DependabotRiskAssessment(BaseModel):
     alert_id: str
+    manifest_path: str
     package: str
     ecosystem: str
     severity: Literal["critical", "high", "medium", "low"]
@@ -94,22 +120,3 @@ class AlertReviewWrite(BaseModel):
     suggested_pr_description: str | None = None
     research_json: dict
     assessment_json: dict
-
-
-class AlertGroup(BaseModel):
-    repo_full_name: str
-    package_name: str
-    ecosystem: str
-    severity: str | None
-    summary: str | None
-    description: str | None
-    cve_id: str | None
-    ghsa_id: str | None
-    vulnerable_version_range: str | None
-    first_patched_version: str | None
-    review_group_key: str | None
-    review_reason: str | None
-    # Per-manifest members of the group
-    manifest_paths: list[str]
-    alert_ids: list[str]
-    alert_numbers: list[int]
