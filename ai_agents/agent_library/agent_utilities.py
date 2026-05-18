@@ -7,7 +7,7 @@ from agent_library.logging_util import console_logging
 logger = console_logging('agent_utilities_logs')
 
 
-def send_slack_webhook(url: str, message: str):
+def send_slack_webhook_basic(url: str, message: str):
 
     headers = {
         'Content-type': 'application/json'
@@ -28,3 +28,29 @@ def send_slack_webhook(url: str, message: str):
         logger.debug(f'Publishing of alert to Slack webhook suceeded with code: {code}')  # noqa: E501
 
     return code
+
+
+def send_slack_webhook_block(webhook_url: str, payload: dict) -> int:
+    headers = {
+        "Content-Type": "application/json; charset=utf-8",
+    }
+
+    try:
+        response = requests.post(
+            webhook_url,
+            headers=headers,
+            json=payload,
+            timeout=(5, 20),
+        )
+        response.raise_for_status()
+    except requests.RequestException as exc:
+        status_code = getattr(exc.response, "status_code", 0)
+        logger.debug(
+            f"Publishing of alert to Slack webhook failed with response code: {status_code}, error: {exc}"  # noqa: E501
+        )
+        return status_code
+
+    logger.debug(
+        f"Publishing of alert to Slack webhook succeeded with code: {response.status_code}"  # noqa: E501
+    )
+    return response.status_code

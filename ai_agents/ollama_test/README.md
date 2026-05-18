@@ -1,4 +1,6 @@
-## Testing Ollama Connection --- WORK IN PROGRESS
+## Testing Ollama Connection
+
+Simple code that uses FastAPI and Lanchain to set up a local server that you can then use to test an Ollama instance. 
 
 1. Set the environmental variables for the ollama instance's URL 
 
