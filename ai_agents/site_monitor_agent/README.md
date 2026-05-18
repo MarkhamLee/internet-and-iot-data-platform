@@ -48,11 +48,10 @@ It's a Docker based application that uses a Qwen 3b model running on Ollama (dep
 
 
 
-### Deployment 
+### Deployment & CI/CD 
 
-I have it deployed to as Argo Workflow cron job:
-* The Argo workflow manifest is pushed to Git where it's picked up by ArgoCD and then applied to the cluster.
-* I mount the yaml config file as a config map in K3S
-* Any changes that need to be made are made in GitHub where they're picked up within a few minutes by ArgoCD.
-* The agent is Docker based and GitHub actions are used to build new containers and push them to a private Docker Hub repo whenever code is pushed to Git
+* The agent runs as a Argo cron job that runs on a schedule 
+    * The Argo workflow cron job manifest is pushed to Git where it's picked up by ArgoCD and applied to the cluster and the Argo Workflow controller picks up and manages it from there. 
+    * The Argo UI is only used for monitoring workflows and diagnosing errors, all changes are made editing manifest files and then pushing the changes to Git.
+* GitHub actions are used to build the Docker container and push it to Docker Hub. Changes will be used in the next run after the container is rebuilt.
 
