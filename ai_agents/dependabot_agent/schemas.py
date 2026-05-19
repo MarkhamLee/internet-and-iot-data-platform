@@ -146,3 +146,7 @@ class AlertReviewWrite(BaseModel):
     suggested_pr_description: str | None = None
     research_json: dict
     assessment_json: dict
+
+
+class SimpleQuestionResponse(BaseModel):
+    answer: str
