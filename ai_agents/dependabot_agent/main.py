@@ -17,6 +17,7 @@ from slack_message_builder import (
     build_slack_payload,
 )
 
+
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(parent_dir)
 from agent_library.agent_utilities import (  # noqa: E402
@@ -24,7 +25,9 @@ from agent_library.agent_utilities import (  # noqa: E402
     write_instrumentation,
 )
 
+
 logger = console_logging("Dependabot review orchestrator")
+
 
 REVIEW_PROMPT = """
 You are reviewing a group of GitHub Dependabot alerts for the same vulnerable
@@ -60,6 +63,7 @@ Guidance:
 - Prefer practical engineering judgment over generic security wording.
 - Return exactly one result per manifest_path — no more, no fewer.
 """.strip()
+
 
 POSTGRES_DATABASE = os.environ['POSTGRES_DEPENDABOT_DATABASE']
 POSTGRES_SECRET = os.environ['DEPENDABOT_AGENT_POSTGRES']
@@ -116,7 +120,7 @@ def main() -> None:
     run_id = uuid.uuid4()
     started_at = datetime.now(tz=timezone.utc)
     status = "success"
-    error_message = None
+    errors: list[str] = []
 
     ollama_url = get_required_env("OLLAMA_BASE_URL")
     slack_webhook_url = get_required_env("DEPENDABOT_SLACK_WEBHOOK")
@@ -124,12 +128,13 @@ def main() -> None:
 
     prompt_version = getenv("PROMPT_VERSION", "v1")
     review_limit = int(getenv("REVIEW_LIMIT", "25"))
+    read_timeout = int(getenv("READ_TIMEOUT", "600"))
 
     qwen_client = QwenClient(
         ollama_url=ollama_url,
         model=qwen_model,
         approved_models=APPROVED_MODELS,
-        timeout=(10, 180),
+        timeout=(10, read_timeout),
         temperature=0,
     )
 
@@ -205,6 +210,11 @@ def main() -> None:
                         )
 
                     if review.alert_id != alert_id:
+                        logger.debug(
+                            "Qwen response dump for mismatch package=%s: %s",
+                            group.package_name,
+                            response.model_dump(mode="json"),
+                        )
                         raise RuntimeError(
                             f"Review alert_id mismatch for manifest_path={review.manifest_path}. "  # noqa: E501
                             f"expected={alert_id} got={review.alert_id}"
@@ -227,10 +237,8 @@ def main() -> None:
                         cve_summary=review.cve_summary,
                         usage_in_codebase=review.usage_in_codebase,
                         breaking_change_risk=review.breaking_change_risk,
-                        breaking_change_rationale=review.
-                        breaking_change_rationale,
-                        suggested_pr_description=review.
-                        suggested_pr_description,
+                        breaking_change_rationale=review.breaking_change_rationale,  # noqa: E501
+                        suggested_pr_description=review.suggested_pr_description,  # noqa: E501
                         research_json=group.model_dump(mode="json"),
                         assessment_json=review.model_dump(mode="json"),
                     )
@@ -256,12 +264,12 @@ def main() -> None:
             except Exception as exc:
                 failed_groups += 1
                 status = "partial"
-                logger.exception(
-                    "Failed to review group package=%s ecosystem=%s: %s",
-                    group.package_name,
-                    group.ecosystem,
-                    exc,
+                error = (
+                    f"review group package={group.package_name} "
+                    f"ecosystem={group.ecosystem}: {exc}"
                 )
+                errors.append(error)
+                logger.exception("Failed to %s", error)
                 continue
 
         duration = round(perf_counter() - start, 2)
@@ -292,8 +300,9 @@ def main() -> None:
                 is_reminder = alert.slack_notified_at is not None
 
                 with PostgresReviewRepository(**pg_kwargs()) as repository:
-                    assessment = repository.\
-                        fetch_latest_assessment(alert.alert_id)
+                    assessment = repository.fetch_latest_assessment(
+                        alert.alert_id
+                    )
 
                 if assessment is None:
                     logger.warning(
@@ -336,6 +345,12 @@ def main() -> None:
                         )
                 else:
                     slack_failed += 1
+                    error = (
+                        f"slack notification alert_id={alert.alert_id} "
+                        f"status={status_code}"
+                    )
+                    errors.append(error)
+                    status = "partial"
                     logger.warning(
                         "Slack notification failed for alert_id=%s status=%s",
                         alert.alert_id,
@@ -345,22 +360,18 @@ def main() -> None:
             except Exception as exc:
                 slack_failed += 1
                 status = "partial"
-                logger.exception(
-                    "Unexpected error sending Slack notification alert_id=%s: %s",  # noqa: E501
-                    alert.alert_id,
-                    exc,
-                )
+                error = f"slack notification alert_id={alert.alert_id}: {exc}"
+                errors.append(error)
+                logger.exception("Unexpected error sending %s", error)
                 continue
 
     # Phase 4: Write run instrumentation
     completed_at = datetime.now(tz=timezone.utc)
     avg_llm = (
-        round(sum(llm_durations) / len(llm_durations),
-              2) if llm_durations else None
+        round(sum(llm_durations) / len(llm_durations), 2)
+        if llm_durations else None
     )
-    total_duration = round(
-        (completed_at - started_at).total_seconds(), 2
-    )
+    total_duration = round((completed_at - started_at).total_seconds(), 2)
 
     run_payload = {
         "run_id": run_id,
@@ -379,7 +390,7 @@ def main() -> None:
         "model_name": qwen_model,
         "prompt_version": prompt_version,
         "status": status,
-        "error_message": error_message,
+        "error_message": errors if errors else None,
     }
 
     try:
@@ -390,10 +401,11 @@ def main() -> None:
                 payload=run_payload,
             )
         logger.info(
-            "Run complete run_id=%s status=%s duration=%ss",
+            "Run complete run_id=%s status=%s duration=%ss errors=%s",
             run_id,
             status,
             total_duration,
+            len(errors),
         )
     except Exception as exc:
         logger.exception("Failed to write run instrumentation: %s", exc)
