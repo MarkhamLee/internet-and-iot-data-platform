@@ -39,7 +39,7 @@ class AlertRecord(BaseModel):
     last_researched_at: datetime | None = None
     latest_research_json: dict | None = None
     slack_channel_id: str | None = None
-    slack_message_ts: str | None = None
+    slack_message_ts: datetime | None = None
     slack_notified_at: datetime | None = None
     reminder_count: int = 0
     resolved_at: datetime | None = None
