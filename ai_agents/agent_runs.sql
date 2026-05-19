@@ -1,0 +1,20 @@
+CREATE TABLE agent_runs (
+    run_id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    started_at          TIMESTAMPTZ NOT NULL,
+    completed_at        TIMESTAMPTZ,
+    duration_seconds    NUMERIC(8, 2),
+    repos               TEXT[],
+    repo_count          INT,
+    groups_fetched      INT,
+    alerts_fetched      INT,
+    alerts_reviewed     INT,
+    failed_groups       INT,
+    slack_sent          INT,
+    slack_failed        INT,
+    avg_llm_seconds     NUMERIC(8, 2),
+    model_name          TEXT,
+    prompt_version      TEXT,
+    status              TEXT,
+    error_message       TEXT,
+    created_at          TIMESTAMPTZ DEFAULT NOW()
+);
