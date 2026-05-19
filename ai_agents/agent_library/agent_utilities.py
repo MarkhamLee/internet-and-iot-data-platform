@@ -54,3 +54,17 @@ def send_slack_webhook_block(webhook_url: str, payload: dict) -> int:
         f"Publishing of alert to Slack webhook succeeded with code: {response.status_code}"  # noqa: E501
     )
     return response.status_code
+
+
+def write_instrumentation(
+    conn,
+    table: str,
+    payload: dict,
+) -> None:
+    columns = ", ".join(payload.keys())
+    placeholders = ", ".join(f"%({k})s" for k in payload.keys())
+    sql = f"INSERT INTO {table} ({columns}) VALUES ({placeholders})"  # noqa: E501
+
+    with conn.cursor() as cur:
+        cur.execute(sql, payload)
+    logger.info("Wrote instrumentation row to table=%s", table)
