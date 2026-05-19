@@ -9,6 +9,12 @@ create table if not exists site_monitor_target_runs (
     completed_at timestamptz,
     duration_seconds numeric(10,2),
 
+    fetch_duration_seconds numeric(10,2),
+    extract_duration_seconds numeric(10,2),
+    review_duration_seconds numeric(10,2),
+    slack_duration_seconds numeric(10,2),
+    persist_duration_seconds numeric(10,2),
+
     status text not null
         check (status in (
             'running',
@@ -17,11 +23,12 @@ create table if not exists site_monitor_target_runs (
             'skipped_no_review_needed',
             'fetch_failed',
             'extract_failed',
-            'review_failed',
             'decision_failed',
+            'review_failed',
             'slack_failed',
             'persist_failed',
-            'completed'
+            'completed',
+            'failed'
         )),
 
     llm_invoked boolean not null default false,
