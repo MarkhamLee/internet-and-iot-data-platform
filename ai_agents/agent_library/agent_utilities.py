@@ -23,9 +23,11 @@ def send_slack_webhook_basic(url: str, message: str):
     code = response.status_code
 
     if code != 200:
-        logger.debug(f'Publishing of alert to Slack webhook failed with response code: {code}')  # noqa: E501
+        logger.warning("Publishing of alert to Slack webhook failed with response code: %s",  # noqa: E501
+                       code)  # noqa: E501
     else:
-        logger.debug(f'Publishing of alert to Slack webhook suceeded with code: {code}')  # noqa: E501
+        logger.info('Publishing of alert to Slack webhook suceeded with code: %s',  # noqa E501
+                    code)  # noqa: E501
 
     return code
 
@@ -45,14 +47,13 @@ def send_slack_webhook_block(webhook_url: str, payload: dict) -> int:
         response.raise_for_status()
     except requests.RequestException as exc:
         status_code = getattr(exc.response, "status_code", 0)
-        logger.debug(
-            f"Publishing of alert to Slack webhook failed with response code: {status_code}, error: {exc}"  # noqa: E501
-        )
+        logger.warning("Publishing of alert to Slack webhook failed with response code:  %s with error: %s",  # noqa: E501
+                       status_code,
+                       exc)
         return status_code
 
-    logger.debug(
-        f"Publishing of alert to Slack webhook succeeded with code: {response.status_code}"  # noqa: E501
-    )
+    logger.info("Publishing of alert to Slack webhook succeeded with code: %s",
+                response.status_code)
     return response.status_code
 
 
@@ -65,6 +66,14 @@ def write_instrumentation(
     placeholders = ", ".join(f"%({k})s" for k in payload.keys())
     sql = f"INSERT INTO {table} ({columns}) VALUES ({placeholders})"  # noqa: E501
 
-    with conn.cursor() as cur:
-        cur.execute(sql, payload)
-    logger.info("Wrote instrumentation row to table=%s", table)
+    try:
+        with conn.cursor() as cur:
+            cur.execute(sql, payload)
+        logger.info("Wrote instrumentation row to table=%s", table)
+
+    except Exception as exc:
+        logger.warning(
+            "Writing of instrumentation data to table=%s failed with error: %s",  # noqa: E501
+            table,
+            exc,
+        )
