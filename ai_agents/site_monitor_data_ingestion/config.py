@@ -46,17 +46,15 @@ def load_watch_file(path: str | Path = "monitoring_targets.yml")\
 
 def load_config(path: str | Path = "monitoring_targets.yml") -> AppConfig:
     watch_cfg = load_watch_file(path)
-    force_research_after_hours_raw = os.\
-        environ.get("FORCE_RESEARCH_AFTER_HOURS")
+
+    force_research_after_hours = int(
+        os.environ.get("FORCE_RESEARCH_AFTER_HOURS", "120")
+    )
 
     return AppConfig(
         postgres_dsn=os.environ["POSTGRES_SITE_MONITOR_DSN"],
         slack_webhook_url=os.environ["SITE_MONITOR_SLACK_WEBHOOK"],
         log_level=os.environ.get("LOG_LEVEL", "INFO"),
-        force_research_after_hours=(
-            int(force_research_after_hours_raw)
-            if force_research_after_hours_raw
-            else None
-        ),
+        force_research_after_hours=force_research_after_hours,
         targets=watch_cfg.targets,
     )
