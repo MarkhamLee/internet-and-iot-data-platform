@@ -1,6 +1,3 @@
-# (C) Markham Lee 2023 - 2026
-# https://github.com/MarkhamLee/internet-and-iot-data-platform
-# Data ingestion for site monitoring agent
 from __future__ import annotations
 
 from datetime import datetime
@@ -9,11 +6,7 @@ from typing import Any, Literal
 from pydantic import BaseModel, Field, HttpUrl
 
 DesiredState = Literal["desired", "undesired", "unknown"]
-QueueStatus = Literal["pending",
-                      "in_progress",
-                      "completed",
-                      "failed",
-                      "cancelled"]
+QueueStatus = Literal["pending", "in_progress", "completed", "failed", "cancelled"]
 RunStatus = Literal["running", "completed", "completed_with_errors", "failed"]
 
 
@@ -66,17 +59,19 @@ class ResearchQueueItem(BaseModel):
     last_error: str | None = None
     errors: list[dict[str, Any]] = Field(default_factory=list)
     payload: dict[str, Any] = Field(default_factory=dict)
+    result_reviewed_at: datetime | None = None
+    result_page_status: str | None = None
+    result_event_type: str | None = None
 
 
-class CollectionRunStats(BaseModel):
-    processed_target_count: int = 0
-    skipped_target_count: int = 0
-    failed_target_count: int = 0
-    queued_target_count: int = 0
-    reminder_sent_count: int = 0
-    unchanged_target_count: int = 0
-    error_count: int = 0
-    warning_count: int = 0
+class PageReviewResult(BaseModel):
+    page_status: DesiredState
+    confidence: float
+    summary: str
+    evidence: list[str] = Field(default_factory=list)
+    extracted_price: str | None = None
+    extracted_title: str | None = None
+    normalized_state_key: str | None = None
 
 
 class CollectionPipelineResult(BaseModel):

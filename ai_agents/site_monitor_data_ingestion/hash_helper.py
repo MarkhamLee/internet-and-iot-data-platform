@@ -1,5 +1,7 @@
 # (C) Markham Lee 2023 - 2026
 # https://github.com/MarkhamLee/internet-and-iot-data-platform
+# helper file for creating hashes of pages for faster
+# comparisons.
 from __future__ import annotations
 
 import hashlib
