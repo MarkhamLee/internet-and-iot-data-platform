@@ -1,13 +1,12 @@
-# (C) Markham Lee 2023 - 2026
-# https://github.com/MarkhamLee/internet-and-iot-data-platform
-# Populates the research queue that the research agent will use
-# to evaluate site changes.
 from __future__ import annotations
 
-import psycopg
 from datetime import UTC, datetime, timedelta
-from psycopg.rows import dict_row
 from typing import Any
+
+import psycopg
+from psycopg.rows import dict_row
+from psycopg.types.json import Jsonb
+
 from schemas import ResearchQueueItem
 
 
@@ -78,12 +77,15 @@ class ResearchQueueStore:
             "http_last_modified": http_last_modified,
             "pending_reconfirmation": pending_reconfirmation,
             "max_attempts": max_attempts,
-            "payload": payload,
+            "payload": Jsonb(payload),
         }
         with psycopg.connect(self.dsn, autocommit=True) as conn:
             with conn.cursor() as cur:
                 cur.execute(sql, row)
-                return cur.fetchone()[0]
+                result = cur.fetchone()
+                if result is None:
+                    raise RuntimeError("enqueue_research() did not return an id")
+                return int(result[0])
 
     def claim_next(self) -> ResearchQueueItem | None:
         sql = """
@@ -129,9 +131,7 @@ class ResearchQueueStore:
             q.result_page_status,
             q.result_event_type
         """
-        with psycopg.connect(self.dsn,
-                             autocommit=True,
-                             row_factory=dict_row) as conn:
+        with psycopg.connect(self.dsn, autocommit=True, row_factory=dict_row) as conn:
             with conn.cursor() as cur:
                 cur.execute(sql)
                 row = cur.fetchone()
@@ -184,7 +184,7 @@ class ResearchQueueStore:
             errors = errors || jsonb_build_array(
                 jsonb_build_object(
                     'message', %(last_error)s,
-                    'details', %(details)s::jsonb,
+                    'details', %(details)s,
                     'recorded_at', now()
                 )
             )
@@ -194,7 +194,7 @@ class ResearchQueueStore:
             "id": queue_id,
             "available_at": datetime.now(UTC) + timedelta(minutes=retry_delay_minutes),  # noqa: E501
             "last_error": error_message,
-            "details": details or {},
+            "details": Jsonb(details or {}),
         }
         with psycopg.connect(self.dsn, autocommit=True) as conn:
             with conn.cursor() as cur:
