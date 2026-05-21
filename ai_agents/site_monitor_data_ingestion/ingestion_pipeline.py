@@ -2,7 +2,8 @@
 # https://github.com/MarkhamLee/internet-and-iot-data-platform
 # Primary pipeline script for ingesting page data, computing hashes
 # alerting, etc. rom __future__ import annotations
-
+import os
+import sys
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from time import perf_counter
@@ -18,6 +19,13 @@ from state_store import StateStore, \
     build_research_queue_payload, should_enqueue_research
 from research_queue_store import ResearchQueueStore
 from ingestion_instrumentation_store import IngestionInstrumentationStore
+
+parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(parent_dir)
+
+from agent_library.logging_util import console_logging  # noqa: E402
+
+logger = console_logging("ingestion_pipeline_logs")
 
 
 @dataclass(slots=True)
@@ -55,6 +63,8 @@ def process_target(
         metadata={"pipeline": "site_monitor_data_ingestion"},
     )
 
+    logger.info('Starting ingestion pipeline for target: %s',
+                str(target.url))
     try:
         if not target.enabled:
             deps.instrumentation_store.finalize_target_run(
@@ -65,12 +75,16 @@ def process_target(
             )
             return "skipped"
 
+        logger.info('Retrieving previous page state for target: %s',
+                    str(target.url))
         previous = deps.state_store.get_current_state(target.page_key)
         deps.instrumentation_store.mark_target_stage(
             target_run_id=target_run_id,
             stage="previous_state_loaded",
         )
 
+        logger.info('Fetching current page content for target: %s',
+                    str(target.url))
         fetch_result = fetch_page(
             str(target.url),
             etag=previous.last_http_etag if previous else None,
@@ -104,7 +118,13 @@ def process_target(
             reminder_due, reminder_reason = should_send_reminder(previous,
                                                                  target,
                                                                  now)
-            if reminder_due:
+
+            if not reminder_due:
+                logger.info('No reminder due for target %s', str(target.url))
+
+            else:
+                logger.info('Sending reminder of desired page state for %s',
+                            str(target.url))
                 status_code = send_reminder(
                     app.slack_webhook_url,
                     build_reminder_payload(
@@ -118,6 +138,8 @@ def process_target(
                         page_key=target.page_key,
                         sent_at=now,
                     )
+                    logger.info('Page reminder sent successfully for %s',
+                                str(target.url))
                     deps.instrumentation_store.finalize_target_run(
                         target_run_id=target_run_id,
                         completed_at=datetime.now(UTC),
@@ -128,6 +150,20 @@ def process_target(
                         metadata={"reminder_reason": reminder_reason},
                     )
                     return "reminder_sent"
+                else:
+                    logger.warning('Sending page reminder failed for %s, with status code: %s',  # noqa: E501
+                                   str(target.url),
+                                   status_code)
+                    deps.instrumentation_store.finalize_target_run(
+                        target_run_id=target_run_id,
+                        completed_at=datetime.now(UTC),
+                        duration_seconds=perf_counter() - target_start,
+                        status="completed",
+                        reminder_attempted=True,
+                        reminder_sent=False,
+                        metadata={"reminder_reason": reminder_reason},
+                    )
+                    return "unchanged"
 
             deps.instrumentation_store.finalize_target_run(
                 target_run_id=target_run_id,
@@ -138,12 +174,14 @@ def process_target(
             )
             return "unchanged"
 
+        logger.info('Extracting review payload')
         review_payload = extract_review_payload(fetch_result, target)
         deps.instrumentation_store.mark_target_stage(
             target_run_id=target_run_id,
             stage="payload_extracted",
         )
 
+        logger.info('Computing content hash')
         content_hash = compute_content_hash(review_payload)
         deps.instrumentation_store.update_target_run(
             target_run_id=target_run_id,
@@ -179,9 +217,12 @@ def process_target(
         reminder_reason = None
         if not should_queue and previous is not None:
             reminder_due, reminder_reason = should_send_reminder(previous,
-                                                                 target, now)
-
+                                                                 target,
+                                                                 now)
         if should_queue:
+            logger.info('Adding target page: %s to research queue, reason: %s',
+                        str(target.url),
+                        request_reason)
             pending_reconfirmation = bool(
                 previous is not None and previous.current_status == "desired"
             )
@@ -227,6 +268,8 @@ def process_target(
             return "queued"
 
         if reminder_due:
+            logger.info('Sending reminder for: %s',
+                        str(target.url))
             status_code = send_reminder(
                 app.slack_webhook_url,
                 build_reminder_payload(
@@ -239,6 +282,8 @@ def process_target(
                 deps.state_store.\
                     record_reminder_sent(page_key=target.page_key,
                                          sent_at=now)
+                logger.info('Reminder sent successfully for page: %s',
+                            str(target.url))
                 deps.instrumentation_store.finalize_target_run(
                     target_run_id=target_run_id,
                     completed_at=datetime.now(UTC),
@@ -250,6 +295,22 @@ def process_target(
                 )
                 return "reminder_sent"
 
+            else:
+                logger.warning('Reminder send failed for %s, status: %s',
+                               str(target.url),
+                               status_code)
+                deps.instrumentation_store.finalize_target_run(
+                    target_run_id=target_run_id,
+                    completed_at=datetime.now(UTC),
+                    duration_seconds=perf_counter() - target_start,
+                    status="completed",
+                    reminder_attempted=True,
+                    reminder_sent=False,
+                    metadata={"reminder_reason": reminder_reason},
+                )
+                return "unchanged"
+
+        logger.info('No action needed for %s, page unchanged', str(target.url))
         deps.instrumentation_store.finalize_target_run(
             target_run_id=target_run_id,
             completed_at=datetime.now(UTC),
@@ -257,6 +318,7 @@ def process_target(
             status="completed",
             metadata={"request_reason": request_reason},
         )
+
         return "unchanged"
 
     except Exception as exc:
@@ -296,7 +358,10 @@ def run_ingestion_cycle(
 
     overall_start = perf_counter()
 
-    for target in app.targets:
+    for target_index, target in enumerate(app.targets, start=1):
+        logger.info('Kicking off site content ingestion pipeline for target %s of %s',  # noqa: E501
+                    target_index,
+                    len(app.targets))
         result = process_target(app=app,
                                 target=target,
                                 deps=deps,
