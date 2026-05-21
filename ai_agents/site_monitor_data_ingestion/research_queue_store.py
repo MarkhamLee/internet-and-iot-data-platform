@@ -84,7 +84,7 @@ class ResearchQueueStore:
                 cur.execute(sql, row)
                 result = cur.fetchone()
                 if result is None:
-                    raise RuntimeError("enqueue_research() did not return an id")
+                    raise RuntimeError("enqueue_research() did not return an id")  # noqa: E501
                 return int(result[0])
 
     def claim_next(self) -> ResearchQueueItem | None:
@@ -131,7 +131,9 @@ class ResearchQueueStore:
             q.result_page_status,
             q.result_event_type
         """
-        with psycopg.connect(self.dsn, autocommit=True, row_factory=dict_row) as conn:
+        with psycopg.connect(self.dsn,
+                             autocommit=True,
+                             row_factory=dict_row) as conn:
             with conn.cursor() as cur:
                 cur.execute(sql)
                 row = cur.fetchone()

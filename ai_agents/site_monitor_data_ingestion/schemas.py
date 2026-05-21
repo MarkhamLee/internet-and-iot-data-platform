@@ -6,7 +6,11 @@ from typing import Any, Literal
 from pydantic import BaseModel, Field, HttpUrl
 
 DesiredState = Literal["desired", "undesired", "unknown"]
-QueueStatus = Literal["pending", "in_progress", "completed", "failed", "cancelled"]
+QueueStatus = Literal["pending",
+                      "in_progress",
+                      "completed",
+                      "failed",
+                      "cancelled"]
 RunStatus = Literal["running", "completed", "completed_with_errors", "failed"]
 
 
