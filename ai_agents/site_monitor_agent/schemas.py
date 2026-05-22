@@ -28,7 +28,7 @@ class ResearchQueueItem(BaseModel):
     attempt_count: int = 0
     max_attempts: int = 3
     last_error: str | None = None
-    errors: dict | None = None
+    errors: list[dict] | None = None
     payload: dict
     result_reviewed_at: datetime | None = None
     result_page_status: str | None = None

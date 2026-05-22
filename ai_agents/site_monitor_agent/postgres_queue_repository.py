@@ -89,7 +89,7 @@ class PostgresQueueRepository:
     def claim_item(self, queue_id: int, now: datetime) -> None:
         sql = """
             UPDATE site_monitor_research_queue
-            SET status        = 'processing',
+            SET status        = 'in_progress',
                 claimed_at    = %(now)s,
                 attempt_count = attempt_count + 1
             WHERE id = %(queue_id)s
@@ -149,11 +149,11 @@ class PostgresQueueRepository:
                 last_error   = %(error_message)s,
                 errors       = COALESCE(errors, '[]'::jsonb)
                             || jsonb_build_array(
-                                   jsonb_build_object(
-                                       'at',    %(now)s::text,
-                                       'error', %(error_message)s
-                                   )
-                               )
+                                jsonb_build_object(
+                                    'at',    %(now)s::text,
+                                    'error', %(error_message)s::text
+                                )
+                            )
             WHERE id = %(queue_id)s
         """
         with psycopg.connect(self.dsn, autocommit=True) as conn:
