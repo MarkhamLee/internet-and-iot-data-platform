@@ -1,7 +1,6 @@
 # (C) Markham Lee 2023 - 2026
 # https://github.com/MarkhamLee/internet-and-iot-data-platform
 # Entry point for the site monitor agent
-
 from __future__ import annotations
 
 import os
@@ -10,11 +9,9 @@ import sys
 import uuid
 from datetime import UTC, datetime
 from os import getenv
-from time import perf_counter
-
 import psycopg
+from time import perf_counter
 from psycopg.types.json import Jsonb
-
 from config import load_config
 from research_pipeline import run_research_cycle
 

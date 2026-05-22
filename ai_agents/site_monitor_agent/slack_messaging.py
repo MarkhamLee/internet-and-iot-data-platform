@@ -1,11 +1,10 @@
 # (C) Markham Lee 2023 - 2026
 # https://github.com/MarkhamLee/internet-and-iot-data-platform
-# Slack block builder for site monitor agent alerts
-
+# Slack block format message builder for the site monitor
+# agent
 from __future__ import annotations
 
 from datetime import datetime
-
 from schemas import PageAnalysisWrite
 
 
