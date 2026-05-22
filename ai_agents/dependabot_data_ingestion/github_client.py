@@ -95,10 +95,13 @@ class GitHubClient:
             )
             response.raise_for_status()
         except RequestException as exc:
-            message = (f'Pipeline failure for {pipeline_name} for {self.github_repo_name}, "GitHub data retrieval error: {exc}')  # noqa: E501
+            message = ('Pipeline failure for %s for %s, "GitHub data retrieval error: %s',  # noqa: E501
+                       pipeline_name,
+                       self.github_repo_name,
+                       exc)  # noqa: E501
 
             logger.debug(message)
-            webhook_response = self.etl_utilities.send_slack_webhook(
+            webhook_response = send_slack_webhook_basic(
                 self.pipeline_failure_webhook,
                 message,
             )
