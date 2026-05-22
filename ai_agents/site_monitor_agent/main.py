@@ -12,8 +12,10 @@ from datetime import UTC, datetime
 from os import getenv
 from time import perf_counter
 
+import psycopg
+from psycopg.types.json import Jsonb
+
 from config import load_config
-from postgres_queue_repository import PostgresQueueRepository
 from research_pipeline import run_research_cycle
 
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -88,8 +90,6 @@ def main() -> None:
     completed_at = datetime.now(tz=UTC)
     total_duration = round(perf_counter() - run_start, 2)
 
-    sys.exit()
-
     run_payload = {
         "run_uuid": str(run_uuid),
         "started_at": started_at,
@@ -99,35 +99,35 @@ def main() -> None:
         "host_name": socket.gethostname(),
         "process_id": os.getpid(),
         "git_sha": git_sha,
-        "llm_invoked_target_count": cycle_result.get("llm_invoked", 0),
+        "target_count": cycle_result.get("items_fetched", 0),
+        "items_fetched_count": cycle_result.get("items_fetched", 0),
         "succeeded_target_count": (
             cycle_result.get("llm_invoked", 0)
             - cycle_result.get("failed", 0)
         ),
         "failed_target_count": cycle_result.get("failed", 0),
-        "skipped_target_count": (
-            len(app.targets) - cycle_result.get("items_fetched", 0)
-        ),
-        "slack_attempted_target_count": cycle_result.get(
-            "slack_attempted", 0
-        ),
+        "llm_invoked_target_count": cycle_result.get("llm_invoked", 0),
+        "slack_attempted_target_count": cycle_result.get("slack_attempted", 0),
         "slack_sent_target_count": cycle_result.get("slack_sent", 0),
         "status": status,
         "error_count": len(errors),
         "warning_count": 0,
-        "errors": errors if errors else None,
-        "metadata": {
-            "prompt_version": prompt_version,
-            "model_name": app.qwen_model,
-            "avg_llm_seconds": cycle_result.get("avg_llm_seconds"),
-        },
+        # jsonb fields
+        "errors": Jsonb(errors) if errors else None,
+        "metadata": Jsonb(
+            {
+                "prompt_version": prompt_version,
+                "model_name": app.qwen_model,
+                "avg_llm_seconds": cycle_result.get("avg_llm_seconds"),
+            }
+        ),
     }
 
     try:
-        with PostgresQueueRepository(app.postgres_dsn) as repo:
+        with psycopg.connect(app.postgres_dsn, autocommit=True) as conn:
             write_instrumentation(
-                conn=repo.conn,
-                table=AGENT_RUNS_TABLE,
+                conn=conn,
+                table=app.agent_runs_table,
                 payload=run_payload,
             )
         logger.info(
@@ -141,7 +141,11 @@ def main() -> None:
             len(errors),
         )
     except Exception as exc:
-        logger.exception("Failed to write run instrumentation: %s", exc)
+        logger.warning(
+            "Run instrumentation FAILED run_uuid=%s: %s",
+            run_uuid,
+            exc,
+        )
 
     logger.info("Site monitor agent complete run_uuid=%s", run_uuid)
 

@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import os
 # import yaml
-from pathlib import Path
+# from pathlib import Path
 from pydantic import BaseModel, Field, HttpUrl
 # from typing import Any
 
@@ -39,9 +39,11 @@ class AppConfig(BaseModel):
     log_level: str = "INFO"
     llm_temperature: float = 0.0
     llm_max_tokens: int = 1024
+    agent_runs_table: str
+    agent_target_runs_table: str
 
 
-def load_config(path: str | Path = "monitoring_targets.yml") -> AppConfig:
+def load_config() -> AppConfig:
 
     approved_models_raw = os.environ.get("APPROVED_MODELS", "")
     approved_models = [m.strip() for m in approved_models_raw.split(",") if m.strip()]  # noqa: E501
@@ -55,4 +57,6 @@ def load_config(path: str | Path = "monitoring_targets.yml") -> AppConfig:
         log_level=os.environ.get("LOG_LEVEL", "INFO"),
         llm_temperature=float(os.environ.get("LLM_TEMPERATURE", "0.2")),
         llm_max_tokens=int(os.environ.get("LLM_MAX_TOKENS", "1024")),
+        agent_runs_table=os.environ['AGENT_RUNS_TABLE'],
+        agent_target_runs_table=os.environ['AGENT_TARGET_RUNS_TABLE'],
     )

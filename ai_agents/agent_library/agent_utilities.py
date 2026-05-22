@@ -1,6 +1,7 @@
 # (C) Markham Lee 2023-2026
 # Internet & IoT Data Platform
 # https://github.com/MarkhamLee/internet-and-iot-data-platform
+
 import requests
 from agent_library.logging_util import console_logging
 
