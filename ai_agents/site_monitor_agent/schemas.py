@@ -1,60 +1,62 @@
 # (C) Markham Lee 2023 - 2026
 # https://github.com/MarkhamLee/internet-and-iot-data-platform
-# Data schemas for site monitoring agent
-
+# Schemas for the site monitor agent pipeline
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Literal, Optional
+from typing import Literal
 
-from pydantic import BaseModel, Field, HttpUrl
-
-
-DesiredState = Literal["desired", "undesired", "unknown"]
+from pydantic import BaseModel
 
 
-class PageReviewResult(BaseModel):
-    page_status: DesiredState = Field(
-        description="Whether the page is currently in the desired state."
-    )
-    confidence: float = Field(ge=0.0, le=1.0)
-    summary: str = Field(
-        description="Short human-readable summary of the page state."
-    )
-    evidence: list[str] = Field(default_factory=list)
-    extracted_price: Optional[str] = None
-    extracted_title: Optional[str] = None
-    normalized_state_key: Optional[str] = Field(
-        default=None,
-        description="Compact canonical state string, e.g. 'in_stock', 'out_of_stock'."  # noqa: E501
-    )
-
-
-class FetchResult(BaseModel):
-    url: HttpUrl
-    status_code: int
-    final_url: HttpUrl
-    fetched_at: datetime
-    html: str
-    text: str
-    etag: Optional[str] = None
-    last_modified: Optional[str] = None
-
-
-class TrackedPageState(BaseModel):
+class ResearchQueueItem(BaseModel):
+    id: int
     page_key: str
-    url: HttpUrl
-    current_status: DesiredState
-    first_seen_at: datetime
-    last_checked_at: datetime
-    state_changed_at: datetime
-    desired_state_started_at: Optional[datetime] = None
-    undesired_state_started_at: Optional[datetime] = None
-    last_reminder_sent_at: Optional[datetime] = None
-    last_slack_message_type: Optional[str] = None
-    last_review_summary: Optional[str] = None
-    last_state_key: Optional[str] = None
-    last_http_etag: Optional[str] = None
-    last_http_last_modified: Optional[str] = None
-    last_content_hash: Optional[str] = None
-    last_llm_reviewed_hash: Optional[str] = None
+    url: str
+    requested_at: datetime
+    available_at: datetime | None = None
+    claimed_at: datetime | None = None
+    completed_at: datetime | None = None
+    status: str
+    request_reason: str
+    priority: int = 0
+    content_hash: str
+    final_url: str | None = None
+    http_etag: str | None = None
+    http_last_modified: str | None = None
+    pending_reconfirmation: bool = False
+    attempt_count: int = 0
+    max_attempts: int = 3
+    last_error: str | None = None
+    errors: list[dict] | None = None
+    payload: dict
+    result_reviewed_at: datetime | None = None
+    result_page_status: str | None = None
+    result_event_type: str | None = None
+
+
+class PageAnalysisResponse(BaseModel):
+    """Structured LLM output model."""
+    desired_state_found: bool
+    confidence: Literal["high", "medium", "low"]
+    summary: str
+    reasoning: str
+    recommended_action: Literal["alert", "monitor", "no_action"]
+    result_page_status: str
+    result_event_type: str | None = None
+
+
+class PageAnalysisWrite(BaseModel):
+    """Write model for persisting LLM results back to the queue."""
+    queue_id: int
+    page_key: str
+    url: str
+    desired_state_found: bool
+    confidence: str
+    summary: str
+    reasoning: str
+    recommended_action: str
+    result_page_status: str
+    result_event_type: str | None
+    model_name: str
+    alert_sent: bool = False
