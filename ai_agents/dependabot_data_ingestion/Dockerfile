@@ -6,7 +6,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-COPY github_dependabot_v2/requirements.txt .
+COPY ai_agents/dependabot_data_ingestion/requirements.txt .
 
 RUN pip install --no-cache-dir --upgrade pip && \
     pip wheel --no-cache-dir --wheel-dir /app/wheels -r requirements.txt
@@ -27,8 +27,8 @@ RUN pip install --no-cache-dir /wheels/* && \
     rm -rf /wheels && \
     useradd --create-home --uid 10001 appuser
 
-COPY --chown=appuser:appuser ./etl_library ./etl_library
-COPY --chown=appuser:appuser ./github_dependabot_v2 ./
+COPY --chown=appuser:appuser ./agent_library ./agent_library
+COPY --chown=appuser:appuser ./dependabot_data_ingestion ./
 
 USER appuser
 

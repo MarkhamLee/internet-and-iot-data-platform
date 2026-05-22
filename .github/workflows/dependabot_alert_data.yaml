@@ -5,8 +5,8 @@ on:
     branches:
       - "main"
     paths:
-      - "etl_pipelines/etl_library/*"
-      - "etl_pipelines/github_dependabot_v2/*"
+      - "ai_agents/agent_library/*"
+      - "ai_agents/dependabot_data_ingestion/*"
 
 jobs:
   docker:
@@ -26,8 +26,8 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: ./etl_pipelines/
-          file: ./etl_pipelines/github_dependabot_v2/Dockerfile
+          context: ./ai_agents/
+          file: ./ai_agents/dependabot_data_ingestion/Dockerfile
           platforms: linux/amd64
           push: true
           tags: markhamlee/github_dependabot_agent_data:latest
