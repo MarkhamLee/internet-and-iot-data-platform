@@ -1,188 +1,127 @@
 # (C) Markham Lee 2023 - 2026
 # https://github.com/MarkhamLee/internet-and-iot-data-platform
-# Building and sending Slack messages
+# Slack block builder for site monitor agent alerts
+
 from __future__ import annotations
-import os
-import requests
-import sys
+
 from datetime import datetime
-from schemas import PageReviewResult, TrackedPageState
 
-parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(parent_dir)
-
-from agent_library.logging_util import console_logging  # noqa: E402
+from schemas import PageAnalysisWrite
 
 
-logger = console_logging("slack messaging")
+CONFIDENCE_EMOJI = {
+    "high": "🟢",
+    "medium": "🟡",
+    "low": "🔴",
+}
 
-
-EVENT_META = {
-    "became_desired": {
-        "emoji": "🟢",
-        "label": "Available now",
-    },
-    "desired_reminder": {
-        "emoji": "🔔",
-        "label": "Still available",
-    },
-    "became_undesired": {
-        "emoji": "🔴",
-        "label": "No longer available",
-    },
-    "missed_it": {
-        "emoji": "⚠️",
-        "label": "You missed it",
-    },
-    "recovered": {
-        "emoji": "🔵",
-        "label": "Recovered",
-    },
-    "no_change": {
-        "emoji": "⚪",
-        "label": "No change",
-    },
+ACTION_LABEL = {
+    "alert": "🔔 Alert",
+    "monitor": "👁 Monitor",
+    "no_action": "✅ No Action",
 }
 
 
-def build_slack_message(
-    page_key: str,
-    url: str,
-    review: PageReviewResult,
-    previous: TrackedPageState | None,
-    event_type: str,
+def build_alert_blocks(
+    result: PageAnalysisWrite,
     now: datetime,
-) -> dict:
-    meta = EVENT_META.get(
-        event_type,
-        {"emoji": "ℹ️", "label": "Update"},
+) -> list:
+    confidence_label = (
+        CONFIDENCE_EMOJI.get(result.confidence, "⚪")
+        + f" {result.confidence}"
     )
+    action_label = ACTION_LABEL.get(
+        result.recommended_action,
+        f"ℹ️ {result.recommended_action}",
+    )
+    timestamp = now.strftime("%Y-%m-%d %H:%M UTC")
 
-    fallback_lines = [
-        f"{meta['emoji']} {page_key}",
-        f"Event: {meta['label']}",
-        f"Status: {review.page_status}",
-        f"Summary: {review.summary}",
-        f"Confidence: {review.confidence:.2f}",
-        f"URL: {url}",
-    ]
-
-    if review.extracted_price:
-        fallback_lines.append(f"Price: {review.extracted_price}")
-
-    if review.evidence:
-        fallback_lines.append("Evidence: " + " | ".join(review.evidence[:3]))
-
-    if previous and previous.desired_state_started_at:
-        fallback_lines.append(
-            f"Desired since: {previous.desired_state_started_at.isoformat()}"
-        )
-
-    fallback_lines.append(f"Checked at: {now.isoformat()}")
-
-    fields = [
-        {
-            "type": "mrkdwn",
-            "text": f"*Event*\n{meta['label']}",
-        },
-        {
-            "type": "mrkdwn",
-            "text": f"*Status*\n{review.page_status}",
-        },
-        {
-            "type": "mrkdwn",
-            "text": f"*Confidence*\n{review.confidence:.2f}",
-        },
-        {
-            "type": "mrkdwn",
-            "text": f"*Checked at*\n{now.isoformat()}",
-        },
-    ]
-
-    if review.extracted_price:
-        fields.append(
-            {
-                "type": "mrkdwn",
-                "text": f"*Price*\n{review.extracted_price}",
-            }
-        )
-
-    if previous and previous.desired_state_started_at:
-        fields.append(
-            {
-                "type": "mrkdwn",
-                "text": f"*Desired since*\n{previous.desired_state_started_at.isoformat()}",  # noqa: E501
-            }
-        )
-
-    blocks = [
+    return [
         {
             "type": "header",
             "text": {
                 "type": "plain_text",
-                "text": f"{meta['emoji']} {page_key}",
+                "text": "🔍 Site Monitor Alert",
                 "emoji": True,
             },
         },
+        {"type": "divider"},
+        {
+            "type": "section",
+            "fields": [
+                {
+                    "type": "mrkdwn",
+                    "text": f"*Page Key:*\n`{result.page_key}`",
+                },
+                {
+                    "type": "mrkdwn",
+                    "text": f"*Detected At:*\n{timestamp}",
+                },
+            ],
+        },
         {
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": f"*Summary*\n{review.summary}",
+                "text": f"*URL:*\n<{result.url}|{result.url}>",
             },
         },
         {
             "type": "section",
-            "fields": fields[:10],
+            "fields": [
+                {
+                    "type": "mrkdwn",
+                    "text": f"*Confidence:*\n{confidence_label}",
+                },
+                {
+                    "type": "mrkdwn",
+                    "text": f"*Action:*\n{action_label}",
+                },
+                {
+                    "type": "mrkdwn",
+                    "text": f"*Page Status:*\n`{result.result_page_status}`",
+                },
+                {
+                    "type": "mrkdwn",
+                    "text": (
+                        f"*Event Type:*\n`{result.result_event_type or 'N/A'}`"
+                    ),
+                },
+            ],
         },
         {
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": f"*URL*\n<{url}|Open page>",
+                "text": f"*Summary:*\n{result.summary}",
             },
+        },
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": f"*Reasoning:*\n{result.reasoning}",
+            },
+        },
+        {"type": "divider"},
+        {
+            "type": "context",
+            "elements": [
+                {
+                    "type": "mrkdwn",
+                    "text": (
+                        f"Model: `{result.model_name}` | "
+                        f"Queue ID: `{result.queue_id}` | "
+                        f"Desired state found: `{result.desired_state_found}`"
+                    ),
+                }
+            ],
         },
     ]
 
-    if review.evidence:
-        evidence_text = "\n".join(f"• {item}" for item in review.evidence[:5])
-        blocks.append(
-            {
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": f"*Evidence*\n{evidence_text}",
-                },
-            }
-        )
 
+def build_slack_payload(blocks: list, fallback_text: str) -> dict:
     return {
-        "text": " | ".join(fallback_lines),
+        "text": fallback_text,
         "blocks": blocks,
     }
-
-
-def send_slack_webhook(webhook_url: str, payload: dict) -> int:
-    headers = {
-        "Content-Type": "application/json; charset=utf-8",
-    }
-
-    try:
-        response = requests.post(
-            webhook_url,
-            headers=headers,
-            json=payload,
-            timeout=(5, 20),
-        )
-        response.raise_for_status()
-    except requests.RequestException as exc:
-        status_code = getattr(exc.response, "status_code", 0)
-        logger.debug(
-            f"Publishing of alert to Slack webhook failed with response code: {status_code}, error: {exc}"  # noqa: E501
-        )
-        return status_code
-
-    logger.debug(
-        f"Publishing of alert to Slack webhook succeeded with code: {response.status_code}"  # noqa: E501
-    )
-    return response.status_code
