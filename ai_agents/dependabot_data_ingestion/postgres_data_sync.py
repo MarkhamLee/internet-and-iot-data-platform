@@ -1,3 +1,4 @@
+# noqa: E501
 # (C) Markham Lee 2023 - 2026
 # https://github.com/MarkhamLee/internet-and-iot-data-platform
 # Postgres client for synching and upserting of GitHub dependabot

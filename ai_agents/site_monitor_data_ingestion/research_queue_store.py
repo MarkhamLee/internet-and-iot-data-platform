@@ -1,12 +1,13 @@
+# (C) Markham Lee 2023 - 2026
+# https://github.com/MarkhamLee/internet-and-iot-data-platform
+# Populates the research queue for the site monitor agent
 from __future__ import annotations
 
-from datetime import UTC, datetime, timedelta
-from typing import Any
-
 import psycopg
+from datetime import UTC, datetime, timedelta
 from psycopg.rows import dict_row
 from psycopg.types.json import Jsonb
-
+from typing import Any
 from schemas import ResearchQueueItem
 
 
