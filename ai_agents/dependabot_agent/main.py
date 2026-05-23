@@ -23,6 +23,7 @@ sys.path.append(parent_dir)
 from agent_library.agent_utilities import (  # noqa: E402
     send_slack_webhook_block,
     write_instrumentation,
+    validate_webhook
 )
 
 
@@ -71,7 +72,7 @@ POSTGRES_USER_NAME = os.environ['POSTGRES_USER_DEPENDABOT']
 POSTGRES_HOST = os.environ['POSTGRES_HOST_K3S']
 POSTGRES_PORT = 5432
 APPROVED_MODELS = {"qwen3.5:9b", "llama3.2:3b"}
-REMINDER_INTERVAL_HOURS = int(getenv("REMINDER_INTERVAL_HOURS", "24"))
+REMINDER_INTERVAL_HOURS = int(getenv("REMINDER_INTERVAL_HOURS", "1"))
 AGENT_RUNS_TABLE = "agent_runs"
 
 
@@ -129,6 +130,12 @@ def main() -> None:
     prompt_version = getenv("PROMPT_VERSION", "v1")
     review_limit = int(getenv("REVIEW_LIMIT", "25"))
     read_timeout = int(getenv("READ_TIMEOUT", "600"))
+
+    logger.info('Validating Slack web hook')
+
+    webhook_status = validate_webhook(slack_webhook_url)
+    if not webhook_status:
+        logger.warning("Slack webhook is either non-functional or unreachable, security alerts will not be sent")  # noqa: E501
 
     qwen_client = QwenClient(
         ollama_url=ollama_url,
