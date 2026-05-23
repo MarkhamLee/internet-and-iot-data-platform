@@ -78,3 +78,14 @@ def write_instrumentation(
             table,
             exc,
         )
+
+
+def validate_webhook(webhook_url: str) -> bool:
+    """Returns True if webhook is healthy."""
+    try:
+        r = requests.post(webhook_url,
+                          json={"text": "_health check_"},
+                          timeout=(5, 10))
+        return r.text.strip() == "ok"
+    except requests.RequestException:
+        return False
