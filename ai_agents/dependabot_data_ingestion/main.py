@@ -12,7 +12,6 @@ parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(parent_dir)
 
 from agent_library.logging_util import console_logging  # noqa: E402
-from agent_library.agent_utilities import validate_webhook  # noqa: E402
 
 # load Slack Webhook URL variable for sending pipeline failure alerts
 PIPELINE_FAILURE_WEBHOOK = os.environ['PIPELINE_FAILURE_WEBHOOK']
@@ -59,10 +58,6 @@ github_client = GitHubClient(
 
 
 def main():
-
-    webhook_status = validate_webhook(PIPELINE_FAILURE_WEBHOOK)
-    if not webhook_status:
-        logger.warning("Slack webhook is either non-functional or unreachable, security alerts will not be sent")  # noqa: E501
 
     logger.info('Retrieving GitHub dependabot data')
     github_alert_records, repo_web_url, api_url, \
