@@ -86,13 +86,16 @@ def write_data(heartbeat, since_last_seen, latency, city):
     try:
         # write data to InfluxDB
         write_influx_data(client, payload, data, BUCKET)
-        logger.info(f'Tailscale status data for {NODE_NAME} written to InfluxDB')  # noqa: E501
+        logger.info('Tailscale status data for %s written to InfluxDB',
+                    NODE_NAME)  # noqa: E501
 
     except Exception as e:
-        message = (f'InfluxDB write error for Tailscale Data: {e}')
-        logger.debug(message)
+        message = ('InfluxDB write error for Tailscale Data: %s',
+                   e)
+        logger.warning(message)
         response = send_slack_webhook(NETWORK_ALERT_WEBHOOK, message)
-        logger.debug(f'Slack pipeline failure alert sent with code: {response}')  # noqa: E501
+        logger.warning('Slack pipeline failure alert sent with code: %s',
+                       response)  # noqa: E501
         return response
 
 
@@ -109,8 +112,11 @@ def main():
         last_seen = calculate_online_status(raw_device_data)  # in seconds
         latency = get_latency(raw_device_data, LOCAL_CITY)
 
-        logger.info(f'Device was last seen {last_seen} seconds ago')
-        logger.info(f'Device latency for {LOCAL_CITY} is {latency}ms')
+        logger.info('Device was last seen %s seconds ago',
+                    last_seen)
+        logger.info('Device latency for %s is %s ms',
+                    LOCAL_CITY,
+                    latency)
 
         if last_seen > 120:
 
@@ -120,7 +126,9 @@ def main():
             # convert to minutes since an offline device's last
             # seen time can stretch into 100s of seconds.
             last_seen = round(last_seen / 60, 2)
-            message = (f'Exit node problem: {NODE_NAME} was last seen: {last_seen} ago')  # noqa: E501
+            message = ('Exit node problem: %s was last seen: %s ago',
+                       NODE_NAME,
+                       last_seen)  # noqa: E501
             send_slack_webhook(NETWORK_ALERT_WEBHOOK, message)
 
         if last_seen < 120:
@@ -134,7 +142,8 @@ def main():
         # TODO add logic for using a shorter sleep duration when the device
         # is offline.
 
-        logger.info(f'Going to sleep for {SLEEP_DURATION} seconds')
+        logger.info('Going to sleep for %s seconds',
+                    SLEEP_DURATION)
         sleep(SLEEP_DURATION)
 
 
