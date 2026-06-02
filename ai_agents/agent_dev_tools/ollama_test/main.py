@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-from agent import app_graph
+from ai_agents.agent_dev_tools.ollama_test.agent import app_graph
 from langchain_core.messages import HumanMessage
 
 app = FastAPI()
