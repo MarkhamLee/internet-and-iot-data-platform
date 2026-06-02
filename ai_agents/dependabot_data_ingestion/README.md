@@ -22,7 +22,6 @@ How the pipeline works:
 3. For existing alerts:
    - Compares hashes to detect whether an alert has changed in scope or severity.
    - Updates remediation status for alerts that have been resolved.
-   - Sends Slack reminders for alerts that remain unresolved past the configured interval.
 
 ### Deployment and scheduling
 
