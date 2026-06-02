@@ -5,13 +5,17 @@
 # approved model list, prompt parameters, and the response model
 # that you'll need to select from the schemas file.
 import json
+import os
 import requests
+import sys
 from pydantic import BaseModel, ValidationError
 from requests.exceptions import RequestException
 from time import perf_counter
 from typing import Type
-from logging_util import console_logging
 
+parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(parent_dir)
+from agent_library.logging_util import console_logging  # noqa: E402
 
 logger = console_logging("Qwen client")
 

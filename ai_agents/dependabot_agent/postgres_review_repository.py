@@ -2,13 +2,19 @@
 # https://github.com/MarkhamLee/internet-and-iot-data-platform
 # repository for reading pending dependabot alerts and writing alert reviews
 import json
+import os
+import sys
 from datetime import datetime, timedelta, timezone
 import psycopg
 from psycopg.rows import dict_row
 
-from logging_util import console_logging
+
 from schemas import AlertGroup, AlertRecord, AlertReviewWrite, \
     StoredRiskAssessment
+
+parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(parent_dir)
+from agent_library.logging_util import console_logging  # noqa: E402
 
 logger = console_logging("Postgres review repository")
 
