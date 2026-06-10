@@ -1,4 +1,6 @@
-# cliente for connecting to InfluxDB API
+# Markham Lee (C) 2023 - 2026
+# https://github.com/MarkhamLee/internet-and-iot-data-platform
+# Client for connecting to InfluxDB API
 # Pass the key, bucket and token and it will return an object
 # for use in writing to InfluxDB.
 # note: when using this client, don't convert the payload that's appended
@@ -23,24 +25,28 @@ class InfluxClient():
             write_client = InfluxDBClient(url=url, token=token, org=org)
             write_api = write_client.write_api(write_options=SYNCHRONOUS)
             logger.info('InfluxDB Client created successfully')
-
             return write_api
 
         except Exception as e:
-            logger.info(f'InfluxDB client creation failed with error: {e}')
+            logger.exception('InfluxDB client creation failed with error: %s',
+                             e)
+            raise
 
     # Takes an input payload and appends it to a JSON with that payload's
     # InfluxDB table and tag data, and then writes the combined
     # data to InfluxDB
     @staticmethod
-    def write_influx_data(client: object, base: dict, data: dict, BUCKET: str):
+    def write_influx_data(client: object, base: dict, data: dict, bucket: str):
 
-        # combine the baseline payload with the data to be written to InfluxDB
-        base.update({"fields": data})
+        # create the payload by combining the baseline data with the
+        # new data to be written to the DB.
+        payload = {**base, "fields": data}
 
         try:
             # write data to InfluxDB
-            client.write(bucket=BUCKET, record=base)
+            client.write(bucket=bucket, record=payload)
+            logger.info('InfluxDB write successful')
 
         except Exception as e:
-            logger.debug(f'failed to write to InfluxDB with error: {e}')
+            logger.exception('InfluxDB write failed with error: %s',
+                             e)
