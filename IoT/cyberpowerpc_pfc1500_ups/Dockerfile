@@ -16,7 +16,9 @@ FROM python:slim-bookworm
 COPY --from=builder /app/wheels /wheels
 COPY --from=builder /app/requirements.txt .
 
-RUN pip install --no-cache /wheels/*
+RUN pip install --no-cache-dir /wheels/* && \
+    rm -rf /wheels && \
+    useradd --create-home --uid 10001 appuser
 
 RUN apt-get update -y && apt-get install -y nut-client
 
