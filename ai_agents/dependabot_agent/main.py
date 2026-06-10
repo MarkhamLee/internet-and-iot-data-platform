@@ -8,7 +8,6 @@ from os import getenv
 from datetime import datetime, timezone
 from schemas import AlertGroup, AlertReviewResponse, AlertReviewWrite
 from time import perf_counter
-from logging_util import console_logging
 from postgres_review_repository import PostgresReviewRepository
 from qwen_client import QwenClient
 from slack_message_builder import (
@@ -24,6 +23,7 @@ from agent_library.agent_utilities import (  # noqa: E402
     send_slack_webhook_block,
     write_instrumentation
 )
+from agent_library.logging_util import console_logging  # noqa: E402
 
 
 logger = console_logging("Dependabot review orchestrator")
