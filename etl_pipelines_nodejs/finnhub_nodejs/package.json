@@ -14,6 +14,9 @@
   "keywords": [],
   "author": "Markham Lee",
   "license": "MIT",
+  "overrides": {
+    "js-yaml": "^4.1.1"
+  },
   "devDependencies": {
     "@types/express": "^4.17.21",
     "@types/jest": "^29.5.12",
@@ -21,19 +24,18 @@
     "@typescript-eslint/eslint-plugin": "^8.57.2",
     "@typescript-eslint/parser": "^8.57.2",
     "axios": "^1.15.2",
-    "esbuild": "^0.25.0",
+    "esbuild": "^0.28.1",
     "eslint": "^8.57.0",
     "eslint-plugin-react": "^7.32.0",
-    "follow-redirects": ">=1.15.6",
+    "follow-redirects": "^1.15.6",
     "jest": "^30.3.0",
     "ts-jest": "^29.1.2"
   },
   "dependencies": {
     "@influxdata/influxdb-client": "^1.33.2",
     "ajv": "^8.12.0",
-    "esbuild": "^0.25.0",
     "finnhub": "^2.0.7",
-    "follow-redirects": ">=1.15.6",
+    "follow-redirects": "^1.15.6",
     "tsx": "^4.7.1",
     "typescript": "^5.4.2"
   }
