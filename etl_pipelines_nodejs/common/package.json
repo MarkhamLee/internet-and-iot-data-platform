@@ -14,7 +14,7 @@
   },
   "overrides": {
     "minimatch": "9.0.8",
-    "axios": "1.15.2"
+    "js-yaml": "^4.1.1"
   },
   "keywords": [],
   "author": "Markham Lee",
@@ -34,8 +34,8 @@
   "dependencies": {
     "@influxdata/influxdb-client": "^1.33.2",
     "ajv": "8.18.0",
-    "axios": "1.15.2",
-    "esbuild": "^0.25.0",
+    "axios": "^1.18.0",
+    "esbuild": "^0.28.1",
     "flatted": "3.4.2",
     "minimatch": "9.0.8",
     "picomatch": "2.3.2",
