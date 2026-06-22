@@ -1,34 +1,28 @@
 # Build Stage
-FROM node:22-alpine AS build
+FROM node:22-bookworm-slim AS build
 
 WORKDIR /app
 
-COPY ./finnhub_nodejs/package*.json ./
-COPY ./finnhub_nodejs/tsconfig.json ./
+COPY ./finnhub_nodejs/package*.json ./finnhub_nodejs/tsconfig.json ./
 RUN npm ci
 
-# Copy over source files 
 COPY ./finnhub_nodejs ./finnhub_nodejs
-COPY ./finnhub_nodejs/src ./finnhub_nodejs/src
-COPY ./finnhub_nodejs/utils ./finnhub_nodejs/utils
 COPY ./common ./common
 
-# Transpile the files into JavaScript
 RUN npx tsc ./finnhub_nodejs/src/index.ts
+RUN npm prune --omit=dev
 
 # Final Stage
-FROM node:22-alpine AS production
+FROM node:22-bookworm-slim AS production
 
 WORKDIR /app
 
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+ENV NODE_ENV=production
 
-# Copy over the production/final files 
 COPY --from=build /app/finnhub_nodejs /app/finnhub_nodejs
 COPY --from=build /app/common /app/common
 COPY --from=build /app/node_modules /app/node_modules
 
-USER appuser
-ENV NODE_ENV=production
+USER node
 
-CMD [ "node", "/app/finnhub_nodejs/src/index.js" ]
+CMD ["node", "/app/finnhub_nodejs/src/index.js"]
