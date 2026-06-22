@@ -12,12 +12,16 @@ FROM python:slim-bookworm
 COPY --from=builder /app/wheels /wheels
 COPY --from=builder /app/requirements.txt .
 
-RUN pip install --no-cache /wheels/*
+RUN pip install --no-cache-dir /wheels/* && \
+    rm -rf /wheels && \
+    useradd --create-home --uid 10001 appuser
 
-COPY ./iot_libraries ./iot_libraries 
+COPY --chown=appuser:appuser  ./iot_libraries ./iot_libraries 
 
 WORKDIR /iot_sensors
 
-COPY ./kasa_smart_plug ./
+COPY --chown=appuser:appuser  ./kasa_smart_plug ./
+
+USER appuser
 
 ENTRYPOINT ["python3", "/iot_sensors/main.py"]
