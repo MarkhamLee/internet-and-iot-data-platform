@@ -1,5 +1,5 @@
 python-kasa==0.10.2
 asyncio==3.4.3
 paho-mqtt==2.1.0
-requests==2.13.4
+requests==2.33.1
 uuid==1.30
