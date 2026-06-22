@@ -1,9 +1,10 @@
 # API and IoT Data Platform
 
-This repository is the platform layer for ingesting data from public APIs, IoT devices, and network and infrastructure sources, powering dashboards, alerts, and agentic workflows. It packages ETL (extract-transform-load) jobs, agents, monitoring services, and automation components as Dockerized workloads in a [K3s-based private cloud](https://github.com/MarkhamLee/kubernetes-k3s-cluster-for-data-and-iot-projects).
+This repository is a platform for ingesting data from public APIs, IoT devices, networking devices and other services, to enable dashboards, alerts, and agentic workflows. The ETL (extract-transform-load) jobs, agents, monitoring services, and automation are deployed as Dockerized workloads to a [K3s-based private cloud](https://github.com/MarkhamLee/kubernetes-k3s-cluster-for-data-and-iot-projects).
 
-GitHub Actions builds the containers, DockerHub distributes them, and ArgoCD deploys them. Shared libraries and reusable infrastructure make it faster to deliver new ETL pipelines, IoT services, and agents without reinventing common patterns for data access, alerting, and observability.
 
+GitHub Actions builds the containers and pushes/stores them on Docker Hub, and ArgoCD deploys them to K3s.  
+Reusable infrastructure in the form of private code libraries for alerting, data I/O, database writes and agentic AI, enable fast creation of new data pipelines, monitoring services and AI agents, as the development effort is nearly entirely focused on building new features rather than rebuilding common patterns for data access, alerting, and observability.
 
 ## System Architecture and Data Flow
 
@@ -14,21 +15,17 @@ The diagram below shows how code in this repository interacts with the broader p
 
 ### Key Capabilities 
 
-* **API and scheduled data ingestion** – Argo Workflows runs ETLs and other task-oriented workloads that collect data from public APIs and other scheduled sources, then write curated results to PostgreSQL and InfluxDB.
+* **API and scheduled data ingestion** – Argo Workflows runs ETLs and other task-oriented workloads that collect data from API sources and then writing the data PostgreSQL and InfluxDB.
 
-* **IoT and infrastructure telemetry** – Always-on containerized services deployed to K3s collect data from smart plugs, UPS devices, sensors, and network or infrastructure systems for continuous monitoring
+* **IoT and infrastructure telemetry** – containerized services deployed to K3s collect data from smart plugs, UPS devices, sensors, and network or infrastructure systems for continuous monitoring and alerting. 
 
 * **MQTT-based IoT routing** – MQTT is used as a lightweight ingestion path for devices such as ESP32-based sensors, with Node-RED subscribing to broker topics, normalizing payloads, and routing time-series data into InfluxDB.
 
-* **Agentic workflows** – LLM-powered agents build on curated ETL outputs and shared clients to automate higher-level tasks such as dependency analysis and other operational workflows.
+* **Agentic workflows** – LLMs ingest data from the ETL workloads to automate tasks such as dependency analysis for security alerts (GitHub dependabot), analyze web site changes and other tasks.
 
-* **Observability and alerting** – Metrics, logs, and state changes are centralized, with Slack used as a primary alert channel for conditions such as air-quality thresholds, UPS battery events, and service issues.
+* **Observability and alerting** – key state changes and errors (e.g., UPS power status, temperature, pipeline failures) trigger alerts via Slack. Additionally, all workloads are built so that either Prometheus or Victoria Logs can collect logs and other data, and container level problems will trigger service status alerts via Prometheus Alert Manager running on K3s. 
 
-* **CI/CD and reusable platform components** – GitHub Actions builds Docker images, DockerHub distributes them, and ArgoCD deploys them to the private cloud; shared libraries and common clients make new ETLs, collectors, and agents faster to develop and maintain.
-
-### Testbed for Production Environments
-
-This data platform serves as both a testbed and reference implementation for real-world systems. CI/CD patterns for shared components, container builds, observability, and network monitoring are piloted here before being rolled out to production environments.
+* **CI/CD and reusable platform components** – GitHub Actions builds container images and then pushes them to DockerHub, where they will be pulled down and used the next time an Agentic or ETL job runs via Argo Workflows. Constantly running containers (E.g., IoT and networking monitoring), are re-deployed via ArgoCD. Shared libraries and common clients (e.g., Postgres, Ollama) make new ETLs, collectors, and agents faster to develop and maintain.
 
 
 ### Agentic AI and Automation
@@ -43,14 +40,12 @@ The platform incrementally adds agentic AI capabilities on top of existing ETL a
 
 This design keeps agents thin and focused on decision-making logic while reusing battle-tested ingestion and infrastructure components.
 
-
 ### Platform and Reuse 
 
 New ETLs, IoT monitoring services, and AI agents are built on top of a shared platform layer:
 * **Private libraries** provide common features such as Slack notifications, PostgreSQL and InfluxDB access, MQTT publishing/subscribing, and structured logging.
 &* **Standardized clients** (for example, a shared Qwen client and MQTT/InfluxDB clients) are injected into workloads so new services can be bootstrapped quickly.
-* **Multi-stage Docker builds and shared base images** ensure consistent runtime environments and make it easy to roll out improvements. When a shared library or base image is updated, the CI/CD pipeline rebuilds all dependent containers. Improvements to cross-cutting concerns (for example, retry logic in the InfluxDB client) are then propagated automatically across the platform.
-
+* **Multi-stage Docker builds and shared base images** ensure consistent runtime environments and make it easy to roll out improvements. When a shared library or base image is updated, the CI/CD pipeline rebuilds all dependent containers. Improvements to a shared library (for example, improved retry logic in the InfluxDB client) are then propagated automatically across the platform.
 
 ### Observability and alerting: 
 
@@ -58,10 +53,12 @@ New ETLs, IoT monitoring services, and AI agents are built on top of a shared pl
 * **Power and infrastructure alerts** – UPS devices emit Slack notifications when they switch to battery and when utility power returns, providing early warning for outages in the private cloud. 
 * **Application and ETL monitoring** – ETL failures, task-level errors, and other application events are surfaced through centralized logging/metrics and routed to Slack. Alert rules and configurations are defined as code and versioned alongside workloads, so changes to thresholds and alert logic follow the same review and deployment workflows as application changes.
 
+### Testbed for Production Environments
+
+In addition to running production/regularly used workloads, this data platform also serves as both a testbed and reference implementation for real-world systems. E.g., the CI/CD patterns for building Docker containers and network monitoring features, were built and tested/hardened here and then re-used for computer vision inference pipelines. 
+
 
 ### Sample Dashboards
 
 ![Dashboard Thumbnail](/images/dashboard_screenshot4.png)  
 ![UPS Dashboard Thumbnail](/images/ups_monitoring.png)  
-*Snapshot of some of the tracked data* 
-
