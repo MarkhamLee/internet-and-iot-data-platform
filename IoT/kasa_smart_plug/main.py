@@ -1,6 +1,6 @@
-# Markham Lee 2023 - 2025
-# Finance, Productivity, IoT, & Weather dashboard
-# https://github.com/MarkhamLee/finance-productivity-iot-informational-weather-dashboard
+# Markham Lee 2023 - 2026
+# Internet & IoT Data Platform
+# https://github.com/MarkhamLee/internet-and-iot-data-platform
 # Python script for receiving energy data from a TP Link Kasa TP254
 # smart plug and writing the data to InfluxDB
 import asyncio
@@ -65,7 +65,9 @@ async def get_plug_data(dev):
             write_data(dev)
 
         except Exception as e:
-            logger.debug(f'Kasa Smart Plug connection error: {e} on device {DEVICE_ID}')  # noqa: E501
+            logger.exception('Kasa Smart Plug connection error: %s on device %s',  # noqa: E501
+                             e,
+                             DEVICE_ID)  # noqa: E501
 
         # wait 30 seconds
         await asyncio.sleep(SLEEP_INTERVAL)  # Sleep some time between updates
@@ -79,7 +81,7 @@ def send_uptime_kuma_heartbeat():
         requests.get(UPTIME_KUMA_WEBHOOK)
 
     except Exception as e:
-        logger.info(f'Publishing of Uptime Kuma heartbeat for {DEVICE_ID} failed with error: {e}')  # noqa: E501
+        logger.exception(f'Publishing of Uptime Kuma heartbeat for {DEVICE_ID} failed with error: {e}')  # noqa: E501
 
 
 def write_data(device_data_object):
@@ -101,10 +103,8 @@ def write_data(device_data_object):
                                          BUCKET)
 
     except Exception as e:
-
-        message = (f'InfluxDB write failed with error: {e}')
-        logger.debug(message)
-
+        logger.exception('InfluxDB write failed with error: %s',
+                         e)
 
 
 def main():
@@ -115,11 +115,12 @@ def main():
     # TODO: write better reconnection logic
     try:
         device = IotPlug(DEVICE_IP)
-        logger.info(f'Connected to Kasa Smart Plug, device ID: {DEVICE_ID}, starting monitoring....')  # noqa: E501
+        logger.info('Connected to Kasa Smart Plug, device ID: %s, starting monitoring....',  # noqa: E501
+                    DEVICE_ID)  # noqa: E501
 
     except Exception as e:
         message = (f'Failed to connect to device ID: {DEVICE_ID} at {DEVICE_IP} with error: {e}')  # noqa: E501
-        logger.info(message)
+        logger.exception(message)
         com_utilities.send_slack_webhook(DEVICE_ALERT_WEBHOOK,
                                          message)
         sys.exit()

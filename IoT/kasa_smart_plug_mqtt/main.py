@@ -1,6 +1,6 @@
-# Markham Lee 2023 - 2024
-# Finance, Productivity, IoT, & Weather dashboard
-# https://github.com/MarkhamLee/finance-productivity-iot-informational-weather-dashboard
+# Markham Lee 2023 - 2026
+# Internet & IoT Data Platform
+# https://github.com/MarkhamLee/internet-and-iot-data-platform
 # Python script for receiving energy data from a TP Link Kasa TP254
 # smart plug and transmitting the data via MQTT
 import asyncio
@@ -43,7 +43,8 @@ async def get_plug_data(client: object, topic: str,
 
     try:
         plug = SmartPlug(device_ip)
-        logger.info(f'Connected to Kasa smart plug at: {device_ip}')
+        logger.info('Connected to Kasa smart plug at: %s',
+                    device_ip)
 
     except Exception as e:
         message = (f"Kasa device: {SENSOR_ID} unavailable with error {e}, going to sleep....")  # noqa: E501
@@ -61,10 +62,12 @@ async def get_plug_data(client: object, topic: str,
 
         except Exception as e:
             message = (f'Kasa plug {SENSOR_ID} connectivity failure with error: {e}')  # noqa: E501
-            logger.debug(message)
+            logger.exception(message)
             device_error_count += 1
             if device_error_count > 36:
-                com_utilities.send_slack_alert(message, DEVICE_FAILURE_CHANNEL, ALERT_ENDPOINT)
+                com_utilities.send_slack_alert(message,
+                                               DEVICE_FAILURE_CHANNEL,
+                                               ALERT_ENDPOINT)
                 device_error_count = 0  # reset error count
                 asyncio.sleep(1200)  # sleep for 20 minutes
                 continue
@@ -87,7 +90,9 @@ async def get_plug_data(client: object, topic: str,
             logger.debug(message)
 
             if mqtt_error_count > 36:
-                com_utilities.send_slack_alert(message, DEVICE_FAILURE_CHANNEL, ALERT_ENDPOINT)
+                com_utilities.send_slack_alert(message,
+                                               DEVICE_FAILURE_CHANNEL,
+                                               ALERT_ENDPOINT)
                 mqtt_error_count = 0  # reset count interval
                 # sleep for 30 minutes, 10 consecutive failures suggests
                 # broader network and/or MQTT broker issues.
