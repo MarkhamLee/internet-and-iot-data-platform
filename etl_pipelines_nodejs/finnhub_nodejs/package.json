@@ -23,17 +23,16 @@
     "@types/node": "^18.19.21",
     "@typescript-eslint/eslint-plugin": "^8.57.2",
     "@typescript-eslint/parser": "^8.57.2",
-    "axios": "^1.15.2",
     "esbuild": "^0.28.1",
     "eslint": "^8.57.0",
     "eslint-plugin-react": "^7.32.0",
-    "follow-redirects": "^1.15.6",
     "jest": "^30.3.0",
     "ts-jest": "^29.1.2"
   },
   "dependencies": {
     "@influxdata/influxdb-client": "^1.33.2",
     "ajv": "^8.12.0",
+    "axios": "^1.15.2",
     "finnhub": "^2.0.7",
     "follow-redirects": "^1.15.6",
     "tsx": "^4.7.1",
