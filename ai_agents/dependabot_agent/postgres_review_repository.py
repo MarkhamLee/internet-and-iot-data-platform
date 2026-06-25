@@ -8,7 +8,6 @@ from datetime import datetime, timedelta, timezone
 import psycopg
 from psycopg.rows import dict_row
 
-
 from schemas import AlertGroup, AlertRecord, AlertReviewWrite, \
     StoredRiskAssessment
 
@@ -82,15 +81,15 @@ class PostgresReviewRepository:
                 postgres_password=self.postgres_password,
             )
 
-            with self.conn.cursor() as cur:
-                cur.execute("select current_database(), current_user, current_schema()")  # noqa: E501
-                db_name, db_user, db_schema = cur.fetchone()
-                logger.info(
-                    "Postgres connection established database=%s user=%s schema=%s",  # noqa: E501
-                    db_name,
-                    db_user,
-                    db_schema,
-                )
+        with self.conn.cursor() as cur:
+            cur.execute("select current_database(), current_user, current_schema()")  # noqa: E501
+            db_name, db_user, db_schema = cur.fetchone()
+            logger.info(
+                "Postgres connection established database=%s user=%s schema=%s",  # noqa: E501
+                db_name,
+                db_user,
+                db_schema,
+            )
 
     def close(self) -> None:
         if self.conn is not None and not self.conn.closed:
@@ -112,28 +111,28 @@ class PostgresReviewRepository:
         self.connect()
 
         sql = """
-            SELECT
-                repo_full_name,
-                package_name,
-                ecosystem,
-                MIN(severity)                       AS severity,
-                MIN(summary)                        AS summary,
-                MIN(description)                    AS description,
-                MIN(cve_id)                         AS cve_id,
-                MIN(ghsa_id)                        AS ghsa_id,
-                MIN(vulnerable_version_range)       AS vulnerable_version_range,
-                MIN(first_patched_version)          AS first_patched_version,
-                MIN(review_group_key)               AS review_group_key,
-                MIN(review_reason)                  AS review_reason,
-                array_agg(manifest_path ORDER BY alert_number ASC) AS manifest_paths,
-                array_agg(alert_id      ORDER BY alert_number ASC) AS alert_ids,
-                array_agg(alert_number  ORDER BY alert_number ASC) AS alert_numbers
-            FROM dependabot_alerts
-            WHERE github_state = 'open'
-            AND needs_review = TRUE
-            GROUP BY repo_full_name, package_name, ecosystem
-            ORDER BY MIN(alert_number) ASC
-            LIMIT %s
+        SELECT
+            repo_full_name,
+            package_name,
+            ecosystem,
+            MIN(severity) AS severity,
+            MIN(summary) AS summary,
+            MIN(description) AS description,
+            MIN(cve_id) AS cve_id,
+            MIN(ghsa_id) AS ghsa_id,
+            MIN(vulnerable_version_range) AS vulnerable_version_range,
+            MIN(first_patched_version) AS first_patched_version,
+            MIN(review_group_key) AS review_group_key,
+            MIN(review_reason) AS review_reason,
+            array_agg(manifest_path ORDER BY alert_number ASC) AS manifest_paths,
+            array_agg(alert_id ORDER BY alert_number ASC) AS alert_ids,
+            array_agg(alert_number ORDER BY alert_number ASC) AS alert_numbers
+        FROM dependabot_alerts
+        WHERE github_state = 'open'
+        AND needs_review = TRUE
+        GROUP BY repo_full_name, package_name, ecosystem
+        ORDER BY MIN(alert_number) ASC
+        LIMIT %s
         """
 
         logger.info("Fetching alert groups needing review limit=%s", limit)
@@ -159,19 +158,63 @@ class PostgresReviewRepository:
     ) -> list[AlertRecord]:
         self.connect()
 
-        cutoff = datetime.\
-            now(tz=timezone.utc) - timedelta(hours=reminder_interval_hours)
+        cutoff = (
+            datetime.now(tz=timezone.utc)
+            - timedelta(hours=reminder_interval_hours)
+        )
 
+        # Pull all fields needed to build rich reminder messages, including
+        # repo_full_name, recommendation, and risk_summary from the joined
+        # latest review so reminders carry the same context as initial alerts.
         sql = """
-            SELECT *
-            FROM dependabot_alerts
-            WHERE github_state = 'open'
-            AND needs_review = FALSE
-            AND (
-                slack_notified_at IS NULL
-                OR slack_message_ts < %(cutoff)s
-            )
-            ORDER BY alert_number ASC
+        SELECT
+            a.alert_id,
+            a.repo_full_name,
+            a.package_name,
+            a.ecosystem,
+            a.severity,
+            a.cve_id,
+            a.ghsa_id,
+            a.manifest_path,
+            a.alert_number,
+            a.github_state,
+            a.needs_review,
+            a.slack_notified_at,
+            a.slack_message_ts,
+            a.reminder_count,
+            r.recommendation,
+            r.risksummary AS risk_summary,
+            r.priority,
+            r.current_version,
+            r.suggested_version,
+            r.cve_summary,
+            r.breaking_change_risk,
+            r.breaking_change_rationale,
+            r.usage_in_codebase
+        FROM dependabot_alerts a
+        LEFT JOIN LATERAL (
+            SELECT
+                recommendation,
+                risksummary,
+                priority,
+                current_version,
+                suggested_version,
+                cve_summary,
+                breaking_change_risk,
+                breaking_change_rationale,
+                usage_in_codebase
+            FROM dependabot_alert_reviews
+            WHERE alert_id = a.alert_id
+            ORDER BY reviewed_at DESC
+            LIMIT 1
+        ) r ON TRUE
+        WHERE a.github_state = 'open'
+          AND a.needs_review = FALSE
+          AND (
+              a.slack_notified_at IS NULL
+              OR a.slack_message_ts < %(cutoff)s
+          )
+        ORDER BY a.alert_number ASC
         """
 
         logger.info(
@@ -182,8 +225,8 @@ class PostgresReviewRepository:
         with self.conn.cursor(row_factory=dict_row) as cur:
             cur.execute(sql, {"cutoff": cutoff})
             rows = cur.fetchall()
-            logger.info("Fetched %s alerts needing Slack notification",
-                        len(rows))
+
+        logger.info("Fetched %s alerts needing Slack notification", len(rows))
 
         return [AlertRecord.model_validate(row) for row in rows]
 
@@ -194,25 +237,26 @@ class PostgresReviewRepository:
         self.connect()
 
         sql = """
-            SELECT
-                alert_id,
-                recommendation,
-                priority                AS severity,
-                confidence,
-                risksummary             AS risk_summary,
-                reasoning,
-                current_version,
-                suggested_version,
-                cve_summary,
-                usage_in_codebase,
-                breaking_change_risk,
-                breaking_change_rationale,
-                suggested_pr_description,
-                assessment_json
-            FROM dependabot_alert_reviews
-            WHERE alert_id = %s
-            ORDER BY reviewed_at DESC
-            LIMIT 1
+        SELECT
+            r.alert_id,
+            r.repo_full_name,
+            r.recommendation,
+            r.priority AS severity,
+            r.confidence,
+            r.risksummary AS risk_summary,
+            r.reasoning,
+            r.current_version,
+            r.suggested_version,
+            r.cve_summary,
+            r.usage_in_codebase,
+            r.breaking_change_risk,
+            r.breaking_change_rationale,
+            r.suggested_pr_description,
+            r.assessment_json
+        FROM dependabot_alert_reviews r
+        WHERE r.alert_id = %s
+        ORDER BY r.reviewed_at DESC
+        LIMIT 1
         """
 
         with self.conn.cursor(row_factory=dict_row) as cur:
@@ -227,6 +271,7 @@ class PostgresReviewRepository:
 
         return StoredRiskAssessment(
             alert_id=row["alert_id"],
+            repo_full_name=row.get("repo_full_name", ""),
             manifest_path=assessment_json.get("manifest_path", ""),
             package=assessment_json.get("package", ""),
             ecosystem=assessment_json.get("ecosystem", ""),
@@ -256,22 +301,22 @@ class PostgresReviewRepository:
 
         if is_reminder:
             sql = """
-                UPDATE dependabot_alerts
-                SET
-                    slack_message_ts = %(notified_at)s,
-                    reminder_count   = COALESCE(reminder_count, 0) + 1,
-                    updated_at       = NOW()
-                WHERE alert_id = %(alert_id)s
+            UPDATE dependabot_alerts
+            SET
+                slack_message_ts = %(notified_at)s,
+                reminder_count = COALESCE(reminder_count, 0) + 1,
+                updated_at = NOW()
+            WHERE alert_id = %(alert_id)s
             """
         else:
             sql = """
-                UPDATE dependabot_alerts
-                SET
-                    slack_notified_at = %(notified_at)s,
-                    slack_message_ts  = %(notified_at)s,
-                    reminder_count    = 0,
-                    updated_at        = NOW()
-                WHERE alert_id = %(alert_id)s
+            UPDATE dependabot_alerts
+            SET
+                slack_notified_at = %(notified_at)s,
+                slack_message_ts = %(notified_at)s,
+                reminder_count = 0,
+                updated_at = NOW()
+            WHERE alert_id = %(alert_id)s
             """
 
         payload = {"alert_id": alert_id, "notified_at": notified_at}
@@ -289,50 +334,50 @@ class PostgresReviewRepository:
         self.connect()
 
         sql = """
-            INSERT INTO dependabot_alert_reviews (
-                alert_id,
-                repo_full_name,
-                review_group_key,
-                review_reason,
-                model_name,
-                prompt_version,
-                recommendation,
-                priority,
-                confidence,
-                risksummary,
-                reasoning,
-                current_version,
-                suggested_version,
-                cve_summary,
-                usage_in_codebase,
-                breaking_change_risk,
-                breaking_change_rationale,
-                suggested_pr_description,
-                research_json,
-                assessment_json
-            )
-            VALUES (
-                %(alert_id)s,
-                %(repo_full_name)s,
-                %(review_group_key)s,
-                %(review_reason)s,
-                %(model_name)s,
-                %(prompt_version)s,
-                %(recommendation)s,
-                %(priority)s,
-                %(confidence)s,
-                %(risksummary)s,
-                %(reasoning)s,
-                %(current_version)s,
-                %(suggested_version)s,
-                %(cve_summary)s,
-                %(usage_in_codebase)s,
-                %(breaking_change_risk)s,
-                %(breaking_change_rationale)s,
-                %(suggested_pr_description)s,
-                %(research_json)s::jsonb,
-                %(assessment_json)s::jsonb
-            )
+        INSERT INTO dependabot_alert_reviews (
+            alert_id,
+            repo_full_name,
+            review_group_key,
+            review_reason,
+            model_name,
+            prompt_version,
+            recommendation,
+            priority,
+            confidence,
+            risksummary,
+            reasoning,
+            current_version,
+            suggested_version,
+            cve_summary,
+            usage_in_codebase,
+            breaking_change_risk,
+            breaking_change_rationale,
+            suggested_pr_description,
+            research_json,
+            assessment_json
+        )
+        VALUES (
+            %(alert_id)s,
+            %(repo_full_name)s,
+            %(review_group_key)s,
+            %(review_reason)s,
+            %(model_name)s,
+            %(prompt_version)s,
+            %(recommendation)s,
+            %(priority)s,
+            %(confidence)s,
+            %(risksummary)s,
+            %(reasoning)s,
+            %(current_version)s,
+            %(suggested_version)s,
+            %(cve_summary)s,
+            %(usage_in_codebase)s,
+            %(breaking_change_risk)s,
+            %(breaking_change_rationale)s,
+            %(suggested_pr_description)s,
+            %(research_json)s::jsonb,
+            %(assessment_json)s::jsonb
+        )
         """
 
         payload = review.model_dump(mode="python")
@@ -356,13 +401,13 @@ class PostgresReviewRepository:
         self.connect()
 
         sql = """
-            UPDATE dependabot_alerts
-            SET
-                needs_review         = FALSE,
-                last_researched_at   = NOW(),
-                latest_research_json = %(latest_research_json)s::jsonb,
-                updated_at           = NOW()
-            WHERE alert_id = %(alert_id)s
+        UPDATE dependabot_alerts
+        SET
+            needs_review = FALSE,
+            last_researched_at = NOW(),
+            latest_research_json = %(latest_research_json)s::jsonb,
+            updated_at = NOW()
+        WHERE alert_id = %(alert_id)s
         """
 
         payload = {
