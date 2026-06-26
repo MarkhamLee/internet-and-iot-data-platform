@@ -8,12 +8,13 @@ from datetime import datetime, timezone
 from time import perf_counter
 from schemas import AlertGroup, AlertReviewResponse, AlertReviewWrite
 from postgres_review_repository import PostgresReviewRepository
+from qwen_client import QwenClient
 from slack_message_builder import (
     build_report_blocks,
     build_reminder_blocks,
     build_slack_payload,
 )
-from agent_library.qwen_client import QwenClient
+# from agent_library.qwen_client import QwenClient
 from agent_library.agent_utilities import (
     send_slack_webhook_block,
     write_instrumentation,
