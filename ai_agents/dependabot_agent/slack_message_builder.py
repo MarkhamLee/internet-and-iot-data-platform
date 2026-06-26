@@ -20,9 +20,7 @@ REC_EMOJI = {
 
 
 def build_report_blocks(
-    a: StoredRiskAssessment,
-    repo: str,
-    cve_id: str,
+    a: StoredRiskAssessment
 ) -> list:
     severity = (a.severity or "").upper() or "UNKNOWN"
     risk_label = RISK_EMOJI.\
@@ -36,7 +34,7 @@ def build_report_blocks(
             "type": "header",
             "text": {
                 "type": "plain_text",
-                "text": f"🔒 {severity}: {a.package} ({repo})",
+                "text": f"🔒 {severity}: {a.package} ({a.repo_full_name})",
             },
         },
         {
@@ -48,7 +46,7 @@ def build_report_blocks(
                 },
                 {
                     "type": "mrkdwn",
-                    "text": f"*CVE:* {cve_id or 'N/A'}",
+                    "text": f"*CVE:* {a.cve_id or 'N/A'}",
                 },
                 {
                     "type": "mrkdwn",
@@ -104,16 +102,41 @@ def build_reminder_blocks(
     reminder_count: int,
 ) -> list:
     rec_label = REC_EMOJI.get(a.recommendation, f"ℹ️ {a.recommendation}")
+    risk_label = RISK_EMOJI.get(a.breaking_change_risk, "⚪") + f" {a.breaking_change_risk}"  # noqa: E501
+    severity = (a.severity or "").upper() or "UNKNOWN"
+    current_version = a.current_version or "unknown"
+    suggested_version = a.suggested_version or "unknown"
+    manifest = a.manifest_path or "unknown"
 
     return [
+        {
+            "type": "header",
+            "text": {
+                "type": "plain_text",
+                "text": f"⏰ Reminder #{reminder_count} — {severity}: {a.package} ({a.repo_full_name})",  # noqa: E501
+            },
+        },
+        {
+            "type": "section",
+            "fields": [
+                {"type": "mrkdwn", "text": f"*Package:* `{a.package}` ({a.ecosystem})"},  # noqa: E501
+                {"type": "mrkdwn", "text": f"*File:* `{manifest}`"},
+                {"type": "mrkdwn", "text": f"*Upgrade:* `{current_version}` → `{suggested_version}`"},  # noqa:E501
+                {"type": "mrkdwn", "text": f"*Breaking Risk:* {risk_label}"},
+            ],
+        },
         {
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": (
-                    f"⏰ *Reminder #{reminder_count}* — `{a.package}` upgrade still pending.\n"  # noqa: E501
-                    f"Recommendation: {rec_label}"
-                ),
+                "text": f"*Risk Summary:*\n{a.risk_summary}",
+            },
+        },
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": f"*Recommendation:* {rec_label}",
             },
         },
     ]

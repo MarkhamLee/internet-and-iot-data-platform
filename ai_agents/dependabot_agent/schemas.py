@@ -103,7 +103,9 @@ class StoredRiskAssessment(BaseModel):
     """
 
     alert_id: str
-    manifest_path: str
+    cve_id: str | None = None
+    manifest_path: str | None = None
+    repo_full_name: str
     package: str
     ecosystem: str
     severity: str

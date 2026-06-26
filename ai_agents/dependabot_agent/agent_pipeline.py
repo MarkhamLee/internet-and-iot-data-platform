@@ -14,7 +14,6 @@ from slack_message_builder import (
     build_reminder_blocks,
     build_slack_payload,
 )
-# from agent_library.qwen_client import QwenClient
 from agent_library.agent_utilities import (
     send_slack_webhook_block,
     write_instrumentation,
@@ -289,9 +288,7 @@ class DependabotAgent:
                     )
                 else:
                     blocks = build_report_blocks(
-                        assessment,
-                        repo=alert.repo_full_name,
-                        cve_id=alert.cve_id,
+                        assessment
                     )
                     fallback = (
                         f"New Dependabot alert: {alert.package_name} "
