@@ -83,183 +83,184 @@ class DependabotAgent:
     # Phase 1: LLM review
     # ------------------------------------------------------------------
 
+    def run_review_phase(self) -> dict:
+        """Fetch alert groups needing review, call the LLM, persist results."""
+        alerts_reviewed = 0
+        failed_groups = 0
+        llm_durations: list[float] = []
+        repos: list[str] = []
+        groups_fetched = 0
+        alerts_fetched = 0
+        errors: list[str] = []
 
-def run_review_phase(self) -> dict:
-    """Fetch alert groups needing review, call the LLM, persist results."""
-    alerts_reviewed = 0
-    failed_groups = 0
-    llm_durations: list[float] = []
-    repos: list[str] = []
-    groups_fetched = 0
-    alerts_fetched = 0
-    errors: list[str] = []
+        with self._repo() as repository:
+            groups = repository.fetch_alert_groups_needing_review(
+                limit=self.review_limit,
+            )
 
-    with self._repo() as repository:
-        groups = repository.fetch_alert_groups_needing_review(
-            limit=self.review_limit,
+        groups_fetched = len(groups)
+
+        if not groups:
+            logger.info("No alert groups require review")
+            return {
+                "groups_fetched": 0,
+                "alerts_fetched": 0,
+                "alerts_reviewed": 0,
+                "failed_groups": 0,
+                "repos": [],
+                "llm_durations": [],
+                "errors": [],
+            }
+
+        alerts_fetched = sum(len(g.alert_ids) for g in groups)
+        repos = sorted({g.repo_full_name for g in groups})
+        logger.info(
+            "Reviewing %s alert groups covering %s alerts across repos: %s",
+            groups_fetched,
+            alerts_fetched,
+            ", ".join(repos),
         )
 
-    groups_fetched = len(groups)
-
-    if not groups:
-        logger.info("No alert groups require review")
-        return {
-            "groups_fetched": 0,
-            "alerts_fetched": 0,
-            "alerts_reviewed": 0,
-            "failed_groups": 0,
-            "repos": [],
-            "llm_durations": [],
-            "errors": [],
-        }
-
-    alerts_fetched = sum(len(g.alert_ids) for g in groups)
-    repos = sorted({g.repo_full_name for g in groups})
-    logger.info(
-        "Reviewing %s alert groups covering %s alerts across repos: %s",
-        groups_fetched,
-        alerts_fetched,
-        ", ".join(repos),
-    )
-
-    for group in groups:
-        try:
-            logger.info(
-                "Reviewing group repo=%s package=%s ecosystem=%s manifest_count=%s",  # noqa: E501
-                group.repo_full_name,
-                group.package_name,
-                group.ecosystem,
-                len(group.manifest_paths),
-            )
-
-            payload = build_group_payload(group)
-
-            llm_start = perf_counter()
-            response: AlertReviewResponse = (
-                self.qwen_client.generate_structured_response(
-                    prompt=self.review_prompt,
-                    payload=payload,
-                    response_model=AlertReviewResponse,
-                )
-            )
-            llm_durations.append(perf_counter() - llm_start)
-
-            logger.info(
-                "Qwen response received package=%s result_count=%s",
-                group.package_name,
-                len(response.results),
-            )
-
-            # Overshoot is a hard error — the model returned more results
-            # than there are manifest paths, which is structurally wrong.
-            if len(response.results) > len(group.manifest_paths):
-                raise RuntimeError(
-                    f"Result count overshoot for package={group.package_name}. "  # noqa: E501
-                    f"expected={len(group.manifest_paths)} got={len(response.results)}"  # noqa: E501
-                )
-
-            # Build a lookup by manifest_path for efficient matching.
-            result_by_path = {r.manifest_path: r for r in response.results}
-
-            # If the model returned fewer results than paths, use the single
-            # result as a fallback. Only valid when exactly one result
-            # came back.
-            fallback_review = (
-                response.results[0]
-                if len(response.results) < len(group.manifest_paths)
-                and len(response.results) == 1
-                else None
-            )
-
-            if fallback_review is not None:
-                logger.warning(
-                    "Result count shortfall for package=%s expected=%s got=%s "
-                    "— applying fallback result to uncovered paths",
+        for group in groups:
+            try:
+                logger.info(
+                    "Reviewing group repo=%s package=%s ecosystem=%s manifest_count=%s",  # noqa: E501
+                    group.repo_full_name,
                     group.package_name,
+                    group.ecosystem,
                     len(group.manifest_paths),
+                )
+
+                payload = build_group_payload(group)
+
+                llm_start = perf_counter()
+                response: AlertReviewResponse = (
+                    self.qwen_client.generate_structured_response(
+                        prompt=self.review_prompt,
+                        payload=payload,
+                        response_model=AlertReviewResponse,
+                    )
+                )
+                llm_durations.append(perf_counter() - llm_start)
+
+                logger.info(
+                    "Qwen response received package=%s result_count=%s",
+                    group.package_name,
                     len(response.results),
                 )
 
-            for path, alert_id in zip(group.manifest_paths, group.alert_ids):
-                review = result_by_path.get(path)
-
-                if review is None:
-                    if fallback_review is None:
-                        raise RuntimeError(
-                            f"No result for manifest_path={path} and no fallback "  # noqa: E501
-                            f"available for package={group.package_name}"
-                        )
-                    # Clone the fallback with the correct path and alert_id
-                    # stamped in so the DB write is valid and traceable.
-                    review = fallback_review.model_copy(
-                        update={"manifest_path": path, "alert_id": alert_id}
+                # Overshoot is a hard error — the model returned more results
+                # than there are manifest paths, which is structurally wrong.
+                if len(response.results) > len(group.manifest_paths):
+                    raise RuntimeError(
+                        f"Result count overshoot for package={group.package_name}. "  # noqa: E501
+                        f"expected={len(group.manifest_paths)} got={len(response.results)}"  # noqa: E501
                     )
+
+                # Build a lookup by manifest_path for efficient matching.
+                result_by_path = {r.manifest_path: r for r in response.results}
+
+                # If the model returned fewer results than paths,
+                # use the single result as a fallback. Only valid
+                # when exactly one result came back.
+                fallback_review = (
+                    response.results[0]
+                    if len(response.results) < len(group.manifest_paths)
+                    and len(response.results) == 1
+                    else None
+                )
+
+                if fallback_review is not None:
+                    logger.warning(
+                        "Result count shortfall for package=%s expected=%s got=%s "  # noqa: E501
+                        "— applying fallback result to uncovered paths",
+                        group.package_name,
+                        len(group.manifest_paths),
+                        len(response.results),
+                    )
+
+                for path, alert_id in zip(group.manifest_paths,
+                                          group.alert_ids):
+                    review = result_by_path.get(path)
+
+                    if review is None:
+                        if fallback_review is None:
+                            raise RuntimeError(
+                                f"No result for manifest_path={path} and no fallback "  # noqa: E501
+                                f"available for package={group.package_name}"
+                            )
+                        # Clone the fallback with the correct path and alert_id
+                        # stamped in so the DB write is valid and traceable.
+                        review = fallback_review.model_copy(
+                            update={"manifest_path": path,
+                                    "alert_id": alert_id}
+                        )
+                        logger.info(
+                            "Applied fallback review to alert_id=%s manifest_path=%s",  # noqa: E501
+                            alert_id,
+                            path,
+                        )
+
+                    review_write = AlertReviewWrite(
+                        alert_id=alert_id,
+                        repo_full_name=group.repo_full_name,
+                        review_group_key=group.review_group_key,
+                        review_reason=group.review_reason or "manual_recheck",
+                        model_name=self.qwen_client.model,
+                        prompt_version=self.prompt_version,
+                        recommendation=review.recommendation,
+                        priority=review.priority,
+                        confidence=review.confidence,
+                        risksummary=review.risk_summary,
+                        reasoning=review.reasoning,
+                        current_version=review.current_version,
+                        suggested_version=review.suggested_version,
+                        cve_summary=review.cve_summary,
+                        usage_in_codebase=review.usage_in_codebase,
+                        breaking_change_risk=review.breaking_change_risk,
+                        breaking_change_rationale=review.breaking_change_rationale,  # noqa: E501
+                        suggested_pr_description=review.suggested_pr_description,  # noqa: E501
+                        research_json=group.model_dump(mode="json"),
+                        assessment_json=review.model_dump(mode="json"),
+                    )
+
+                    with self._repo() as repository:
+                        repository.save_review_result(
+                            review=review_write,
+                            latest_research_json={
+                                "model_name": self.qwen_client.model,
+                                "prompt_version": self.prompt_version,
+                                "review": review.model_dump(mode="json"),
+                            },
+                        )
+
+                    alerts_reviewed += 1
                     logger.info(
-                        "Applied fallback review to alert_id=%s manifest_path=%s",  # noqa: E501
+                        "Completed review alert_id=%s repo=%s manifest_path=%s",  # noqa: E501
                         alert_id,
+                        group.repo_full_name,
                         path,
                     )
 
-                review_write = AlertReviewWrite(
-                    alert_id=alert_id,
-                    repo_full_name=group.repo_full_name,
-                    review_group_key=group.review_group_key,
-                    review_reason=group.review_reason or "manual_recheck",
-                    model_name=self.qwen_client.model,
-                    prompt_version=self.prompt_version,
-                    recommendation=review.recommendation,
-                    priority=review.priority,
-                    confidence=review.confidence,
-                    risksummary=review.risk_summary,
-                    reasoning=review.reasoning,
-                    current_version=review.current_version,
-                    suggested_version=review.suggested_version,
-                    cve_summary=review.cve_summary,
-                    usage_in_codebase=review.usage_in_codebase,
-                    breaking_change_risk=review.breaking_change_risk,
-                    breaking_change_rationale=review.breaking_change_rationale,
-                    suggested_pr_description=review.suggested_pr_description,
-                    research_json=group.model_dump(mode="json"),
-                    assessment_json=review.model_dump(mode="json"),
+            except Exception as exc:
+                failed_groups += 1
+                error = (
+                    f"review group repo={group.repo_full_name} "
+                    f"package={group.package_name} ecosystem={group.ecosystem}: {exc}"  # noqa: E501
                 )
+                errors.append(error)
+                logger.exception("Failed to %s", error)
+                continue
 
-                with self._repo() as repository:
-                    repository.save_review_result(
-                        review=review_write,
-                        latest_research_json={
-                            "model_name": self.qwen_client.model,
-                            "prompt_version": self.prompt_version,
-                            "review": review.model_dump(mode="json"),
-                        },
-                    )
-
-                alerts_reviewed += 1
-                logger.info(
-                    "Completed review alert_id=%s repo=%s manifest_path=%s",
-                    alert_id,
-                    group.repo_full_name,
-                    path,
-                )
-
-        except Exception as exc:
-            failed_groups += 1
-            error = (
-                f"review group repo={group.repo_full_name} "
-                f"package={group.package_name} ecosystem={group.ecosystem}: {exc}"  # noqa: E501
-            )
-            errors.append(error)
-            logger.exception("Failed to %s", error)
-            continue
-
-    return {
-        "groups_fetched": groups_fetched,
-        "alerts_fetched": alerts_fetched,
-        "alerts_reviewed": alerts_reviewed,
-        "failed_groups": failed_groups,
-        "repos": repos,
-        "llm_durations": llm_durations,
-        "errors": errors,
-    }
+        return {
+            "groups_fetched": groups_fetched,
+            "alerts_fetched": alerts_fetched,
+            "alerts_reviewed": alerts_reviewed,
+            "failed_groups": failed_groups,
+            "repos": repos,
+            "llm_durations": llm_durations,
+            "errors": errors,
+        }
 
     # ------------------------------------------------------------------
     # Phase 2: Slack notifications
