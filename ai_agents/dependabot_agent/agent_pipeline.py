@@ -3,12 +3,15 @@
 # Core agent logic for the Dependabot review pipeline.
 # Handles LLM review, Slack notifications, and run instrumentation.
 # Instantiated and called by main.py.
+from __future__ import annotations
+
 import uuid
 from datetime import datetime, timezone
 from time import perf_counter
+from typing import TYPE_CHECKING
+
 from schemas import AlertGroup, AlertReviewResponse, AlertReviewWrite
 from postgres_review_repository import PostgresReviewRepository
-from qwen_client import QwenClient
 from slack_message_builder import (
     build_report_blocks,
     build_reminder_blocks,
@@ -20,9 +23,10 @@ from agent_library.agent_utilities import (
 )
 from agent_library.logging_util import console_logging
 
-logger = console_logging("Dependabot agent")
+if TYPE_CHECKING:
+    from agent_library.qwen_client import QwenClient
 
-AGENT_RUNS_TABLE = "agent_runs"
+logger = console_logging("Dependabot agent")
 
 
 def build_group_payload(group: AlertGroup) -> dict:
@@ -60,6 +64,7 @@ class DependabotAgent:
         prompt_version: str,
         review_limit: int,
         reminder_interval_hours: int,
+        agent_runs_table: str,
     ):
         self.qwen_client = qwen_client
         self.slack_webhook_url = slack_webhook_url
@@ -68,6 +73,7 @@ class DependabotAgent:
         self.prompt_version = prompt_version
         self.review_limit = review_limit
         self.reminder_interval_hours = reminder_interval_hours
+        self.agent_runs_table = agent_runs_table
 
     def _repo(self) -> PostgresReviewRepository:
         """Open a fresh repository connection."""
@@ -381,7 +387,7 @@ class DependabotAgent:
         with self._repo() as repository:
             write_instrumentation(
                 conn=repository.conn,
-                table=AGENT_RUNS_TABLE,
+                table=self.agent_runs_table,
                 payload=run_payload,
             )
 

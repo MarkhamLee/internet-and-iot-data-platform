@@ -5,12 +5,12 @@ import sys
 import os
 from os import getenv
 from agent_pipeline import DependabotAgent
-from qwen_client import QwenClient  # noqa: E402
+# from qwen_client import QwenClient  # noqa: E402
 
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(parent_dir)
 from agent_library.logging_util import console_logging  # noqa: E402
-# from agent_library.qwen_client import QwenClient  # noqa: E402
+from agent_library.qwen_client import QwenClient  # noqa: E402
 
 
 logger = console_logging("Dependabot review main")
@@ -79,6 +79,7 @@ def main() -> None:
     review_limit = int(getenv("REVIEW_LIMIT", "25"))
     read_timeout = int(getenv("READ_TIMEOUT", "600"))
     reminder_interval_hours = int(getenv("REMINDER_INTERVAL_HOURS", "24"))
+    agent_runs_table = getenv("AGENT_RUNS_TABLE", "agent_runs")
 
     qwen_client = QwenClient(
         ollama_url=ollama_url,
@@ -96,6 +97,7 @@ def main() -> None:
         prompt_version=prompt_version,
         review_limit=review_limit,
         reminder_interval_hours=reminder_interval_hours,
+        agent_runs_table=agent_runs_table,
     )
 
     agent.run()
