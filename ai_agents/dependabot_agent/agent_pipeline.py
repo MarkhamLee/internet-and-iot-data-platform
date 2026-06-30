@@ -311,6 +311,7 @@ class DependabotAgent:
                     fallback = (
                         f"Reminder #{reminder_count} — {alert.package_name} "
                         f"({alert.ecosystem}) upgrade still pending\n"
+                        f"Summary: {assessment.cve_summary} \n"
                         f"Repo: {alert.repo_full_name} | "
                         f"File: {alert.manifest_path}\n"
                         f"Recommendation: {assessment.recommendation} | "

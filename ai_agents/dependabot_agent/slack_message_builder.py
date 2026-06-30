@@ -119,6 +119,7 @@ def build_reminder_blocks(
         {
             "type": "section",
             "fields": [
+                {"type": "mrkdwn", "text": f"*Summary:* `{a.cve_summary}`"},
                 {"type": "mrkdwn", "text": f"*Package:* `{a.package}` ({a.ecosystem})"},  # noqa: E501
                 {"type": "mrkdwn", "text": f"*File:* `{manifest}`"},
                 {"type": "mrkdwn", "text": f"*Upgrade:* `{current_version}` → `{suggested_version}`"},  # noqa:E501
