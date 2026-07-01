@@ -17,9 +17,12 @@ from agent_library.logging_util import console_logging  # noqa: E402
 
 logger = console_logging("site_monitor_data_ingestion_logs")
 
+monitoring_target_config = os.getenv('MONITORING_CONFIG_FILE',
+                                     "monitoring_targets.yml")
+
 
 def main() -> None:
-    app = load_config()
+    app = load_config(monitoring_target_config)
 
     deps = IngestionDependencies(
         state_store=StateStore(app.postgres_dsn),
