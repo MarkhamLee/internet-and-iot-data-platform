@@ -45,6 +45,7 @@ def load_watch_file(path: str | Path = "monitoring_targets.yml")\
 
 
 def load_config(path: str | Path = "monitoring_targets.yml") -> AppConfig:
+
     watch_cfg = load_watch_file(path)
 
     force_research_after_hours = int(
