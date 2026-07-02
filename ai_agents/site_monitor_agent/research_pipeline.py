@@ -145,10 +145,7 @@ def process_queue_item(
                 event_type,
             )
             slack_payload = build_alert_blocks(
-                page_key=item.page_key,
-                url=item.url,
                 result=result,
-                event_type=event_type,
                 now=now,
             )
             status_code = send_slack_webhook_block(
