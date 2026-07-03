@@ -40,6 +40,7 @@ class TrackedPageState(BaseModel):
     pending_http_last_modified: str | None = None
     last_research_completed_at: datetime | None = None
     last_research_queue_id: int | None = None
+    reminder_count: int = 0
 
 
 class ResearchQueueItem(BaseModel):
