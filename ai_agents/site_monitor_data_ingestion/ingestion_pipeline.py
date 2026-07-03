@@ -1,7 +1,9 @@
 # (C) Markham Lee 2023 - 2026
 # https://github.com/MarkhamLee/internet-and-iot-data-platform
-# Primary pipeline script for ingesting page data, computing hashes
-# alerting, etc. rom __future__ import annotations
+# Primary pipeline script for ingesting page data, computing hashes,
+# detecting changes via hash comparison(s).
+from __future__ import annotations
+
 import os
 import sys
 from dataclasses import dataclass
@@ -13,8 +15,6 @@ from config import AppConfig, WatchTarget
 from content_extractor import extract_review_payload
 from hash_helper import compute_content_hash
 from page_fetcher import fetch_page
-from reminder_service import build_reminder_payload, \
-    send_reminder, should_send_reminder
 from state_store import StateStore, \
     build_research_queue_payload, should_enqueue_research
 from research_queue_store import ResearchQueueStore
@@ -42,7 +42,6 @@ class IngestionRunCounters:
     failed: int = 0
     skipped: int = 0
     queued: int = 0
-    reminder_sent: int = 0
     unchanged: int = 0
 
 
@@ -114,57 +113,6 @@ def process_target(
                 content_hash=previous.last_content_hash,
                 final_url=fetch_result.final_url,
             )
-
-            reminder_due, reminder_reason = should_send_reminder(previous,
-                                                                 target,
-                                                                 now)
-
-            if not reminder_due:
-                logger.info('No reminder due for target %s', str(target.url))
-
-            else:
-                logger.info('Sending reminder of desired page state for %s',
-                            str(target.url))
-                status_code = send_reminder(
-                    app.slack_webhook_url,
-                    build_reminder_payload(
-                        page_key=target.page_key,
-                        url=str(target.url),
-                        now=now,
-                    ),
-                )
-                if status_code == 200:
-                    deps.state_store.record_reminder_sent(
-                        page_key=target.page_key,
-                        sent_at=now,
-                    )
-                    logger.info('Page reminder sent successfully for %s',
-                                str(target.url))
-                    deps.instrumentation_store.finalize_target_run(
-                        target_run_id=target_run_id,
-                        completed_at=datetime.now(UTC),
-                        duration_seconds=perf_counter() - target_start,
-                        status="completed",
-                        reminder_attempted=True,
-                        reminder_sent=True,
-                        metadata={"reminder_reason": reminder_reason},
-                    )
-                    return "reminder_sent"
-                else:
-                    logger.warning('Sending page reminder failed for %s, with status code: %s',  # noqa: E501
-                                   str(target.url),
-                                   status_code)
-                    deps.instrumentation_store.finalize_target_run(
-                        target_run_id=target_run_id,
-                        completed_at=datetime.now(UTC),
-                        duration_seconds=perf_counter() - target_start,
-                        status="completed",
-                        reminder_attempted=True,
-                        reminder_sent=False,
-                        metadata={"reminder_reason": reminder_reason},
-                    )
-                    return "unchanged"
-
             deps.instrumentation_store.finalize_target_run(
                 target_run_id=target_run_id,
                 completed_at=datetime.now(UTC),
@@ -213,12 +161,6 @@ def process_target(
             request_reason=request_reason,
         )
 
-        reminder_due = False
-        reminder_reason = None
-        if not should_queue and previous is not None:
-            reminder_due, reminder_reason = should_send_reminder(previous,
-                                                                 target,
-                                                                 now)
         if should_queue:
             logger.info('Adding target page: %s to research queue, reason: %s',
                         str(target.url),
@@ -234,7 +176,6 @@ def process_target(
                 previous=previous,
                 pending_reconfirmation=pending_reconfirmation,
             )
-
             queue_id = deps.queue_store.enqueue_research(
                 page_key=target.page_key,
                 url=str(target.url),
@@ -268,50 +209,8 @@ def process_target(
             )
             return "queued"
 
-        if reminder_due:
-            logger.info('Sending reminder for: %s',
-                        str(target.url))
-            status_code = send_reminder(
-                app.slack_webhook_url,
-                build_reminder_payload(
-                    page_key=target.page_key,
-                    url=str(target.url),
-                    now=now,
-                ),
-            )
-            if status_code == 200:
-                deps.state_store.\
-                    record_reminder_sent(page_key=target.page_key,
-                                         sent_at=now)
-                logger.info('Reminder sent successfully for page: %s',
-                            str(target.url))
-                deps.instrumentation_store.finalize_target_run(
-                    target_run_id=target_run_id,
-                    completed_at=datetime.now(UTC),
-                    duration_seconds=perf_counter() - target_start,
-                    status="completed",
-                    reminder_attempted=True,
-                    reminder_sent=True,
-                    metadata={"reminder_reason": reminder_reason},
-                )
-                return "reminder_sent"
-
-            else:
-                logger.warning('Reminder send failed for %s, status: %s',
-                               str(target.url),
-                               status_code)
-                deps.instrumentation_store.finalize_target_run(
-                    target_run_id=target_run_id,
-                    completed_at=datetime.now(UTC),
-                    duration_seconds=perf_counter() - target_start,
-                    status="completed",
-                    reminder_attempted=True,
-                    reminder_sent=False,
-                    metadata={"reminder_reason": reminder_reason},
-                )
-                return "unchanged"
-
-        logger.info('No action needed for %s, page unchanged', str(target.url))
+        logger.info('No research needed for %s, page unchanged',
+                    str(target.url))
         deps.instrumentation_store.finalize_target_run(
             target_run_id=target_run_id,
             completed_at=datetime.now(UTC),
@@ -319,7 +218,6 @@ def process_target(
             status="completed",
             metadata={"request_reason": request_reason},
         )
-
         return "unchanged"
 
     except Exception as exc:
@@ -352,21 +250,25 @@ def run_ingestion_cycle(
         pipeline_name="site_monitor_data_ingestion",
         started_at=started_at,
         target_count=len(app.targets),
-        enabled_target_count=sum(1 for target in app.
-                                 targets if target.enabled),
+        enabled_target_count=sum(1 for target in app.targets
+                                 if target.enabled),
         metadata={"force_research_after_hours": app.force_research_after_hours},  # noqa: E501
     )
 
     overall_start = perf_counter()
 
     for target_index, target in enumerate(app.targets, start=1):
-        logger.info('Kicking off site content ingestion pipeline for target %s of %s',  # noqa: E501
-                    target_index,
-                    len(app.targets))
-        result = process_target(app=app,
-                                target=target,
-                                deps=deps,
-                                run_id=run_id)
+        logger.info(
+            'Kicking off site content ingestion pipeline for target %s of %s',  # noqa: E501
+            target_index,
+            len(app.targets),
+        )
+        result = process_target(
+            app=app,
+            target=target,
+            deps=deps,
+            run_id=run_id,
+        )
         if result == "failed":
             counters.failed += 1
         elif result == "skipped":
@@ -375,8 +277,6 @@ def run_ingestion_cycle(
             counters.succeeded += 1
             if result == "queued":
                 counters.queued += 1
-            elif result == "reminder_sent":
-                counters.reminder_sent += 1
             elif result == "unchanged":
                 counters.unchanged += 1
 
@@ -392,7 +292,6 @@ def run_ingestion_cycle(
         failed_target_count=counters.failed,
         skipped_target_count=counters.skipped,
         queued_target_count=counters.queued,
-        reminder_sent_count=counters.reminder_sent,
         unchanged_target_count=counters.unchanged,
         error_count=counters.failed,
         warning_count=0,
