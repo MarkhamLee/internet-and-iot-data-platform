@@ -64,7 +64,7 @@ class PostgresQueueRepository:
         sql = """
             SELECT *
             FROM site_monitor_research_queue
-            WHERE status = 'pending'
+            WHERE status = 'pending' or status = 'failed"
               AND (available_at IS NULL OR available_at <= NOW())
               AND attempt_count < max_attempts
             ORDER BY priority DESC, requested_at ASC
