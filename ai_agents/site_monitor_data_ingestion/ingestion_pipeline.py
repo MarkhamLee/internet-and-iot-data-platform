@@ -234,6 +234,7 @@ def process_target(
                 previous=previous,
                 pending_reconfirmation=pending_reconfirmation,
             )
+
             queue_id = deps.queue_store.enqueue_research(
                 page_key=target.page_key,
                 url=str(target.url),

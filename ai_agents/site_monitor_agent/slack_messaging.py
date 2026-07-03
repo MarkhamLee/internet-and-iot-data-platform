@@ -24,7 +24,7 @@ ACTION_LABEL = {
 def build_alert_blocks(
     result: PageAnalysisWrite,
     now: datetime,
-) -> list:
+) -> dict:
     confidence_label = (
         CONFIDENCE_EMOJI.get(result.confidence, "⚪")
         + f" {result.confidence}"
@@ -35,7 +35,7 @@ def build_alert_blocks(
     )
     timestamp = now.strftime("%Y-%m-%d %H:%M UTC")
 
-    return [
+    blocks = [
         {
             "type": "header",
             "text": {
@@ -117,6 +117,16 @@ def build_alert_blocks(
             ],
         },
     ]
+
+    fallback_text = (
+        f"Site Monitor Alert: {result.page_key} — "
+        f"{result.summary} "
+        f"[{result.result_page_status or 'unknown'}, "
+        f"confidence: {result.confidence}] "
+        f"{result.url}"
+    )
+
+    return build_slack_payload(blocks, fallback_text)
 
 
 def build_slack_payload(blocks: list, fallback_text: str) -> dict:
