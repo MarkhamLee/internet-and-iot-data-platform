@@ -64,9 +64,9 @@ class PostgresQueueRepository:
         sql = """
             SELECT *
             FROM site_monitor_research_queue
-            WHERE status = 'pending' or status = 'failed'
-              AND (available_at IS NULL OR available_at <= NOW())
-              AND attempt_count < max_attempts
+            WHERE (status = 'pending' OR status = 'failed')
+            AND (available_at IS NULL OR available_at <= NOW())
+            AND attempt_count < max_attempts
             ORDER BY priority DESC, requested_at ASC
             LIMIT %s
         """
@@ -168,3 +168,60 @@ class PostgresQueueRepository:
                 )
 
         logger.info("Marked research queue item failed queue_id=%s", queue_id)
+
+    # ------------------------------------------------------------------
+    # Page state writes
+    # ------------------------------------------------------------------
+
+    def record_research_result(
+        self,
+        *,
+        page_key: str,
+        now: datetime,
+        current_status: str,
+        summary: str,
+        queue_id: int,
+        desired_state_found: bool,
+    ) -> None:
+        sql = """
+            UPDATE page_watch_current
+            SET current_status          = %(current_status)s,
+                last_review_summary     = %(summary)s,
+                last_research_completed_at = %(now)s,
+                last_research_queue_id  = %(queue_id)s,
+                state_changed_at        = CASE
+                    WHEN current_status != %(current_status)s THEN %(now)s
+                    ELSE state_changed_at
+                END,
+                desired_state_started_at = CASE
+                    WHEN %(current_status)s = 'desired'
+                     AND current_status != 'desired' THEN %(now)s
+                    WHEN %(current_status)s = 'desired'
+                    THEN desired_state_started_at
+                    ELSE NULL
+                END,
+                reminder_count          = CASE
+                    WHEN current_status != %(current_status)s THEN 0
+                    ELSE reminder_count
+                END
+            WHERE page_key = %(page_key)s
+        """
+        with psycopg.connect(self.dsn, autocommit=True) as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    sql,
+                    {
+                        "page_key": page_key,
+                        "now": now,
+                        "current_status": current_status,
+                        "summary": summary,
+                        "queue_id": queue_id,
+                    },
+                )
+
+        logger.info(
+            "Updated page_watch_current page_key=%s status=%s desired=%s",
+            page_key,
+            current_status,
+            desired_state_found,
+        )

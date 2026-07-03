@@ -186,6 +186,16 @@ def process_queue_item(
             result_event_type=response.result_event_type,
         )
 
+        # Write LLM result back to page_watch_current
+        repo.record_research_result(
+            page_key=item.page_key,
+            now=datetime.now(UTC),
+            current_status=response.result_page_status,
+            summary=response.summary,
+            queue_id=item.id,
+            desired_state_found=response.desired_state_found,
+        )
+
         item_duration = round(perf_counter() - item_start, 2)
         logger.info(
             "Completed queue_id=%s page_key=%s alert_sent=%s duration=%ss",

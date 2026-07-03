@@ -17,6 +17,7 @@ create table if not exists page_watch_current (
     last_http_last_modified text null,
     last_content_hash text null,
     last_llm_reviewed_hash text null,
+    reminder_count integer not null default 0;
     check (
         not (
             desired_state_started_at is not null

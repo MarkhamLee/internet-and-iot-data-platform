@@ -24,6 +24,7 @@ class WatchTarget(BaseModel):
     send_missed_it_message: bool = True
     custom_prompt: str | None = None
     slack_channel: str | None = None
+    max_reminders: int | None = None  # None = unlimited
 
 
 class WatchFileConfig(BaseModel):
