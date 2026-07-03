@@ -26,7 +26,7 @@ class ResearchQueueItem(BaseModel):
     http_last_modified: str | None = None
     pending_reconfirmation: bool = False
     attempt_count: int = 0
-    max_attempts: int = 3
+    max_attempts: int = 5
     last_error: str | None = None
     errors: list[dict] | None = None
     payload: dict
