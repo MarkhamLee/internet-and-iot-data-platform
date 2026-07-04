@@ -58,7 +58,6 @@ class IngestionInstrumentationStore:
         failed_target_count: int,
         skipped_target_count: int,
         queued_target_count: int,
-        reminder_sent_count: int,
         unchanged_target_count: int,
         error_count: int,
         warning_count: int,
@@ -74,7 +73,6 @@ class IngestionInstrumentationStore:
             failed_target_count = %s,
             skipped_target_count = %s,
             queued_target_count = %s,
-            reminder_sent_count = %s,
             unchanged_target_count = %s,
             error_count = %s,
             warning_count = %s,
@@ -93,7 +91,6 @@ class IngestionInstrumentationStore:
                         failed_target_count,
                         skipped_target_count,
                         queued_target_count,
-                        reminder_sent_count,
                         unchanged_target_count,
                         error_count,
                         warning_count,
@@ -290,8 +287,6 @@ class IngestionInstrumentationStore:
         duration_seconds: float,
         status: str,
         queued_for_research: bool | None = None,
-        reminder_attempted: bool | None = None,
-        reminder_sent: bool | None = None,
         queue_id: int | None = None,
         metadata: dict[str, Any] | None = None,
     ) -> None:
@@ -305,21 +300,19 @@ class IngestionInstrumentationStore:
         if queued_for_research is not None:
             assignments.append("queued_for_research = %s")
             values.append(queued_for_research)
-        if reminder_attempted is not None:
-            assignments.append("reminder_attempted = %s")
-            values.append(reminder_attempted)
-        if reminder_sent is not None:
-            assignments.append("reminder_sent = %s")
-            values.append(reminder_sent)
         if queue_id is not None:
             assignments.append("queue_id = %s")
             values.append(queue_id)
         if metadata is not None:
-            assignments.append("metadata = coalesce(metadata, '{}'::jsonb) || %s")  # noqa: E501
+            assignments.append("metadata = coalesce(metadata,'{}'::jsonb) || %s")  # noqa: E501
             values.append(Jsonb(metadata))
 
         values.append(target_run_id)
-        sql = f"update site_monitor_ingestion_target_runs set {', '.join(assignments)} where id = %s"  # noqa: E501
+        sql = f"""
+        update site_monitor_ingestion_target_runs
+        set {', '.join(assignments)}
+        where id = %s
+        """
         with psycopg.connect(self.dsn, autocommit=True) as conn:
             with conn.cursor() as cur:
                 cur.execute(sql, values)
