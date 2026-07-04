@@ -30,8 +30,8 @@ class ResearchQueueStore:
         priority: int = 100,
         available_at: datetime | None = None,
         max_attempts: int = 5,
-    ) -> int:
-        sql = """
+    ) -> tuple[int, bool]:
+        insert_sql = """
         insert into site_monitor_research_queue (
             page_key,
             url,
@@ -64,8 +64,20 @@ class ResearchQueueStore:
             %(max_attempts)s,
             %(payload)s
         )
+        on conflict do nothing
         returning id
         """
+
+        existing_sql = """
+        select id
+        from site_monitor_research_queue
+        where page_key = %(page_key)s
+          and content_hash = %(content_hash)s
+          and status = 'pending'
+        order by requested_at desc
+        limit 1
+        """
+
         row = {
             "page_key": page_key,
             "url": url,
@@ -80,13 +92,20 @@ class ResearchQueueStore:
             "max_attempts": max_attempts,
             "payload": Jsonb(payload),
         }
+
         with psycopg.connect(self.dsn, autocommit=True) as conn:
             with conn.cursor() as cur:
-                cur.execute(sql, row)
-                result = cur.fetchone()
-                if result is None:
-                    raise RuntimeError("enqueue_research() did not return an id")  # noqa: E501
-                return int(result[0])
+                cur.execute(insert_sql, row)
+                inserted = cur.fetchone()
+                if inserted is not None:
+                    return int(inserted[0]), True
+
+                cur.execute(existing_sql, row)
+                existing = cur.fetchone()
+                if existing is not None:
+                    return int(existing[0]), False
+
+        raise RuntimeError("enqueue_research() could not insert or find queue item")  # noqa: E501
 
     def claim_next(self) -> ResearchQueueItem | None:
         sql = """

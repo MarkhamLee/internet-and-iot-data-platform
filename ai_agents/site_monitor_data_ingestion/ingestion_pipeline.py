@@ -16,7 +16,8 @@ from content_extractor import extract_review_payload
 from hash_helper import compute_content_hash
 from page_fetcher import fetch_page
 from state_store import StateStore, \
-    build_research_queue_payload, should_enqueue_research
+    build_research_queue_payload, \
+    should_enqueue_research
 from research_queue_store import ResearchQueueStore
 from ingestion_instrumentation_store import IngestionInstrumentationStore
 
@@ -62,8 +63,7 @@ def process_target(
         metadata={"pipeline": "site_monitor_data_ingestion"},
     )
 
-    logger.info('Starting ingestion pipeline for target: %s',
-                str(target.url))
+    logger.info("Starting ingestion pipeline for target: %s", str(target.url))
     try:
         if not target.enabled:
             deps.instrumentation_store.finalize_target_run(
@@ -74,7 +74,7 @@ def process_target(
             )
             return "skipped"
 
-        logger.info('Retrieving previous page state for target: %s',
+        logger.info("Retrieving previous page state for target: %s",
                     str(target.url))
         previous = deps.state_store.get_current_state(target.page_key)
         deps.instrumentation_store.mark_target_stage(
@@ -82,7 +82,7 @@ def process_target(
             stage="previous_state_loaded",
         )
 
-        logger.info('Fetching current page content for target: %s',
+        logger.info("Fetching current page content for target: %s",
                     str(target.url))
         fetch_result = fetch_page(
             str(target.url),
@@ -122,14 +122,14 @@ def process_target(
             )
             return "unchanged"
 
-        logger.info('Extracting review payload')
+        logger.info("Extracting review payload")
         review_payload = extract_review_payload(fetch_result, target)
         deps.instrumentation_store.mark_target_stage(
             target_run_id=target_run_id,
             stage="payload_extracted",
         )
 
-        logger.info('Computing content hash')
+        logger.info("Computing content hash")
         content_hash = compute_content_hash(review_payload)
         deps.instrumentation_store.update_target_run(
             target_run_id=target_run_id,
@@ -162,9 +162,11 @@ def process_target(
         )
 
         if should_queue:
-            logger.info('Adding target page: %s to research queue, reason: %s',
-                        str(target.url),
-                        request_reason)
+            logger.info(
+                "Adding target page: %s to research queue, reason: %s",
+                str(target.url),
+                request_reason,
+            )
             pending_reconfirmation = bool(
                 previous is not None and previous.current_status == "desired"
             )
@@ -176,7 +178,7 @@ def process_target(
                 previous=previous,
                 pending_reconfirmation=pending_reconfirmation,
             )
-            queue_id = deps.queue_store.enqueue_research(
+            queue_id, queue_created = deps.queue_store.enqueue_research(
                 page_key=target.page_key,
                 url=str(target.url),
                 request_reason=request_reason,
@@ -205,11 +207,15 @@ def process_target(
                 status="completed",
                 queued_for_research=True,
                 queue_id=queue_id,
-                metadata={"request_reason": request_reason},
+                metadata={
+                    "request_reason": request_reason,
+                    "queue_created": queue_created,
+                    "already_queued": not queue_created,
+                },
             )
             return "queued"
 
-        logger.info('No research needed for %s, page unchanged',
+        logger.info("No research needed for %s, page unchanged",
                     str(target.url))
         deps.instrumentation_store.finalize_target_run(
             target_run_id=target_run_id,
@@ -250,8 +256,8 @@ def run_ingestion_cycle(
         pipeline_name="site_monitor_data_ingestion",
         started_at=started_at,
         target_count=len(app.targets),
-        enabled_target_count=sum(1 for target in app.targets
-                                 if target.enabled),
+        enabled_target_count=sum(1 for target in app.
+                                 targets if target.enabled),
         metadata={"force_research_after_hours": app.force_research_after_hours},  # noqa: E501
     )
 
@@ -259,7 +265,7 @@ def run_ingestion_cycle(
 
     for target_index, target in enumerate(app.targets, start=1):
         logger.info(
-            'Kicking off site content ingestion pipeline for target %s of %s',  # noqa: E501
+            "Kicking off site content ingestion pipeline for target %s of %s",
             target_index,
             len(app.targets),
         )
@@ -275,10 +281,11 @@ def run_ingestion_cycle(
             counters.skipped += 1
         else:
             counters.succeeded += 1
-            if result == "queued":
-                counters.queued += 1
-            elif result == "unchanged":
-                counters.unchanged += 1
+
+        if result == "queued":
+            counters.queued += 1
+        elif result == "unchanged":
+            counters.unchanged += 1
 
     duration_seconds = perf_counter() - overall_start
     run_status = "completed_with_errors" if counters.failed else "completed"
