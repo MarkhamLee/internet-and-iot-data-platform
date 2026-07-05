@@ -187,4 +187,4 @@ etl_pipelines/finnhub_portfolio_view/*
 IoT/*/*/.vscode
 IoT/*/.pio 
 IoT/*/.vscode 
-.vscode
+.vscode/settings.json
