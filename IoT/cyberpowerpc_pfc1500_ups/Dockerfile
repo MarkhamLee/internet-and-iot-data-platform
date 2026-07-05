@@ -1,5 +1,5 @@
 # temp stage
-FROM python:slim-bookworm AS builder
+FROM python:3.11.9-slim-bookworm AS builder
 
 WORKDIR /app
 
@@ -11,7 +11,7 @@ RUN pip wheel --no-cache-dir --no-deps --wheel-dir /app/wheels -r requirements.t
 
 
 # final stage - 
-FROM python:slim-bookworm
+FROM python:3.11.9-slim-bookworm
 
 COPY --from=builder /app/wheels /wheels
 COPY --from=builder /app/requirements.txt .
