@@ -31,4 +31,6 @@ jobs:
           file: ./ai_agents/site_monitor_reminder_service/Dockerfile
           platforms: linux/amd64
           push: true
-          tags: markhamlee/site_monitor_reminder_service:latest
+          tags: | 
+            markhamlee/site_monitor_reminder_service:latest
+            markhamlee/site_monitor_reminder_service:${{ steps.version.outputs.value }}
