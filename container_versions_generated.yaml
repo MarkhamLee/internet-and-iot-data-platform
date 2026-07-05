@@ -1,4 +1,9 @@
 services:
+  cyberpowerpc_pfc1500_ups:
+    dockerfile: IoT/cyberpowerpc_pfc1500_ups/Dockerfile
+    image: markhamlee/cyberpowerpc_pfc1500_ups
+    path: IoT/cyberpowerpc_pfc1500_ups
+    version: 1.8.1
   dependabot_agent:
     dockerfile: ai_agents/dependabot_agent/Dockerfile
     image: markhamlee/dependabot_agent
@@ -9,6 +14,16 @@ services:
     image: markhamlee/dependabot_data_ingestion
     path: ai_agents/dependabot_data_ingestion
     version: 1.5.2
+  kasa_smart_plug:
+    dockerfile: IoT/kasa_smart_plug/Dockerfile
+    image: markhamlee/kasa_smart_plug
+    path: IoT/kasa_smart_plug
+    version: 2.1.2
+  sds011_air_quality_sensor:
+    dockerfile: IoT/sds011_air_quality_sensor/Dockerfile
+    image: markhamlee/sds011_air_quality_sensor
+    path: IoT/sds011_air_quality_sensor
+    version: 1.9.2
   site_monitor_agent:
     dockerfile: ai_agents/site_monitor_agent/Dockerfile
     image: markhamlee/site_monitor_agent
