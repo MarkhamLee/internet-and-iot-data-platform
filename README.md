@@ -9,8 +9,7 @@ Reusable infrastructure in the form of private code libraries for alerting, data
 ## System Architecture and Data Flow
 
 The diagram below shows how code in this repository interacts with the broader private cloud:
-![Dashboard Thumbnail](/images/data_platform_architecture_2026.png)  
-
+![Dashboard Thumbnail](/images/data_platform_architecture_2026_v1.1.png)  
 
 
 ### Key Capabilities 
