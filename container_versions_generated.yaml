@@ -1,0 +1,26 @@
+services:
+  dependabot_agent:
+    dockerfile: ai_agents/dependabot_agent/Dockerfile
+    image: markhamlee/dependabot_agent
+    path: ai_agents/dependabot_agent
+    version: 1.5.2
+  dependabot_data_ingestion:
+    dockerfile: ai_agents/dependabot_data_ingestion/Dockerfile
+    image: markhamlee/dependabot_data_ingestion
+    path: ai_agents/dependabot_data_ingestion
+    version: 1.5.2
+  site_monitor_agent:
+    dockerfile: ai_agents/site_monitor_agent/Dockerfile
+    image: markhamlee/site_monitor_agent
+    path: ai_agents/site_monitor_agent
+    version: 1.4.1
+  site_monitor_data_ingestion:
+    dockerfile: ai_agents/site_monitor_data_ingestion/Dockerfile
+    image: markhamlee/site_monitor_data_ingestion
+    path: ai_agents/site_monitor_data_ingestion
+    version: 1.4.0
+  site_monitor_reminder_service:
+    dockerfile: ai_agents/site_monitor_reminder_service/Dockerfile
+    image: markhamlee/site_monitor_reminder_service
+    path: ai_agents/site_monitor_reminder_service
+    version: 1.2.1
