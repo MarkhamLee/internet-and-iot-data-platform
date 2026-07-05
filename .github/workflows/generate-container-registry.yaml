@@ -1,0 +1,69 @@
+name: Generate container registry
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**/VERSION'
+      - '.github/workflows/generate-container-registry.yaml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  generate-registry:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install PyYAML
+        run: pip install pyyaml
+
+      - name: Generate container_versions_generated.yaml
+        run: |
+          python <<'PY'
+          from pathlib import Path
+          import yaml
+
+          repo_root = Path(".")
+          services = {}
+
+          for version_file in sorted(repo_root.rglob("VERSION")):
+              service_dir = version_file.parent
+              dockerfile = service_dir / "Dockerfile"
+
+              if not dockerfile.exists():
+                  continue
+
+              version = version_file.read_text(encoding="utf-8").strip()
+              service_name = service_dir.name
+
+              services[service_name] = {
+                  "version": version,
+                  "path": service_dir.as_posix(),
+                  "dockerfile": dockerfile.as_posix(),
+                  "image": f"markhamlee/{service_name}",
+              }
+
+          output = {
+              "services": services
+          }
+
+          with open("container_versions_generated.yaml", "w", encoding="utf-8") as f:
+              yaml.safe_dump(output, f, sort_keys=True, default_flow_style=False)
+          PY
+
+      - name: Commit generated registry
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: regenerate container version registry"
+          file_pattern: container_versions_generated.yaml
