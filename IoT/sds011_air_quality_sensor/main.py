@@ -1,4 +1,4 @@
-# Markham 2023 - 2025
+# Markham 2023 - 2026
 # Internet & IoT Data Platform:
 # https://github.com/MarkhamLee/internet-and-iot-data-platform
 # This script retrieves air quality data from a Nova PM SDS011 Air Quality
@@ -44,13 +44,15 @@ def air(client: object, quality: object, topic: str, interval: int) -> str:
         # checking for errors, actual air data is returned as a tuple
         # while read errors return an integer
         if not isinstance(air_data, tuple):
-            logger.info(f'Sensor read error, going to sleep for {ERROR_SLEEP_DURATION} minutes')  # noqa: E501
+            logger.warning('Sensor read error, going to sleep for %s minutes',
+                           ERROR_SLEEP_DURATION)  # noqa: E501
             sleep(ERROR_SLEEP_DURATION)
             continue
 
         payload = process_air_quality_data(air_data)
 
-        logger.info(f'Sending payload {payload}')
+        logger.info('Sending payload %s',
+                    payload)
         send_data(payload, topic, client)
 
         sleep(interval)
@@ -89,7 +91,7 @@ def send_data(payload: dict, topic, client):
 
     except Exception as e:
         message = (f'{DEVICE_ID} Failed to connect to MQTT broker with error: {e}')  # noqa: E501
-        logger.info(message)
+        logger.warning(message)
         com_utilities.send_slack_webhook(IOT_PIPELINE_ALERTS, message)
 
     # secondary check, the except only catches connectivity errors, the below
@@ -97,7 +99,7 @@ def send_data(payload: dict, topic, client):
     # failed.
     if status != 0:
         message = (f'Air quality MQTT publish failure for {DEVICE_ID} to topic: {topic}, with status code: {status}')  # noqa: E501
-        logger.debug(message)  # noqa: E501
+        logger.warning(message)  # noqa: E501
         com_utilities.send_slack_webhook(IOT_PIPELINE_ALERTS, message)
 
         # for simplicity just use the same duration for sensor and

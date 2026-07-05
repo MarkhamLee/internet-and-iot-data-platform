@@ -1,14 +1,13 @@
 # !/usr/bin/env python
-# Markham 2023 - 2025
+# Markham 2023 - 2026
 # Internet & IoT Data Platform:
 # https://github.com/MarkhamLee/internet-and-iot-data-platform
 # Python script for receiving Air Quality data from a Nova PM SDS011 air
-# quality sensor and sending it to InfluxDB via Node-RED and MQTT.
+# quality sensor and sending it to InfluxDB via MQTT.
+# This was built and tested for devices running Linux.
 import serial
 import os
-import requests
 import sys
-from time import sleep
 
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(parent_dir)
@@ -19,6 +18,7 @@ from iot_libraries.communications_utilities\
 
 DEVICE_ALERT_WEBHOOK = os.environ['DEVICE_ALERT_WEBHOOK']
 UPTIME_KUMA_WEBHOOK = os.environ['UPTIME_KUMA_HEARTBEAT']
+
 
 class AirQuality:
 
@@ -56,11 +56,11 @@ class AirQuality:
             logger.debug(message)
             self.com_utilities.send_slack_webhook(DEVICE_ALERT_WEBHOOK,
                                                   message)
-            
+
             # just exit the container, as fixing the issue will likely require
             # manual intervention.
-            logger.debug('Air Quality sensor not available, exiting container')
-            sys.exit()
+            logger.warning('Air Quality sensor not available, exiting container')  # noqa: E501
+            sys.exit(1)
 
     # get air quality data, use bit shifting to isolate data
     def get_air_quality(self):
