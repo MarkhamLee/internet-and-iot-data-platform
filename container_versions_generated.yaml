@@ -28,7 +28,7 @@ services:
     dockerfile: ai_agents/site_monitor_agent/Dockerfile
     image: markhamlee/site_monitor_agent
     path: ai_agents/site_monitor_agent
-    version: 1.4.1
+    version: 1.4.2
   site_monitor_data_ingestion:
     dockerfile: ai_agents/site_monitor_data_ingestion/Dockerfile
     image: markhamlee/site_monitor_data_ingestion
@@ -38,4 +38,4 @@ services:
     dockerfile: ai_agents/site_monitor_reminder_service/Dockerfile
     image: markhamlee/site_monitor_reminder_service
     path: ai_agents/site_monitor_reminder_service
-    version: 1.2.1
+    version: 1.2.2
