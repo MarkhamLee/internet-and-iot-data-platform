@@ -185,23 +185,24 @@ class PostgresQueueRepository:
     ) -> None:
         sql = """
             UPDATE page_watch_current
-            SET current_status          = %(current_status)s,
-                last_review_summary     = %(summary)s,
+            SET current_status = %(current_status)s,
+                last_review_summary = %(summary)s,
                 last_research_completed_at = %(now)s,
-                last_research_queue_id  = %(queue_id)s,
-                state_changed_at        = CASE
+                pending_reconfirmation = false,
+                last_research_queue_id = %(queue_id)s,
+                state_changed_at = CASE
                     WHEN current_status != %(current_status)s THEN %(now)s
                     ELSE state_changed_at
                 END,
                 desired_state_started_at = CASE
                     WHEN %(current_status)s = 'desired'
-                     AND current_status != 'desired' THEN %(now)s
-                    WHEN %(current_status)s = 'desired'
-                    THEN desired_state_started_at
+                        AND current_status != 'desired' THEN %(now)s
+                    WHEN %(current_status)s = 'desired' THEN desired_state_started_at
                     ELSE NULL
                 END,
-                reminder_count          = CASE
-                    WHEN current_status != %(current_status)s THEN 0
+                reminder_count = CASE
+                    WHEN %(current_status)s = 'undesired'
+                        AND current_status != 'undesired' THEN 0
                     ELSE reminder_count
                 END
             WHERE page_key = %(page_key)s
