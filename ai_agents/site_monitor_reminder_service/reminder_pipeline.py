@@ -64,9 +64,6 @@ def should_send_reminder(previous, target, now: datetime) -> tuple[bool, str]:
     if previous.current_status != "desired":
         return False, "current_status_not_desired"
 
-    if getattr(previous, "pending_reconfirmation", False):
-        return False, "pending_reconfirmation"
-
     if previous.last_reminder_sent_at is None:
         return True, "first_reminder"
 
