@@ -14,6 +14,11 @@ services:
     image: markhamlee/dependabot_data_ingestion
     path: ai_agents/dependabot_data_ingestion
     version: 1.5.2
+  finnhub_nodejs:
+    dockerfile: etl_pipelines_nodejs/finnhub_nodejs/Dockerfile
+    image: markhamlee/finnhub_nodejs
+    path: etl_pipelines_nodejs/finnhub_nodejs
+    version: 2.0.0
   kasa_smart_plug:
     dockerfile: IoT/kasa_smart_plug/Dockerfile
     image: markhamlee/kasa_smart_plug
