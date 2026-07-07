@@ -40,4 +40,4 @@ jobs:
           push: true
           tags: | 
             markhamlee/airquality:latest
-            markhamlee/github_dependabot_alert_review:${{ steps.version.outputs.value }}
+            markhamlee/airquality:${{ steps.version.outputs.value }}
