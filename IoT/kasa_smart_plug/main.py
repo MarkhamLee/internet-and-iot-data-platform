@@ -13,10 +13,12 @@ from kasa.iot import IotPlug
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(parent_dir)
 
-from iot_libraries.logging_util import logger  # noqa: E402
+from iot_libraries.logging_util import console_logging  # noqa: E402
 from iot_libraries.influx_client import InfluxClient  # noqa: E402
 from iot_libraries.communications_utilities\
     import IoTCommunications  # noqa: E402
+
+logger = console_logging('Kasa_smart_plug_monitoring')
 
 com_utilities = IoTCommunications
 

@@ -13,9 +13,11 @@ from kasa import SmartPlug
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(parent_dir)
 
-from iot_libraries.logging_util import logger  # noqa: E402
+from iot_libraries.logging_util import console_logging  # noqa: E402
 from iot_libraries.communications_utilities\
     import IoTCommunications  # noqa: E402
+
+logger = console_logging('kasa_smart_plug_monitoring_mqtt')
 
 com_utilities = IoTCommunications()
 
