@@ -6,7 +6,9 @@
 import uuid
 import requests
 from paho.mqtt import client as mqtt
-from iot_libraries.logging_util import logger
+from iot_libraries.logging_util import console_logging
+
+logger = console_logging('iot_libraries_com_utilities')
 
 
 class IoTCommunications():
@@ -37,7 +39,8 @@ class IoTCommunications():
             else:
 
                 reason_string = str(reasonCode)
-                logger.debug(f'connection error occured, return code: {reason_string}, retrying...')  # noqa: E501
+                logger.warning('connection error occured, return code: %s, retrying...',  # noqa: E501
+                               reason_string)  # noqa: E501
 
         # TODO: while this is good enought to "work", need to look into
         # the updated API library, etc., and re-work the reconnection logic.
@@ -66,7 +69,8 @@ class IoTCommunications():
         headers = {'Content-type': 'application/json'}
 
         response = requests.post(alert_endpoint, json=payload, headers=headers)
-        logger.info(f'Device failure alert sent with code: {response.text}')
+        logger.info('Device failure alert sent with code %s',
+                    response.text)
 
     @staticmethod
     def send_slack_webhook(url: str, message: str):
@@ -83,10 +87,12 @@ class IoTCommunications():
         try:
 
             response = requests.post(url, headers=headers, json=payload)
-            logger.info(f'Slack pipeline failure alert published succesfully with code: {response.status_code}')  # noqa: E501
+            logger.info('Slack pipeline failure alert published succesfully with code: %s',  # noqa: E501
+                        response.status_code)
 
         except Exception as e:
-            logger.debug(f'Publishing of Slack alert failed with error: {e}')
+            logger.warning('Publishing of Slack alert failed with error: %s',
+                           e)
 
         code = response.status_code
 
@@ -94,10 +100,10 @@ class IoTCommunications():
             logger.info('Publishing of alert to Slack webhook was successful')
 
         else:
-            logger.debug(f'Publishing of alert to Slack webhook failed, with error code {code}')  # noqa: E501
+            logger.warning('Publishing of alert to Slack webhook failed, with error code: %s',  # noqa: E501
+                           code)
 
         return response.status_code
-    
 
     @staticmethod
     def send_uptime_kuma_heartbeat(id, uptime_kuma_webhook):
@@ -108,4 +114,6 @@ class IoTCommunications():
             requests.get(uptime_kuma_webhook)
 
         except Exception as e:
-            logger.info(f'Publishing of Uptime Kuma alert for {id} failed with error: {e}')  # noqa: E501
+            logger.warning('Publishing of Uptime Kuma alert for %s failed with error: %s',  # noqa: E501
+                           id,
+                           e)  # noqa: E501
