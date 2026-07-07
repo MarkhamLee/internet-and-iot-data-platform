@@ -72,7 +72,6 @@ class AirQuality:
             # outputs have to be scaled by 0.1 to properly capture the
             # sensor's precision as it returns integers that are actually
             # decimals I.e. 15 is really 1.5
-
             pm2 = round((self.parse_value(message, self.pm2_bytes) * 0.1), 4)
             pm10 = round((self.parse_value(message, self.pm10_bytes) * 0.1), 4)
 
