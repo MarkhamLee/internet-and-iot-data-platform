@@ -43,7 +43,7 @@ services:
     dockerfile: IoT/sds011_air_quality_sensor/Dockerfile
     image: markhamlee/sds011_air_quality_sensor
     path: IoT/sds011_air_quality_sensor
-    version: 1.9.2
+    version: 1.9.3
   site_monitor_agent:
     dockerfile: ai_agents/site_monitor_agent/Dockerfile
     image: markhamlee/site_monitor_agent
