@@ -10,6 +10,7 @@
     * Updated front page diagram to be more descriptive to the technologies used for various functions. E.g., Ollama + Qwen instead of a generic "Agentic Workloads". 
 * May - June 2026
     * Added Agentic workflows for managing dependabot security alerts, and monitoring web sites for changes
+    * Re-wrote the shared component/client for writing data to InfluxDB
     * Updated front-page architecture diagram 
     * Small restructure of repo folders and documentation  
     * Started process of hardening all images by updating Dockerfile base images 
@@ -20,10 +21,13 @@
     * Initial provisioning of a device: adding a device ID, MQTT and Wi-Fi credentials, which provides an easy way to setup/prepare several ESP32s for IoT style projects.
     * Used the above as the basis for refactored/updated code for pulling data from a DHT22 temperature sensor and then sending it out via MQTT.
     * Test sketch for verifying that DHT22 sensors work properly. 
-* Added CICD & GitOps automation section, added script for restarting containers via the Portainer API. Future plans:
+* Added CICD & GitOps automation section, added script for restarting containers via the Portainer API
+* Added network monitoring for Tailscale and Technitium 
+* Re-wrote the shared components/client for MQTT
+* Future plans:
     * Updating env vars via the Portainer API
     * Incorporating into a broader API for detecting Docker Image updates and then updating all the Portainer managed machines running that container.
-* Added network monitoring for Tailscale and Technitium 
+
 
 ### 2024
 * 04/25/2024: updates from the last 5+ weeks 
