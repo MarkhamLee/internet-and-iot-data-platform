@@ -1,17 +1,41 @@
-# (C) Markham Lee 2023-2024
-# productivity-music-stocks-weather-IoT-dashboard
-# https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
-
+# (C) Markham Lee 2023-2026
+# Internet & IoT Data Platform
+# https://github.com/MarkhamLee/internet-and-iot-data-platform
 import logging
+from logging.handlers import RotatingFileHandler
 from sys import stdout
 
 
-# set up/configure logging with stdout so it can be picked up by K8s
-logger = logging.getLogger('IoT_Device_Logging')
-logger.setLevel(logging.DEBUG)
+def console_logging(name: str):
 
-handler = logging.StreamHandler(stdout)
-handler.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(filename)s - %(message)s')  # noqa: E501
-handler.setFormatter(formatter)
-logger.addHandler(handler)
+    logger = logging.getLogger(name)
+    logger.setLevel(logging.DEBUG)
+
+    handler = logging.StreamHandler(stdout)
+    handler.setLevel(logging.DEBUG)
+    formatter = logging.\
+        Formatter('%(asctime)s - %(levelname)s - %(filename)s - %(message)s')
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+    logger.propagate = False
+
+    return logger
+
+
+def log_file_logger(name):
+
+    logger = logging.getLogger(name)
+    logger.setLevel(logging.DEBUG)
+
+    stream_handler = logging.StreamHandler(stdout)
+
+    handler = RotatingFileHandler(f'logs/{name}_logfile.log', maxBytes=200000, backupCount=0)  # noqa: E501
+    handler.setLevel(logging.DEBUG)
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(filename)s - %(message)s')  # noqa: E501
+    handler.setFormatter(formatter)
+    stream_handler.setFormatter(formatter)
+    logger.addHandler(handler)
+    logger.addHandler(stream_handler)
+    logger.propagate = False
+
+    return logger
