@@ -59,3 +59,13 @@ services:
     image: markhamlee/site_monitor_reminder_service
     path: ai_agents/site_monitor_reminder_service
     version: 1.2.2
+  tailscale_device_status:
+    dockerfile: network_management/tailscale_device_status/Dockerfile
+    image: markhamlee/tailscale_device_status
+    path: network_management/tailscale_device_status
+    version: 1.3.13
+  technitium_monitoring:
+    dockerfile: network_management/technitium_monitoring/Dockerfile
+    image: markhamlee/technitium_monitoring
+    path: network_management/technitium_monitoring
+    version: 1.3.2
