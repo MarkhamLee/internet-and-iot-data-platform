@@ -1,6 +1,6 @@
-# Markham Lee (C) 2024
-# Finance, Productivity, IoT & General Data Platform
-# https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
+# Markham 2023 - 2026
+# Internet & IoT Data Platform:
+# https://github.com/MarkhamLee/internet-and-iot-data-platform
 # Script for pulling leveraging the Network Ups Tools (NUT) application to
 # to pull data from an UPS device connected to a small server running the
 # NUT server. Running this requires the NUT client to installed on the
