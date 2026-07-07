@@ -1,6 +1,6 @@
-# Markham Lee (C) 2023 - 2024
-# Finance, Productivity, IoT Dashboard
-# https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
+# Markham 2023 - 2026
+# Internet & IoT Data Platform:
+# https://github.com/MarkhamLee/internet-and-iot-data-platform
 # Python script for pulling data from a PMS5003 air quality sensor
 # connected by USB, and then pushing the data to console.
 # Influenced by R. Smith's script for the same sensor:
@@ -19,9 +19,11 @@ from plantower_utils import PlantowerS5003Utils
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(parent_dir)
 
-from iot_libraries.logging_util import logger  # noqa: E402
+from iot_libraries.logging_util import console_logging  # noqa: E402
 from iot_libraries.communications_utilities\
     import IoTCommunications  # noqa: E402
+
+logger = console_logging('Plantower_s5003_air_quality_monitoring')
 
 com_utilities = IoTCommunications()
 DEVICE_FAILURE_CHANNEL = os.environ['DEVICE_FAILURE_CHANNEL']
@@ -102,8 +104,9 @@ def send_message(client: object, payload: dict, topic: str):
         status = result[0]
 
     except Exception as error:
-        logger.debug(f'MQTT connection error: {error}\
-                            with status: {status}')
+        logger.warning('MQTT connection error: %s, with status: %s',
+                       error,
+                       status)
 
     # memory clean-up
     del payload, result, status
@@ -126,11 +129,12 @@ def main():
 
     try:
         quality = PlantowerS5003Utils()
-        logger.info(f'Plantower S5003 connected with ID: {SENSOR_ID}')
+        logger.info('Plantower S5003 connected with ID: %s',
+                    SENSOR_ID)
 
     except Exception as e:
         message = (f'Plantower Air Quality class failed to instantiate with error {e}, going to sleep....')  # noqa: E501
-        logger.debug(message)
+        logger.warning(message)
         com_utilities.send_slack_alert(message, DEVICE_FAILURE_CHANNEL)
         sleep(1800)
 

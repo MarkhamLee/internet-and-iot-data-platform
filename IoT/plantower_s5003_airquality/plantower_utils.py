@@ -1,6 +1,6 @@
-# Markham Lee (C) 2023 - 2024
-# Finance, Productivity, IoT Dashboard
-# https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
+# Markham 2023 - 2026
+# Internet & IoT Data Platform:
+# https://github.com/MarkhamLee/internet-and-iot-data-platform
 # Utility script for pulling data from a PMS5003 air quality sensor
 # Influenced by R. Smith's script for the same sensor:
 # https://github.com/rsmith-nl/ft232-pms5003/tree/main
@@ -12,7 +12,7 @@ import sys
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(parent_dir)
 
-from iot_libraries.logging_util import logger  # noqa: E402
+from iot_libraries.logging_util import console_logging  # noqa: E402
 from iot_libraries.communications_utilities\
     import IoTCommunications  # noqa: E402
 
@@ -23,7 +23,7 @@ class PlantowerS5003Utils():
 
     def __init__(self):
 
-        self.logger = logger
+        self.logger = console_logging('Plantower_s5003_utils')
 
         self.load_variables()
         self.connect_to_sensor()

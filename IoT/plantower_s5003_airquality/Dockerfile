@@ -1,5 +1,5 @@
 # temp stage
-FROM python:slim-bookworm AS builder
+FROM python:3.11.9-slim-bookworm AS builder
 
 WORKDIR /app
 
@@ -16,12 +16,16 @@ FROM python:slim-bookworm
 COPY --from=builder /app/wheels /wheels
 COPY --from=builder /app/requirements.txt .
 
-RUN pip install --no-cache /wheels/*
+RUN pip install --no-cache-dir /wheels/* && \
+    rm -rf /wheels && \
+    useradd --create-home --uid 10001 appuser
 
-COPY ./iot_libraries ./iot_libraries
+COPY --chown=appuser:appuser ./iot_libraries ./iot_libraries
 
 WORKDIR /plantower_s5003_airquality
 
-COPY ./plantower_s5003_airquality ./
+COPY --chown=appuser:appuser ./plantower_s5003_airquality ./
+
+USER appuser
 
 ENTRYPOINT ["python3", "/plantower_s5003_airquality/main.py"]
