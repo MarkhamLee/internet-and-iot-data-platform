@@ -1,4 +1,9 @@
 services:
+  asana:
+    dockerfile: etl_pipelines/asana/Dockerfile
+    image: markhamlee/asana
+    path: etl_pipelines/asana
+    version: 1.9.1
   cyberpowerpc_pfc1500_ups:
     dockerfile: IoT/cyberpowerpc_pfc1500_ups/Dockerfile
     image: markhamlee/cyberpowerpc_pfc1500_ups
@@ -24,6 +29,16 @@ services:
     image: markhamlee/kasa_smart_plug
     path: IoT/kasa_smart_plug
     version: 2.1.2
+  openweather_airquality_nodejs:
+    dockerfile: etl_pipelines_nodejs/openweather_airquality_nodejs/Dockerfile
+    image: markhamlee/openweather_airquality_nodejs
+    path: etl_pipelines_nodejs/openweather_airquality_nodejs
+    version: 1.7.1
+  openweather_current_ts:
+    dockerfile: etl_pipelines_nodejs/openweather_current_ts/Dockerfile
+    image: markhamlee/openweather_current_ts
+    path: etl_pipelines_nodejs/openweather_current_ts
+    version: 1.7.1
   sds011_air_quality_sensor:
     dockerfile: IoT/sds011_air_quality_sensor/Dockerfile
     image: markhamlee/sds011_air_quality_sensor
