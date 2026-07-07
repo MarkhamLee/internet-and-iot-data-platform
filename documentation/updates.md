@@ -1,5 +1,20 @@
 ## All Updates
 
+### 2026
+
+* July 2026
+    * Updated Site Monitor Agent
+        * Can set limits on the # of reminders sent 
+        * Split data ingestion, reminders and agentic research/analysis into separate components, instead of having elements of the reminders living in content ingestion and agentic research. 
+    * Added semantic versioning to container builds 
+    * Updated front page diagram to be more descriptive to the technologies used for various functions. E.g., Ollama + Qwen instead of a generic "Agentic Workloads". 
+* May - June 2026
+    * Added Agentic workflows for managing dependabot security alerts, and monitoring web sites for changes
+    * Updated front-page architecture diagram 
+    * Small restructure of repo folders and documentation  
+    * Started process of hardening all images by updating Dockerfile base images 
+    * Repo wide process of updating Python scripts to use %s style logging 
+
 ### 2025
 * Updated code for ESP32 microprocessors in the IoT Section:
     * Initial provisioning of a device: adding a device ID, MQTT and Wi-Fi credentials, which provides an easy way to setup/prepare several ESP32s for IoT style projects.
@@ -8,6 +23,7 @@
 * Added CICD & GitOps automation section, added script for restarting containers via the Portainer API. Future plans:
     * Updating env vars via the Portainer API
     * Incorporating into a broader API for detecting Docker Image updates and then updating all the Portainer managed machines running that container.
+* Added network monitoring for Tailscale and Technitium 
 
 ### 2024
 * 04/25/2024: updates from the last 5+ weeks 
