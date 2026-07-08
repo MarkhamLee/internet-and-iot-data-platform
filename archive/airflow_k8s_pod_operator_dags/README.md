@@ -7,7 +7,7 @@ The DAGs in this folder differ from typical Python DAGs in that there isn't any 
 #### This approach offers several advantages: 
 
 * **Simpler, Portable ETL Pipelines:** the same container can be run via Airflow, Argo Workflow, Kubernetes Cron jobs and other orchestration tools with zero modifications to the pipeline container. Deployment is as simple as creating the config file or manifest for the respective tool, and you can often re-use prior ones as you rarely have to change more than a dozen lines of Python or YAML.
-* **Professional Development & a Proven Strategy:** I've read quite a few technical blogs from companies with very complex data engineering needs that have taken this strategy, so not only is it a proven approach but its one that I be focusing my skills development on. 
+* **Professional Development & a Proven Strategy:** I've read quite a few technical blogs from companies with very complex data engineering needs that use this approach, so it makes sense for me to adopt a similar approach from a skills development perspective.
 * To avoid issues related to Python dependencies, there are multiple ways to add python dependencies to support your DAGs: bake them into Airflow's docker container or add them as config maps, but those methods require you to re-deploy Airflow AND you can only have one version of a dependency at a time. Moving everything to a the K8s pod operator allows me to avoid this issue.
 * Finally, it removes the dependency on Python created by using "traditional DAGs", in that I can now write ETL pipelines in virtually any language I can run in a Docker container.
 
