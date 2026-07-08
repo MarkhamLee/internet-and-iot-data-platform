@@ -1,6 +1,6 @@
-# Markham Lee (C) 2023 - 2024
-# productivity-music-stocks-weather-IoT-dashboard
-# https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
+# Markham 2023 - 2026
+# Internet & IoT Data Platform:
+# https://github.com/MarkhamLee/internet-and-iot-data-platform
 # InfluxDB utilities, generates the client for the API when given the
 # appropriate inuts (token, org, url), also has a method for writing
 # json files to InfluxDB

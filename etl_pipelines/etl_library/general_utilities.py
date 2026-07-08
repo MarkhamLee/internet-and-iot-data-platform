@@ -2,12 +2,11 @@
 # Internet and IoT Data Platform
 # https://github.com/MarkhamLee/internet-and-iot-data-platform
 # general utilities to aid ETL pipelines
-# TODO: modify this so that the Alert Webhook is passed from the
-# importing script, not imported locally.
 import requests
-# import os
 from jsonschema import validate
-from etl_library.logging_util import logger  # noqa: E402
+from etl_library.logging_util import console_logging  # noqa: E402
+
+logger = console_logging('ETL_utilities')
 
 
 class EtlUtilities():
@@ -30,9 +29,10 @@ class EtlUtilities():
 
         except Exception as e:
             message = (f'Data validation failed for the pipeline for openweather current, with error: {e}')  # noqa: E501
-            logger.debug(message)
+            logger.warning(message)
             response = EtlUtilities.send_slack_webhook(failure_webhook, message)  # noqa: E501
-            logger.debug(f'Slack pipeline failure alert sent with code: {response}')  # noqa: E501
+            logger.info('Slack pipeline failure alert sent with code: %s',
+                        response)
             return 1, response
 
     # send data directly to a Slack incoming webhook
@@ -53,9 +53,11 @@ class EtlUtilities():
         code = response.status_code
 
         if code != 200:
-            logger.debug(f'Publishing of alert to Slack webhook failed with response code: {code}')  # noqa: E501
+            logger.debug('Publishing of alert to Slack webhook failed with response code: %s',  # noqa: E501
+                         code)
         else:
-            logger.debug(f'Publishing of alert to Slack webhook suceeded with code: {code}')  # noqa: E501
+            logger.debug('Publishing of alert to Slack webhook suceeded with code: %s',  # noqa: E501
+                         code)
 
         return code
 
@@ -65,10 +67,13 @@ class EtlUtilities():
     def evaluate_slack_response(code: int, type: str):
 
         if code == 200:
-            logger.info(f'Publishing of alert to Slack {type} was successful')
+            logger.info('Publishing of alert to Slack of type %s was successful',  # noqa: E501
+                        type)
 
         else:
-            logger.debug(f'Publishing of alert to Slack {type} failed, with error code {code}')  # noqa: E501
+            logger.warning('Publishing of alert to Slack of type %s failed, with error code %s',  # noqa: E501
+                           type,
+                           code)
 
         return code
 
@@ -83,8 +88,9 @@ class EtlUtilities():
 
             response = requests.request("POST", url, headers=headers,
                                         data=payload, files=files)
-            logger.info(f'post request sent successfully with response: {response.txt}')  # noqa: E501
+            logger.info('post request sent successfully with response: %s',
+                        response.txt)  # noqa: E501
 
         except Exception as e:
-            message = (f'post request failed with error: {e}')
-            logger.debug(message)
+            logger.debug('Post request failed with error: %s',
+                         e)

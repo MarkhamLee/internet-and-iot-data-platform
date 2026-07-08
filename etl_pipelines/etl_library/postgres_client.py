@@ -1,11 +1,12 @@
-# Markham Lee (C) 2023
-# productivity-music-stocks-weather-IoT-dashboard
-# https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
+# Markham 2023 - 2026
+# Internet & IoT Data Platform:
+# https://github.com/MarkhamLee/internet-and-iot-data-platform
 # utilities for writing data to PostgreSQL
-
 import psycopg2
 from io import StringIO
-from etl_library.logging_util import logger  # noqa: E402
+from etl_library.logging_util import console_logging  # noqa: E402
+
+logger = console_logging('ETL_Postgres_client')
 
 
 class PostgresUtilities():
@@ -23,7 +24,8 @@ class PostgresUtilities():
             logger.info('Connection to Postgres Successful')
 
         except (Exception, psycopg2.DatabaseError) as error:
-            logger.debug(f'Postgres connection failed with error: {error}')
+            logger.warning('Postgres connection failed with error: %s',
+                           error)
 
         return conn
 
@@ -42,7 +44,8 @@ class PostgresUtilities():
             return 0
 
         except (Exception, psycopg2.DatabaseError) as error:
-            logger.debug(f'Table clearing operation failed with error: {error}')  # noqa: E501
+            logger.warning('Table clearing operation failed with error: %s',
+                           error)  # noqa: E501
             return 1
 
     # strict enforcement of what columns are used ensures data quality
@@ -60,7 +63,10 @@ class PostgresUtilities():
         # text data with punctuation  without having situations where a comma
         # in a sentence is treated as new column or causes a blank column to be
         # created.
-        payload.to_csv(buffer, index=False, sep='\t', columns=columns,
+        payload.to_csv(buffer,
+                       index=False,
+                       sep='\t',
+                       columns=columns,
                        header=False)
         buffer.seek(0)
 
@@ -83,7 +89,8 @@ class PostgresUtilities():
         except (Exception, psycopg2.DatabaseError) as error:
             connection.rollback()
             cursor.close()
-            logger.debug(f'PostgresDB write failed with error: {error}')
+            logger.warning('PostgresDB write failed with error: %s',
+                           error)
             return error
 
     # sending over a data frame or csv - still need to create a buffer object
@@ -107,5 +114,6 @@ class PostgresUtilities():
         except (Exception, psycopg2.DatabaseError) as error:
             connection.rollback()
             cursor.close()
-            logger.debug(f'Postgres write failed with error: {error}')
+            logger.warning('Postgres write failed with error: %s',
+                           error)
             return 1, error
