@@ -1,6 +1,6 @@
-# Markham Lee (C) 2023
-# productivity-music-stocks-weather-IoT-dashboard
-# https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
+# Markham 2023 - 2026
+# Internet & IoT Data Platform:
+# https://github.com/MarkhamLee/internet-and-iot-data-platform
 # ETL script for retrieving all the tasks from an Asana project
 # pass the environmental variable with the project GID to retrieve
 # data from the right project.
@@ -15,8 +15,10 @@ parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(parent_dir)
 
 from etl_library.postgres_client import PostgresUtilities  # noqa: E402
-from etl_library.logging_util import logger  # noqa: E402
+from etl_library.logging_util import console_logging  # noqa: E402
 from etl_library.general_utilities import EtlUtilities  # noqa: E402
+
+logger = console_logging('Asana_API_project_data_ingestion')
 
 # Load Asana utilities class
 utilities = AsanaUtilities()

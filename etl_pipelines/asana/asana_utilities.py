@@ -10,8 +10,10 @@ import pandas as pd
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(parent_dir)
 
-from etl_library.logging_util import logger  # noqa: E402
+from etl_library.logging_util import console_logging  # noqa: E402
 from etl_library.general_utilities import EtlUtilities  # noqa: E402
+
+logger = console_logging('asana_api_utilities')
 
 etl_utilities = EtlUtilities()
 WEBHOOK_URL = os.environ['ALERT_WEBHOOK']
@@ -38,9 +40,10 @@ class AsanaUtilities():
 
         except Exception as e:
             message = (f'Pipeline failure: Asana client creation failed with error: {e}')  # noqa: E501
-            logger.debug(message)
+            logger.warning(message)
             response = etl_utilities.send_slack_webhook(WEBHOOK_URL, message)
-            logger.debug(f'Slack alert sent with code: {response}')
+            logger.warning('Slack alert sent with code: %s',
+                           response)
             return response
 
     # data validation & parsing - the Asana pagination object takes a few more
@@ -69,6 +72,6 @@ class AsanaUtilities():
 
         except Exception as e:  # noqa: F841
             message = ('Pipeline failure: Asana data extraction failed with error, likely data corruption')  # noqa: E501
-            logger.debug(message)
+            logger.warning(message)
             response = etl_utilities.send_slack_webhook(WEBHOOK_URL, message)
             return response
