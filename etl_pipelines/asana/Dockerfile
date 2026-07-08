@@ -1,6 +1,6 @@
 # Temp Stage 
 
-FROM python:slim-bookworm AS builder
+FROM python:3.11.9-slim-bookworm AS builder
 
 WORKDIR /app
 
@@ -13,7 +13,7 @@ COPY /asana/requirements.txt .
 RUN pip wheel --no-cache-dir --no-deps --wheel-dir /app/wheels -r requirements.txt
 
 # Final Stage
-FROM python:slim-bookworm
+FROM python:3.11.9-slim-bookworm
 
 RUN apt-get update -y && apt-get install -y libpq5
 
