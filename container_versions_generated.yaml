@@ -108,14 +108,14 @@ services:
     dockerfile: etl_pipelines/yield_curve_daily/Dockerfile
     image: markhamlee/yield_curve_daily
     path: etl_pipelines/yield_curve_daily
-    version: ''
+    version: 1.2.1
   yield_curve_data_load:
     dockerfile: etl_pipelines/yield_curve_data_load/Dockerfile
     image: markhamlee/yield_curve_data_load
     path: etl_pipelines/yield_curve_data_load
-    version: ''
+    version: 1.2.1
   yield_curve_prepare:
     dockerfile: etl_pipelines/yield_curve_prepare/Dockerfile
     image: markhamlee/yield_curve_prepare
     path: etl_pipelines/yield_curve_prepare
-    version: ''
+    version: 1.2.1
