@@ -9,3 +9,6 @@ These are ETLs that are no longer in use because they got replaced with somethin
 * [GitHub Dependabot](github_dependabot) - a simple GitHub dependabot ETL that ingested GitHub dependabot data and counted the issues for a basic Dashboard that displayed how many open security issues there were. It was later replaced by a version that wrote detailed data for each alert to Postgres, for later analysis by an LLM. 
 
 * [GitHub Dependabot V2](github_dependabot_v2) - this variant wrote detailed data on each GitHub dependabot alert to Postgres for later analysis by an LLM. An updated variant of this one is available [here](../../ai_agents/dependabot_data_ingestion/README.md), it was moved to the ai_agents folder so that all the components for the Agentic pipelines were in one place. 
+
+* [Open Weather Singular](openweather_current_singular/README.md) this was an early experiment in breaking down ETLs into smaller discrete stages using Airflow's data persistence features. No longer needed as I no longer use Airflow. 
+
