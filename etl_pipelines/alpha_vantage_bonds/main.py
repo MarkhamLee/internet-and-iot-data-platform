@@ -1,6 +1,6 @@
-# Markham Lee (C) 2023
-# productivity-music-stocks-weather-IoT-dashboard
-# https://github.com/MarkhamLee/productivity-music-stocks-weather-IoT-dashboard
+# Markham 2023 - 2026
+# Internet & IoT Data Platform:
+# https://github.com/MarkhamLee/internet-and-iot-data-platform
 # This pipeline retrieves the daily t-bill rate, valdiates that it's newer
 # than the data that's already in the database and if it's newer updates the DB
 # with the latest rate.
@@ -14,10 +14,11 @@ parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(parent_dir)
 
 from alpha_vantage_library.alpha_utilities import AlphaUtilities  # noqa: E402
-from etl_library.logging_util import logger  # noqa: E402
+from etl_library.logging_util import console_logging  # noqa: E402
 from etl_library.postgres_client import PostgresUtilities  # noqa: E402
 from etl_library.general_utilities import EtlUtilities  # noqa: E402
 
+logger = console_logging('alpha_vantage_bond_data')
 
 utilities = AlphaUtilities()
 postgres_utilities = PostgresUtilities()
