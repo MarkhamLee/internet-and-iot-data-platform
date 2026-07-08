@@ -24,6 +24,11 @@ services:
     image: markhamlee/finnhub_nodejs
     path: etl_pipelines_nodejs/finnhub_nodejs
     version: 2.0.0
+  github_node:
+    dockerfile: etl_pipelines_nodejs/github_node/Dockerfile
+    image: markhamlee/github_node
+    path: etl_pipelines_nodejs/github_node
+    version: 1.7.1
   kasa_smart_plug:
     dockerfile: IoT/kasa_smart_plug/Dockerfile
     image: markhamlee/kasa_smart_plug
