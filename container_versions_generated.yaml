@@ -1,9 +1,24 @@
 services:
+  alpha_vantage_bond_load:
+    dockerfile: etl_pipelines/alpha_vantage_bond_load/Dockerfile
+    image: markhamlee/alpha_vantage_bond_load
+    path: etl_pipelines/alpha_vantage_bond_load
+    version: 1.4.2
+  alpha_vantage_bonds:
+    dockerfile: etl_pipelines/alpha_vantage_bonds/Dockerfile
+    image: markhamlee/alpha_vantage_bonds
+    path: etl_pipelines/alpha_vantage_bonds
+    version: 1.4.2
+  alpha_vantage_bonds_v2:
+    dockerfile: etl_pipelines/alpha_vantage_bonds_v2/Dockerfile
+    image: markhamlee/alpha_vantage_bonds_v2
+    path: etl_pipelines/alpha_vantage_bonds_v2
+    version: 1.2.8
   asana:
     dockerfile: etl_pipelines/asana/Dockerfile
     image: markhamlee/asana
     path: etl_pipelines/asana
-    version: 1.9.2
+    version: 1.9.3
   cyberpowerpc_pfc1500_ups:
     dockerfile: IoT/cyberpowerpc_pfc1500_ups/Dockerfile
     image: markhamlee/cyberpowerpc_pfc1500_ups
@@ -24,6 +39,11 @@ services:
     image: markhamlee/finnhub_nodejs
     path: etl_pipelines_nodejs/finnhub_nodejs
     version: 2.0.0
+  github_actions_data:
+    dockerfile: etl_pipelines/github_actions_data/Dockerfile
+    image: markhamlee/github_actions_data
+    path: etl_pipelines/github_actions_data
+    version: ''
   github_node:
     dockerfile: etl_pipelines_nodejs/github_node/Dockerfile
     image: markhamlee/github_node
@@ -84,3 +104,18 @@ services:
     image: markhamlee/technitium_monitoring
     path: network_management/technitium_monitoring
     version: 1.3.2
+  yield_curve_daily:
+    dockerfile: etl_pipelines/yield_curve_daily/Dockerfile
+    image: markhamlee/yield_curve_daily
+    path: etl_pipelines/yield_curve_daily
+    version: ''
+  yield_curve_data_load:
+    dockerfile: etl_pipelines/yield_curve_data_load/Dockerfile
+    image: markhamlee/yield_curve_data_load
+    path: etl_pipelines/yield_curve_data_load
+    version: ''
+  yield_curve_prepare:
+    dockerfile: etl_pipelines/yield_curve_prepare/Dockerfile
+    image: markhamlee/yield_curve_prepare
+    path: etl_pipelines/yield_curve_prepare
+    version: ''
