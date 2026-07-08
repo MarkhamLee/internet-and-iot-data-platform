@@ -8,7 +8,7 @@ services:
     dockerfile: IoT/cyberpowerpc_pfc1500_ups/Dockerfile
     image: markhamlee/cyberpowerpc_pfc1500_ups
     path: IoT/cyberpowerpc_pfc1500_ups
-    version: 1.8.2
+    version: 1.8.3
   dependabot_agent:
     dockerfile: ai_agents/dependabot_agent/Dockerfile
     image: markhamlee/dependabot_agent
@@ -44,6 +44,11 @@ services:
     image: markhamlee/openweather_current_ts
     path: etl_pipelines_nodejs/openweather_current_ts
     version: 1.7.1
+  plantower_s5003_airquality:
+    dockerfile: IoT/plantower_s5003_airquality/Dockerfile
+    image: markhamlee/plantower_s5003_airquality
+    path: IoT/plantower_s5003_airquality
+    version: 0.9.5
   sds011_air_quality_sensor:
     dockerfile: IoT/sds011_air_quality_sensor/Dockerfile
     image: markhamlee/sds011_air_quality_sensor
