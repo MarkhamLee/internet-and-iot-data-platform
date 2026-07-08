@@ -9,8 +9,10 @@ import pandas as pd
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(parent_dir)
 
-from etl_library.logging_util import logger  # noqa: E402
+from etl_library.logging_util import console_logging  # noqa: E402
 from etl_library.general_utilities import EtlUtilities  # noqa: E402
+
+logger = console_logging('alpha_vantage_library')
 
 
 class AlphaUtilities():
