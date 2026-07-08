@@ -8,11 +8,13 @@ import pandas as pd
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(parent_dir)
 
-from etl_library.logging_util import logger  # noqa: E402
+from etl_library.logging_util import console_logging  # noqa: E402
 from etl_library.general_utilities import EtlUtilities  # noqa: E402
 from etl_library.postgres_client import PostgresUtilities  # noqa: E402
 from yield_curve_library.yield_curve_utilities\
     import YieldCurveUtilities  # noqa: E402
+
+logger = console_logging('daily_yield_curve_data')
 
 postgres_utilities = PostgresUtilities()
 etl_utilities = EtlUtilities()
