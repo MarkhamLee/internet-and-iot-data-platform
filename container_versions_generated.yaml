@@ -3,7 +3,7 @@ services:
     dockerfile: etl_pipelines/asana/Dockerfile
     image: markhamlee/asana
     path: etl_pipelines/asana
-    version: 1.9.1
+    version: 1.9.2
   cyberpowerpc_pfc1500_ups:
     dockerfile: IoT/cyberpowerpc_pfc1500_ups/Dockerfile
     image: markhamlee/cyberpowerpc_pfc1500_ups
