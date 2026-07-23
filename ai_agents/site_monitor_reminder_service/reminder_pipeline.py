@@ -101,8 +101,9 @@ def max_reminders_reached(
     previous: TrackedPageState,
     target: WatchTarget,
 ) -> bool:
-    if target.max_reminders is None:
+    if target.max_reminders == 0:
         return False
+
     reminder_count = getattr(previous, "reminder_count", 0) or 0
     return reminder_count >= target.max_reminders
 
