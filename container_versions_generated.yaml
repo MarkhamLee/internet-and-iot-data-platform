@@ -3,7 +3,7 @@ services:
     dockerfile: etl_pipelines/alpha_vantage_bond_load/Dockerfile
     image: markhamlee/alpha_vantage_bond_load
     path: etl_pipelines/alpha_vantage_bond_load
-    version: 1.4.2
+    version: 1.4.3
   alpha_vantage_bonds:
     dockerfile: etl_pipelines/alpha_vantage_bonds/Dockerfile
     image: markhamlee/alpha_vantage_bonds
@@ -18,7 +18,7 @@ services:
     dockerfile: etl_pipelines/asana/Dockerfile
     image: markhamlee/asana
     path: etl_pipelines/asana
-    version: 1.9.3
+    version: 1.9.4
   cyberpowerpc_pfc1500_ups:
     dockerfile: IoT/cyberpowerpc_pfc1500_ups/Dockerfile
     image: markhamlee/cyberpowerpc_pfc1500_ups
@@ -53,7 +53,7 @@ services:
     dockerfile: IoT/kasa_smart_plug/Dockerfile
     image: markhamlee/kasa_smart_plug
     path: IoT/kasa_smart_plug
-    version: 2.1.3
+    version: 2.1.4
   kasa_smart_plug_mqtt:
     dockerfile: IoT/kasa_smart_plug_mqtt/Dockerfile
     image: markhamlee/kasa_smart_plug_mqtt
@@ -113,7 +113,7 @@ services:
     dockerfile: etl_pipelines/yield_curve_data_load/Dockerfile
     image: markhamlee/yield_curve_data_load
     path: etl_pipelines/yield_curve_data_load
-    version: 1.2.1
+    version: 1.2.2
   yield_curve_prepare:
     dockerfile: etl_pipelines/yield_curve_prepare/Dockerfile
     image: markhamlee/yield_curve_prepare
