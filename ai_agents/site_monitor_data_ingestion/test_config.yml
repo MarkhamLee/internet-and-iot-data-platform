@@ -1,0 +1,89 @@
+targets:  
+  - page_key: modhouse_audio_argon_b_stock
+    url: "https://www.modhouseaudio.com/headphones-bstock"
+    slack_channel: "#site-change-alerts"
+    desired_state_description: >
+      Either Argon MK3 or T60RP Argon is in stock and can be purchased now.
+      Prefer balanced-modded units if the page distinguishes that.
+    undesired_state_description: >
+      Neither Argon MK3 nor T60RP Argon is currently purchasable.
+      Treat sold out, unavailable, discontinued, waitlist, and preorder-only as undesired.
+    css_selectors:
+      - "title"
+      - ".product-title"
+      - ".price"
+      - ".availability"
+      - "button"
+    include_text_patterns:
+      - "argon"
+      - "mk3"
+      - "t60"
+      - "in stock"
+      - "out of stock"
+      - "add to cart"
+      - "sold out"
+    reminder_interval_minutes: 480
+    send_missed_it_message: true
+    custom_prompt: >
+      Focus only on listings for Argon MK3 and T60RP Argon on the B-stock page.
+      Decide whether either product can actually be purchased now.
+      Treat sold out, unavailable, discontinued, waitlist, or preorder-only as undesired.
+      If the page distinguishes balanced vs non-balanced versions, mention that in the summary,
+      but do not mark the item undesired solely because it can also be used single ended
+  - page_key: zmf_limited_editions_v1
+    url: https://shop.zmfheadphones.com/collections/ltd-editions
+    enabled: true
+    slack_channel: "#web-site-monitoring-agent-alerts"
+    desired_state_description: > 
+      Either the ZMF Aeolus, ZMF Ori 3.0 or ZMF Auteur is available and can be purchased
+      now or can be pre-ordered. 
+    undesired_state_description: > 
+      Neither the ZMF Auteur, ZMF Ori 3.0 or the ZMF Aeolus is currently available or purchase or pre-order.
+      Treat sold out, unvailable or waitlist as undesired.
+    css_selectors:
+      - "title"
+      - ".product-title"
+      - ".price"
+      - ".availability"
+      - "button"
+    include_text_patterns:
+      - "Aeolus"
+      - "Auteur"
+      - "Ori 3.0"
+      - "in stock"
+      - "out of stock"
+      - "add to cart"
+      - "sold out"
+      - "waitlist"
+      - "pre-order"
+    reminder_interval_minutes: 1440
+    send_missed_it_message: true
+    custom_prompt: >
+      Focus on listings for the ZMF Aeolus, ZMF Ori 3.0 or ZMF Auteur on the limited editions page. Determine
+      whether theese products can be actually be purchased now. Treat sold out, discontinued or waiting list as
+      undesired. 
+  - page_key: mod_house_audio_news_v1
+    url: https://www.modhouseaudio.com/news
+    enabled: true
+    slack_channel: "#web-site-monitoring-agent-alerts"
+    desired_state_description: >
+       Either updates newer than July 30, 2025 or mentions of Mk4 Argons or mentions of 
+       T60RP Mk2 Argons. 
+    undesired_state_description: >
+      No updates more recent than July 30, 2025 no mention of Mk4 Argons or T60RP Mk2 Argons
+    css_selectors:
+      - "title"
+      - ".product-title"
+      - ".price"
+      - ".availability"
+      - "button"
+    include_text_patterns:
+      - "Argon Mk4"
+      - "Argon MK4"
+      - "available"
+      - "Ordering will open"
+      - "Release date"
+    reminder_interval_minutes: 1440
+    send_missed_it_message: true
+    custom_prompt: >
+      Focus on news more recent than July 30, 2025 and any mentions of either the Mk4. Argon or the T60RP Mk.2 Argon
