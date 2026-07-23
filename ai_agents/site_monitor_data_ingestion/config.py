@@ -19,11 +19,14 @@ class WatchTarget(BaseModel):
     undesired_state_description: str
     css_selectors: list[str] = Field(default_factory=list)
     include_text_patterns: list[str] = Field(default_factory=list)
-    reminder_interval_minutes: int = 60
+    reminder_interval_minutes: int = Field(default=60, ge=1)
     send_missed_it_message: bool = True
     custom_prompt: str | None = None
     slack_channel: str | None = None
-    max_reminders: int | None = None  # None = unlimited
+    max_reminders: int = Field(
+        ge=0,
+        description="Maximum number of reminders to send; 0 means unlimited.",
+    )
 
 
 class WatchFileConfig(BaseModel):
@@ -38,15 +41,19 @@ class AppConfig(BaseModel):
     targets: list[WatchTarget]
 
 
-def load_watch_file(path: str | Path = "monitoring_targets.yml")\
-      -> WatchFileConfig:
+def load_watch_file(path: str | Path = "monitoring_targets.yml") -> WatchFileConfig:  # noqa: E501
     with open(path, "r", encoding="utf-8") as file_handle:
         raw: dict[str, Any] = yaml.safe_load(file_handle) or {}
+
+    targets = raw.get("targets", [])
+    for target in targets:
+        if target.get("max_reminders") is None:
+            target["max_reminders"] = 0
+
     return WatchFileConfig(**raw)
 
 
 def load_config(path: str | Path = "monitoring_targets.yml") -> AppConfig:
-
     watch_cfg = load_watch_file(path)
 
     force_research_after_hours = int(

@@ -1,32 +1,71 @@
-targets:
-  - page_key: modhouse_audio_argon_b_stock
-    url: "https://www.modhouseaudio.com/headphones-bstock"
-    slack_channel: "#site-change-alerts"
-    desired_state_description: >
-      Either Argon MK3 or T60RP Argon is in stock and can be purchased now.
-      Prefer balanced-modded units if the page distinguishes that.
-    undesired_state_description: >
-      Neither Argon MK3 nor T60RP Argon is currently purchasable.
-      Treat sold out, unavailable, discontinued, waitlist, and preorder-only as undesired.
-    css_selectors:
-      - "title"
-      - ".product-title"
-      - ".price"
-      - ".availability"
-      - "button"
-    include_text_patterns:
-      - "argon"
-      - "mk3"
-      - "t60"
-      - "in stock"
-      - "out of stock"
-      - "add to cart"
-      - "sold out"
-    reminder_interval_minutes: 480
-    send_missed_it_message: true
-    custom_prompt: >
-      Focus only on listings for Argon MK3 and T60RP Argon on the B-stock page.
-      Decide whether either product can actually be purchased now.
-      Treat sold out, unavailable, discontinued, waitlist, or preorder-only as undesired.
-      If the page distinguishes balanced vs non-balanced versions, mention that in the summary,
-      but do not mark the item undesired solely because it can also be used single ended.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: site-monitor-config
+  namespace: argo
+data:
+  monitoring_targets.yml: |
+    targets:
+      - page_key: mod_house_audio_argon_b_stock_v1
+        url: "https://www.modhouseaudio.com/headphones-bstock"
+        enabled: true
+        slack_channel: "#web-site-monitoring-agent-alerts"
+        desired_state_description: >
+          Either Argon MK2, Argon Mk3 or T60RP Argon is in stock and can be purchased now.
+          Prefer balanced-modded units if the page distinguishes that.
+        undesired_state_description: >
+          Neither Argon MK3 nor T60RP Argon is currently purchasable.
+          Treat sold out, unavailable, discontinued, waitlist, and preorder-only as undesired.
+        css_selectors:
+          - "title"
+          - ".product-title"
+          - ".price"
+          - ".availability"
+          - "button"
+        include_text_patterns:
+          - "argon"
+          - "mk2"
+          - "mk3"
+          - "t60"
+          - "in stock"
+          - "out of stock"
+          - "add to cart"
+          - "sold out"
+        reminder_interval_minutes: 240
+        max_reminders = 0
+        send_missed_it_message: true
+        custom_prompt: >
+          Focus only on listings for Argon MK2, Argon MK3 and T60RP Argon on the B-stock page.
+          Decide whether either product can actually be purchased now.
+          Treat sold out, unavailable, discontinued, waitlist, or preorder-only as undesired.
+          If the page distinguishes balanced vs non-balanced versions, mention that in the summary,
+          but do not mark the item undesired solely because it is listed as single ended.
+      - page_key: zmf_limited_editions_v2
+        url: "https://shop.zmfheadphones.com/collections/ltd-editions"
+        enabled: true
+        slack_channel: "#web-site-monitoring-agent-alerts"
+        desired_state_description: > 
+          Either the ZMF Aeolus, ZMF Ori 3.0 or ZMF Auteur is listed on the page,
+          and are available to purchase now or are available for pre-order.
+        undesired_state_description: > 
+          Neither the ZMF Auteur, ZMF Ori 3.0 or ZMF Aeolus is listed on the page. 
+        css_selectors:
+          - "title"
+          - ".product-card__title"
+          - ".price.price--listing"
+          - ".grid-view-item__title"
+        include_text_patterns:
+          - "Aeolus"
+          - "Auteur"
+          - "Ori 3.0"
+          - "pre-order"
+          - "preorder"
+          - "Add to cart"
+          - "Coming Soon"
+        reminder_interval_minutes: 240
+        send_missed_it_message: true
+        custom_prompt: >
+          Check whether the ZMF Aeolus, ZMF Ori 3.0 or ZMF Auteur appears on the page.
+          If any of these products are listed, determine whether they are available to purchase
+          now or available for pre-order, and include that in the summary.
+          If none are listed, the state is undesired.
