@@ -88,12 +88,12 @@ services:
     dockerfile: ai_agents/site_monitor_data_ingestion/Dockerfile
     image: markhamlee/site_monitor_data_ingestion
     path: ai_agents/site_monitor_data_ingestion
-    version: 1.4.0
+    version: 1.5.0
   site_monitor_reminder_service:
     dockerfile: ai_agents/site_monitor_reminder_service/Dockerfile
     image: markhamlee/site_monitor_reminder_service
     path: ai_agents/site_monitor_reminder_service
-    version: 1.2.2
+    version: 1.3.2
   tailscale_device_status:
     dockerfile: network_management/tailscale_device_status/Dockerfile
     image: markhamlee/tailscale_device_status
