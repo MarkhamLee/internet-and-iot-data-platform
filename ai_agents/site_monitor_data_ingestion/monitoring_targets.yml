@@ -32,7 +32,7 @@ data:
           - "add to cart"
           - "sold out"
         reminder_interval_minutes: 240
-        max_reminders = 0
+        max_reminders: 0
         send_missed_it_message: true
         custom_prompt: >
           Focus only on listings for Argon MK2, Argon MK3 and T60RP Argon on the B-stock page.
@@ -62,7 +62,8 @@ data:
           - "preorder"
           - "Add to cart"
           - "Coming Soon"
-        reminder_interval_minutes: 240
+        reminder_interval_minutes: 1440
+        max_reminders: 0
         send_missed_it_message: true
         custom_prompt: >
           Check whether the ZMF Aeolus, ZMF Ori 3.0 or ZMF Auteur appears on the page.
