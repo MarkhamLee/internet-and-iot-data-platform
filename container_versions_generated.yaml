@@ -68,7 +68,7 @@ services:
     dockerfile: etl_pipelines_nodejs/openweather_current_ts/Dockerfile
     image: markhamlee/openweather_current_ts
     path: etl_pipelines_nodejs/openweather_current_ts
-    version: 1.7.4
+    version: 1.7.5
   plantower_s5003_airquality:
     dockerfile: IoT/plantower_s5003_airquality/Dockerfile
     image: markhamlee/plantower_s5003_airquality
