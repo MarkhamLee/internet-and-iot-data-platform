@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import os
-import sys
 from datetime import UTC, datetime
+
+from platform_utils.platform_logger import configure_logger
 
 from config import load_config
 from ingestion_pipeline import IngestionDependencies, run_ingestion_cycle
@@ -10,12 +11,7 @@ from ingestion_instrumentation_store import IngestionInstrumentationStore
 from research_queue_store import ResearchQueueStore
 from state_store import StateStore
 
-parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(parent_dir)
-
-from agent_library.logging_util import console_logging  # noqa: E402
-
-logger = console_logging("site_monitor_data_ingestion_logs")
+logger = configure_logger("site_monitor_data_ingestion_logs")
 
 path = os.environ.get("MONITORING_TARGETS_PATH", "monitoring_targets.yml")
 
