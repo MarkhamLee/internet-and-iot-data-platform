@@ -36,14 +36,11 @@ RUN python -m pip install --no-cache-dir /wheels/* && \
     rm -rf /wheels && \
     useradd --create-home --uid 10001 appuser
 
-# Retained while this service still imports modules directly from agent_library.
-COPY --chown=appuser:appuser ai_agents/agent_library/ /app/agent_library/
 
-COPY --chown=appuser:appuser ai_agents/site_monitor_data_ingestion/ \
-    /app/site_monitor_data_ingestion/
+COPY --chown=appuser:appuser ./agent_library ./agent_library
+COPY --chown=appuser:appuser ./site_monitor_data_ingestion ./
 
-WORKDIR /app/site_monitor_data_ingestion
 
 USER appuser
 
-ENTRYPOINT ["python", "main.py"]
+ENTRYPOINT ["python", "app/main.py"]
