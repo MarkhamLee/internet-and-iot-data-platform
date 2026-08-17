@@ -1,3 +1,6 @@
+# (C) Markham Lee 2023 - 2026
+# https://github.com/MarkhamLee/internet-and-iot-data-platform
+# Fetches conntent from tracked pages.
 from __future__ import annotations
 
 import requests

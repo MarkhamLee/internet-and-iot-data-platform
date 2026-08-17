@@ -1,3 +1,6 @@
+# (C) Markham Lee 2023 - 2026
+# https://github.com/MarkhamLee/internet-and-iot-data-platform
+# Entrypoint for site monitoring data ingestion
 from __future__ import annotations
 
 import os
