@@ -1,4 +1,4 @@
-name: site monitor data ingestion
+name: site monitor reminder service
 
 on:
   push:
@@ -35,7 +35,7 @@ jobs:
           password: ${{ secrets.DOCKER_TOKEN }}
 
       - name: Build and push
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ./ai_agents/site_monitor_reminder_service/Dockerfile
