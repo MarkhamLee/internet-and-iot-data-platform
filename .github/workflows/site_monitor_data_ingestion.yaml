@@ -5,6 +5,7 @@ on:
     branches:
       - main
     paths:
+      - "pyproject.toml"
       - "platform_utils/**"
       - "ai_agents/agent_library/**"
       - "ai_agents/site_monitor_data_ingestion/**"
@@ -20,9 +21,8 @@ jobs:
 
       - name: Read version
         id: version
-        run: |
-          echo "value=$(cat ai_agents/site_monitor_data_ingestion/VERSION)" \
-            >> "$GITHUB_OUTPUT"
+        shell: bash
+        run: echo "value=$(cat ai_agents/site_monitor_reminder_service/VERSION)" >> "$GITHUB_OUTPUT"
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3

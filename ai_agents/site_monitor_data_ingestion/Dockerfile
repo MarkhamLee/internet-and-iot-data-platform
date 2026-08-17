@@ -6,22 +6,20 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /build
 
-# Copy dependency manifests first for better Docker layer caching.
-COPY ai_agents/site_monitor_data_ingestion/requirements.txt \
-     ./requirements.txt
-
-# Copy the shared library project so it can be built into a wheel.
+# Copy manifests and the private-library source first to maximize layer-cache reuse.
+COPY ai_agents/site_monitor_data_ingestion/requirements.txt ./requirements.txt
+COPY pyproject.toml ./pyproject.toml
 COPY platform_utils/ ./platform_utils/
 
 RUN python -m pip install --no-cache-dir --upgrade pip && \
     python -m pip wheel \
         --no-cache-dir \
         --wheel-dir /build/wheels \
-        -r requirements.txt && \
+        -r /build/requirements.txt && \
     python -m pip wheel \
         --no-cache-dir \
         --wheel-dir /build/wheels \
-        /build/platform_utils
+        /build
 
 
 # Runtime image.
@@ -38,11 +36,9 @@ RUN python -m pip install --no-cache-dir /wheels/* && \
     rm -rf /wheels && \
     useradd --create-home --uid 10001 appuser
 
-    
-COPY --chown=appuser:appuser ai_agents/agent_library/ \
-    /app/agent_library/
+# Retained while this service still imports modules directly from agent_library.
+COPY --chown=appuser:appuser ai_agents/agent_library/ /app/agent_library/
 
-# Application source.
 COPY --chown=appuser:appuser ai_agents/site_monitor_data_ingestion/ \
     /app/site_monitor_data_ingestion/
 
