@@ -11,17 +11,18 @@ from datetime import datetime, timedelta
 from psycopg.rows import dict_row
 from reminder_slack_messaging import build_reminder_blocks
 
+from platform_utils.platform_logger import configure_logger
+
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(parent_dir)
 
-from agent_library.logging_util import console_logging  # noqa: E402
 from agent_library.\
     agent_utilities import send_slack_webhook_block  # noqa: E402
 from site_monitor_data_ingestion.\
     config import AppConfig, WatchTarget  # noqa: E402
 from site_monitor_data_ingestion.schemas import TrackedPageState  # noqa: E402
 
-logger = console_logging("reminder_pipeline_logs")
+logger = configure_logger("reminder_pipeline_logs")
 
 
 @dataclass(slots=True)
