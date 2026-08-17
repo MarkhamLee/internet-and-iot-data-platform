@@ -37,9 +37,9 @@ RUN pip install --no-cache-dir /wheels/* && \
     rm -rf /wheels && \
     useradd --create-home --uid 10001 appuser
 
-COPY --chown=appuser:appuser ./agent_library ./agent_library
-COPY --chown=appuser:appuser ./site_monitor_data_ingestion ./site_monitor_data_ingestion
-COPY --chown=appuser:appuser ./site_monitor_reminder_service ./
+COPY --chown=appuser:appuser ./ai_agents/agent_library ./agent_library
+COPY --chown=appuser:appuser ./ai_agents/site_monitor_data_ingestion ./site_monitor_data_ingestion
+COPY --chown=appuser:appuser ./ai_agents/site_monitor_reminder_service ./
 
 USER appuser
 
