@@ -10,6 +10,7 @@ on:
       - "ai_agents/agent_library/*"
       - "ai_agents/site_monitor_data_ingestion/*"
       - "ai_agents/site_monitor_reminder_service/*"
+      - ".github/workflows/site_monitor_reminder_service.yaml"
 
 jobs:
   docker:
