@@ -28,7 +28,7 @@ FROM python:3.12-slim-bookworm
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
-WORKDIR /app
+WORKDIR /agents
 
 COPY --from=builder /build/wheels /wheels
 
@@ -43,4 +43,4 @@ COPY --chown=appuser:appuser ./ai_agents/site_monitor_data_ingestion ./
 
 USER appuser
 
-ENTRYPOINT ["python", "app/main.py"]
+ENTRYPOINT ["python", "/agents/main.py"]
