@@ -33,7 +33,7 @@ services:
     dockerfile: ai_agents/dependabot_data_ingestion/Dockerfile
     image: markhamlee/dependabot_data_ingestion
     path: ai_agents/dependabot_data_ingestion
-    version: 1.5.2
+    version: 1.6.2
   finnhub_nodejs:
     dockerfile: etl_pipelines_nodejs/finnhub_nodejs/Dockerfile
     image: markhamlee/finnhub_nodejs
