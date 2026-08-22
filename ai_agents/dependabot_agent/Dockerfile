@@ -10,8 +10,8 @@ WORKDIR /app
 COPY pyproject.toml ./pyproject.toml
 COPY platform_utils/ ./platform_utils/
 
-# Copy app specific libraries 
-COPY ai_agents/dependabot_agent/requirements.txt .
+# copy ai agent specific libraries
+COPY ai_agents/dependabot_agent/requirements.txt ./requirements.txt
 COPY ai_agents/pyproject.toml ./ai_agents/pyproject.toml
 COPY ai_agents/agent_library/ ./ai_agents/agent_library/
 
@@ -38,9 +38,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
 COPY --from=builder /app/wheels /wheels
-COPY --from=builder /app/requirements.txt .
 
-RUN pip install --no-cache-dir /wheels/* && \
+RUN python -m pip install --no-cache-dir /wheels/* && \
     rm -rf /wheels && \
     useradd --create-home --uid 10001 appuser
 
