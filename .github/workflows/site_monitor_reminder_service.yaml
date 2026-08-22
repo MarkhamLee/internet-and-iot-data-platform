@@ -7,6 +7,7 @@ on:
     paths:
       - "pyproject.toml"
       - "platform_utils/**"
+      - "ai_agents/pyproject.toml"
       - "ai_agents/agent_library/*"
       - "ai_agents/site_monitor_data_ingestion/*"
       - "ai_agents/site_monitor_reminder_service/*"
