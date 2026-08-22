@@ -11,7 +11,7 @@ COPY pyproject.toml ./pyproject.toml
 COPY platform_utils/ ./platform_utils/
 
 # Copy app specific libraries 
-COPY dependabot_agent/requirements.txt .
+COPY ai_agents/dependabot_agent/requirements.txt .
 COPY ai_agents/pyproject.toml ./ai_agents/pyproject.toml
 COPY ai_agents/agent_library/ ./ai_agents/agent_library/
 
@@ -47,7 +47,7 @@ RUN pip install --no-cache-dir /wheels/* && \
 
 WORKDIR /agents
 
-COPY --chown=appuser:appuser ./dependabot_agent ./
+COPY --chown=appuser:appuser ./ai_agents/dependabot_agent ./
 
 USER appuser
 
