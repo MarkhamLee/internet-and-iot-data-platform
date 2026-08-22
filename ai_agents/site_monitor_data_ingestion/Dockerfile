@@ -12,6 +12,7 @@ COPY platform_utils/ ./platform_utils/
 
 # copy ai agent specific libraries
 COPY ai_agents/site_monitor_data_ingestion/requirements.txt ./requirements.txt
+COPY ai_agents/pyproject.toml ./ai_agents/pyproject.toml
 COPY ai_agents/agent_library/ ./ai_agents/agent_library/
 
 # install packages and create build wheels
