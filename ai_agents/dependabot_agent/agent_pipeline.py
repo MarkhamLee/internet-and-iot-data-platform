@@ -10,6 +10,13 @@ from datetime import datetime, timezone
 from time import perf_counter
 from typing import TYPE_CHECKING
 
+from platform_utils.platform_logger import configure_logger
+
+from ai_agents.agent_library.agent_utilities import (
+    send_slack_webhook_block,
+    write_instrumentation,
+)
+
 from schemas import AlertGroup, AlertReviewResponse, AlertReviewWrite
 from postgres_review_repository import PostgresReviewRepository
 from slack_message_builder import (
@@ -17,16 +24,12 @@ from slack_message_builder import (
     build_reminder_blocks,
     build_slack_payload,
 )
-from agent_library.agent_utilities import (
-    send_slack_webhook_block,
-    write_instrumentation,
-)
-from agent_library.logging_util import console_logging
+
 
 if TYPE_CHECKING:
     from agent_library.qwen_client import QwenClient
 
-logger = console_logging("Dependabot agent")
+logger = configure_logger("Dependabot agent")
 
 
 def build_group_payload(group: AlertGroup) -> dict:

@@ -6,10 +6,29 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-COPY dependabot_agent/requirements.txt .
+# copy platform level libraries 
+COPY pyproject.toml ./pyproject.toml
+COPY platform_utils/ ./platform_utils/
 
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip wheel --no-cache-dir --wheel-dir /app/wheels -r requirements.txt
+# Copy app specific libraries 
+COPY dependabot_agent/requirements.txt .
+COPY ai_agents/pyproject.toml ./ai_agents/pyproject.toml
+COPY ai_agents/agent_library/ ./ai_agents/agent_library/
+
+# install packages and create build wheels
+RUN python -m pip install --no-cache-dir --upgrade pip && \
+    python -m pip wheel \
+        --no-cache-dir \
+        --wheel-dir /build/wheels \
+        -r /build/requirements.txt && \
+    python -m pip wheel \
+        --no-cache-dir \
+        --wheel-dir /build/wheels \
+        /build && \
+    python -m pip wheel \
+        --no-cache-dir \
+        --wheel-dir /build/wheels \
+        /build/ai_agents
 
 
 # Final stage
@@ -25,7 +44,6 @@ RUN pip install --no-cache-dir /wheels/* && \
     rm -rf /wheels && \
     useradd --create-home --uid 10001 appuser
 
-COPY --chown=appuser:appuser ./agent_library ./agent_library
 
 WORKDIR /agents
 
