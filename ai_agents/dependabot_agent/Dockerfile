@@ -30,7 +30,6 @@ RUN python -m pip install --no-cache-dir --upgrade pip && \
         --wheel-dir /build/wheels \
         /build/ai_agents
 
-
 # Final stage
 FROM python:3.12-slim-bookworm
 
@@ -39,7 +38,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /agents
 
-COPY --from=builder /app/wheels /wheels
+COPY --from=builder /build/wheels /wheels
 
 RUN python -m pip install --no-cache-dir /wheels/* && \
     rm -rf /wheels && \
