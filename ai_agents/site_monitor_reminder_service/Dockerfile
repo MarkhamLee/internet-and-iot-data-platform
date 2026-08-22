@@ -1,4 +1,4 @@
-`# Build stage
+# Build stage
 FROM python:3.12-slim-bookworm AS builder
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
