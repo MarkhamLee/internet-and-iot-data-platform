@@ -12,9 +12,9 @@ COPY platform_utils/ ./platform_utils/
 
 # copy ai agent specific libraries
 COPY ai_agents/site_monitor_data_ingestion/requirements.txt ./requirements.txt
-COPY ai_agents/agent_library/ ./ai_agents/agent_library
+COPY ai_agents/agent_library/ ./ai_agents/agent_library/
 
-# install libraries and uild wheels
+# install packages and create build wheels
 RUN python -m pip install --no-cache-dir --upgrade pip && \
     python -m pip wheel \
         --no-cache-dir \
@@ -23,7 +23,7 @@ RUN python -m pip install --no-cache-dir --upgrade pip && \
     python -m pip wheel \
         --no-cache-dir \
         --wheel-dir /build/wheels \
-        /build \
+        /build && \
     python -m pip wheel \
         --no-cache-dir \
         --wheel-dir /build/wheels \
