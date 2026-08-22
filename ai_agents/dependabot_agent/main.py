@@ -4,16 +4,13 @@
 import sys
 import os
 from os import getenv
+
+from platform_utils.platform_logger import configure_logger
+from ai_agents.agent_library.qwen_client import QwenClient
+
 from agent_pipeline import DependabotAgent
-# from qwen_client import QwenClient  # noqa: E402
 
-parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(parent_dir)
-from agent_library.logging_util import console_logging  # noqa: E402
-from agent_library.qwen_client import QwenClient  # noqa: E402
-
-
-logger = console_logging("Dependabot review main")
+logger = configure_logger("Dependabot review main")
 
 REVIEW_PROMPT = """
 You are reviewing a group of GitHub Dependabot alerts for the same vulnerable

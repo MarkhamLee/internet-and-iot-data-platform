@@ -15,6 +15,7 @@ COPY ai_agents/site_monitor_data_ingestion/requirements.txt ./requirements.txt
 COPY ai_agents/pyproject.toml ./ai_agents/pyproject.toml
 COPY ai_agents/agent_library/ ./ai_agents/agent_library/
 
+# install packages and create build wheel
 RUN python -m pip install --no-cache-dir --upgrade pip && \
     python -m pip wheel \
         --no-cache-dir \
@@ -23,7 +24,7 @@ RUN python -m pip install --no-cache-dir --upgrade pip && \
     python -m pip wheel \
         --no-cache-dir \
         --wheel-dir /build/wheels \
-        /build \
+        /build && \
     python -m pip wheel \
         --no-cache-dir \
         --wheel-dir /build/wheels \
