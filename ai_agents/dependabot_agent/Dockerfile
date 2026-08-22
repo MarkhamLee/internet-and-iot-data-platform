@@ -4,7 +4,7 @@ FROM python:3.12-slim-bookworm AS builder
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
-WORKDIR /app
+WORKDIR /build
 
 # copy platform level libraries 
 COPY pyproject.toml ./pyproject.toml
@@ -37,14 +37,14 @@ FROM python:3.12-slim-bookworm
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
+WORKDIR /agents
+
 COPY --from=builder /app/wheels /wheels
 
 RUN python -m pip install --no-cache-dir /wheels/* && \
     rm -rf /wheels && \
     useradd --create-home --uid 10001 appuser
 
-
-WORKDIR /agents
 
 COPY --chown=appuser:appuser ./ai_agents/dependabot_agent ./
 
