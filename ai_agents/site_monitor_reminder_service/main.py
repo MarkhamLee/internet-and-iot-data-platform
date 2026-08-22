@@ -8,12 +8,12 @@ import sys
 from datetime import UTC, datetime
 
 from platform_utils.platform_logger import configure_logger
+from reminder_pipeline import run_reminder_cycle
 
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(parent_dir)
 
 from site_monitor_data_ingestion.config import load_config  # noqa: E402
-from reminder_pipeline import run_reminder_cycle  # noqa: E402
 
 logger = configure_logger("site_monitor_reminder_logs")
 
