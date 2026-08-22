@@ -6,11 +6,15 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /build
 
-# Copy manifests and the private-library source first to maximize layer-cache reuse.
-COPY ai_agents/site_monitor_data_ingestion/requirements.txt ./requirements.txt
+# copy platform level libraries 
 COPY pyproject.toml ./pyproject.toml
 COPY platform_utils/ ./platform_utils/
 
+# copy ai agent specific libraries
+COPY ai_agents/site_monitor_data_ingestion/requirements.txt ./requirements.txt
+COPY ai_agents/agent_library/ ./ai_agents/agent_library
+
+# install libraries and uild wheels
 RUN python -m pip install --no-cache-dir --upgrade pip && \
     python -m pip wheel \
         --no-cache-dir \
@@ -19,8 +23,11 @@ RUN python -m pip install --no-cache-dir --upgrade pip && \
     python -m pip wheel \
         --no-cache-dir \
         --wheel-dir /build/wheels \
-        /build
-
+        /build \
+    python -m pip wheel \
+        --no-cache-dir \
+        --wheel-dir /build/wheels \
+        /build/ai_agents
 
 # Runtime image.
 FROM python:3.12-slim-bookworm
@@ -37,7 +44,6 @@ RUN python -m pip install --no-cache-dir /wheels/* && \
     useradd --create-home --uid 10001 appuser
 
 
-COPY --chown=appuser:appuser ./ai_agents/agent_library ./agent_library
 COPY --chown=appuser:appuser ./ai_agents/site_monitor_data_ingestion ./
 
 
