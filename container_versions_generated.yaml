@@ -93,7 +93,7 @@ services:
     dockerfile: ai_agents/site_monitor_reminder_service/Dockerfile
     image: markhamlee/site_monitor_reminder_service
     path: ai_agents/site_monitor_reminder_service
-    version: 1.4.4
+    version: 1.5.4
   tailscale_device_status:
     dockerfile: network_management/tailscale_device_status/Dockerfile
     image: markhamlee/tailscale_device_status
