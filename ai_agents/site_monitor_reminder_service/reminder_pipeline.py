@@ -12,8 +12,7 @@ from psycopg.rows import dict_row
 from reminder_slack_messaging import build_reminder_blocks
 
 from platform_utils.platform_logger import configure_logger
-from ai_agents.agent_library.\
-    agent_utilities import send_slack_webhook_block  # noqa: E402
+from agent_library.agent_utilities import send_slack_webhook_block
 
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(parent_dir)

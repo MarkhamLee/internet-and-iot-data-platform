@@ -41,7 +41,7 @@ WORKDIR /agents
 
 COPY --from=builder /build/wheels /wheels
 
-RUN pip install --no-cache-dir /wheels/* && \
+RUN python -m pip install --no-cache-dir /wheels/* && \
     rm -rf /wheels && \
     useradd --create-home --uid 10001 appuser
 
