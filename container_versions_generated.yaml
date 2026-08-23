@@ -28,7 +28,7 @@ services:
     dockerfile: ai_agents/dependabot_agent/Dockerfile
     image: markhamlee/dependabot_agent
     path: ai_agents/dependabot_agent
-    version: 1.6.2
+    version: 1.6.3
   dependabot_data_ingestion:
     dockerfile: ai_agents/dependabot_data_ingestion/Dockerfile
     image: markhamlee/dependabot_data_ingestion
