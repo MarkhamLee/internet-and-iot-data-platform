@@ -11,8 +11,7 @@ from time import perf_counter
 from typing import TYPE_CHECKING
 
 from platform_utils.platform_logger import configure_logger
-
-from ai_agents.agent_library.agent_utilities import (
+from agent_library.agent_utilities import (
     send_slack_webhook_block,
     write_instrumentation,
 )

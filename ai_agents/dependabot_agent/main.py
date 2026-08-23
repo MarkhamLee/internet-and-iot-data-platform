@@ -6,7 +6,7 @@ import os
 from os import getenv
 
 from platform_utils.platform_logger import configure_logger
-from ai_agents.agent_library.qwen_client import QwenClient
+from agent_library.qwen_client import QwenClient
 
 from agent_pipeline import DependabotAgent
 
