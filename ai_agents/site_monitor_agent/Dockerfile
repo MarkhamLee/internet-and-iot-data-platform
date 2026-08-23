@@ -13,7 +13,7 @@ COPY platform_utils/ ./platform_utils/
 # copy ai agent specific libraries
 COPY ai_agents/site_monitor_agent/requirements.txt ./requirements.txt
 COPY ai_agents/pyproject.toml ./ai_agents/pyproject.toml
-COPY ai_agents/agent_library/ ./ai_agents/agent_library/-
+COPY ai_agents/agent_library/ ./ai_agents/agent_library/
 
 # install packages and create build wheels
 RUN python -m pip install --no-cache-dir --upgrade pip && \
@@ -44,7 +44,7 @@ RUN python -m pip install --no-cache-dir /wheels/* && \
     rm -rf /wheels && \
     useradd --create-home --uid 10001 appuser
 
-COPY --chown=appuser:appuser ./site_monitor_agent ./
+COPY --chown=appuser:appuser ./ai_agents/site_monitor_agent ./
 
 USER appuser
 
