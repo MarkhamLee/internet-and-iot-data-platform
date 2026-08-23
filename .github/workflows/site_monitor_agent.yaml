@@ -38,7 +38,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: ./ai_agents/
+          context: .
           file: ./ai_agents/site_monitor_agent/Dockerfile
           platforms: linux/amd64
           push: true
