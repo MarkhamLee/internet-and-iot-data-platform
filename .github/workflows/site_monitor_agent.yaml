@@ -5,8 +5,12 @@ on:
     branches:
       - "main"
     paths:
-      - "ai_agents/agent_library/*"
-      - "ai_agents/site_monitor_agent/*"
+      - "pyproject.toml"
+      - "platform_utils/**"
+      - "ai_agents/pyproject.toml"
+      - "ai_agents/agent_library/**"
+      - "ai_agents/site_monitor_agent/**"
+      - ".github/workflows/site_monitor_agent.yaml"
 
 jobs:
   docker:

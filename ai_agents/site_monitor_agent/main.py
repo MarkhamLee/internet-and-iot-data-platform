@@ -12,18 +12,17 @@ from os import getenv
 import psycopg
 from time import perf_counter
 from psycopg.types.json import Jsonb
+
+from platform_utils.platform_logger import configure_logger
+from agent_library.qwen_client import QwenClient
+from agent_library.\
+    agent_utilities import write_instrumentation
+
 from config import load_config
 from research_pipeline import run_research_cycle
 
-parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(parent_dir)
 
-from agent_library.logging_util import console_logging  # noqa: E402
-from agent_library.qwen_client import QwenClient  # noqa: E402
-from agent_library.\
-    agent_utilities import write_instrumentation  # noqa: E402
-
-logger = console_logging("site_monitor_agent")
+logger = configure_logger("site_monitor_agent")
 
 APPROVED_MODELS = {"qwen3.5:9b", "llama3.2:3b"}
 AGENT_RUNS_TABLE = "agent_runs"

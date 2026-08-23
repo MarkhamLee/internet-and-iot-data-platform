@@ -3,25 +3,21 @@
 # Research pipeline orchestrator for the site monitor agent
 from __future__ import annotations
 
-import os
-import sys
 from datetime import UTC, datetime
 from time import perf_counter
+
+from platform_utils.platform_logger import configure_logger
+from agent_library.\
+    agent_utilities import send_slack_webhook_block
+from agent_library.qwen_client import QwenClient
 
 from config import AppConfig
 from postgres_queue_repository import PostgresQueueRepository
 from schemas import PageAnalysisResponse, PageAnalysisWrite, ResearchQueueItem
 from slack_messaging import build_alert_blocks
 
-parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(parent_dir)
 
-from agent_library.logging_util import console_logging  # noqa: E402
-from agent_library.\
-    agent_utilities import send_slack_webhook_block  # noqa: E402
-from agent_library.qwen_client import QwenClient  # noqa: E402
-
-logger = console_logging("research_pipeline")
+logger = configure_logger("research_pipeline")
 
 REVIEW_PROMPT = """
 You are reviewing a monitored web page for a specific desired state.

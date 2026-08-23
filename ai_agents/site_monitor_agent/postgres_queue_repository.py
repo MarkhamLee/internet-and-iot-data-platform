@@ -3,20 +3,14 @@
 # PostgreSQL repository for the site monitor research queue
 from __future__ import annotations
 
-import os
 import psycopg
-import sys
 from datetime import datetime
 from psycopg.rows import dict_row
 from schemas import ResearchQueueItem
 
+from platform_utils.platform_logger import configure_logger
 
-parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(parent_dir)
-
-from agent_library.logging_util import console_logging  # noqa: E402
-
-logger = console_logging("postgres_queue_repository")
+logger = configure_logger("postgres_queue_repository")
 
 
 class PostgresQueueRepository:
