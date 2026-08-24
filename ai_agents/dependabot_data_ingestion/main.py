@@ -3,15 +3,10 @@
 # Orchestrator for retrieving dependabot alert data from the GitHub API
 # and then updating each alert's status in Postgres
 import os
-import sys
 import postgres_data_sync
 from github_client import GitHubClient
 
-
-parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(parent_dir)
-
-from agent_library.logging_util import console_logging  # noqa: E402
+from platform_utils.platform_logger import configure_logger
 
 # load Slack Webhook URL variable for sending pipeline failure alerts
 PIPELINE_FAILURE_WEBHOOK = os.environ['PIPELINE_FAILURE_WEBHOOK']
@@ -42,7 +37,7 @@ REPO_OWNER_NAME = 'markhamlee'
 
 FULL_REPO_URL = (f'{REPO_URL_BASE}/{REPO_NAME}')
 
-logger = console_logging(PIPELINE_NAME)
+logger = configure_logger(PIPELINE_NAME)
 
 logger.info('Intantiating GitHub Client')
 github_client = GitHubClient(

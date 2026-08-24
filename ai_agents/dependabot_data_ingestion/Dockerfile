@@ -4,12 +4,32 @@ FROM python:3.12-slim-bookworm AS builder
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
-WORKDIR /app
+WORKDIR /build
 
-COPY dependabot_data_ingestion/requirements.txt .
+# copy platform level libraries 
+COPY pyproject.toml ./pyproject.toml
+COPY platform_utils/ ./platform_utils/
 
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip wheel --no-cache-dir --wheel-dir /app/wheels -r requirements.txt
+# copy app specific libraries
+COPY ai_agents/dependabot_data_ingestion/requirements.txt ./requirements.txt
+COPY ai_agents/pyproject.toml ./ai_agents/pyproject.toml
+COPY ai_agents/agent_library/ ./ai_agents/agent_library/
+
+
+# install packages and create build wheels
+RUN python -m pip install --no-cache-dir --upgrade pip && \
+    python -m pip wheel \
+        --no-cache-dir \
+        --wheel-dir /build/wheels \
+        -r /build/requirements.txt && \
+    python -m pip wheel \
+        --no-cache-dir \
+        --wheel-dir /build/wheels \
+        /build && \
+    python -m pip wheel \
+        --no-cache-dir \
+        --wheel-dir /build/wheels \
+        /build/ai_agents
 
 
 # Final stage
@@ -21,14 +41,12 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 WORKDIR /etl
 
 COPY --from=builder /app/wheels /wheels
-COPY --from=builder /app/requirements.txt .
 
-RUN pip install --no-cache-dir /wheels/* && \
+RUN python -m pip install --no-cache-dir /wheels/* && \
     rm -rf /wheels && \
     useradd --create-home --uid 10001 appuser
 
-COPY --chown=appuser:appuser ./agent_library ./agent_library
-COPY --chown=appuser:appuser ./dependabot_data_ingestion ./
+COPY --chown=appuser:appuser ./ai_agents/dependabot_data_ingestion ./
 
 USER appuser
 

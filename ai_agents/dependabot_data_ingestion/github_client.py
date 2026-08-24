@@ -4,19 +4,14 @@
 # the GitHub API.
 import hashlib
 import json
-import os
 import requests
-import sys
 from requests.exceptions import RequestException
 
-parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(parent_dir)
-
-from agent_library.logging_util import console_logging  # noqa: E402
+from platform_utils.platform_logger import configure_logger
 from agent_library.\
-    agent_utilities import send_slack_webhook_basic  # noqa: E402
+    agent_utilities import send_slack_webhook_basic
 
-logger = console_logging("GitHub client")
+logger = configure_logger("GitHub client")
 
 
 class GitHubClient:

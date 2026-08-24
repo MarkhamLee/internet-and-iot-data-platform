@@ -5,8 +5,12 @@ on:
     branches:
       - "main"
     paths:
+      - "pyproject.toml"
+      - "platform_utils/**"
+      - "ai_agents/pyproject.toml"
       - "ai_agents/agent_library/*"
       - "ai_agents/dependabot_data_ingestion/*"
+      - ".github/workflows/dependabot_alert_data.yaml"
 
 jobs:
   docker:
@@ -34,7 +38,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: ./ai_agents/
+          context: .
           file: ./ai_agents/dependabot_data_ingestion/Dockerfile
           platforms: linux/amd64
           push: true

@@ -3,19 +3,16 @@
 # https://github.com/MarkhamLee/internet-and-iot-data-platform
 # Postgres client for synching and upserting of GitHub dependabot
 # back-end data for the dependabot research agent.
-import os
 import psycopg
-import sys
 from datetime import datetime, timezone
 from psycopg import DatabaseError
 from psycopg.types.json import Jsonb
 from typing import Any
 
-parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(parent_dir)
+from platform_utils.platform_logger import configure_logger
 
-from agent_library.logging_util import console_logging  # noqa: E402
-logger = console_logging('postgres data sync')
+
+logger = configure_logger('postgres data sync')
 
 
 def postgres_connection(
