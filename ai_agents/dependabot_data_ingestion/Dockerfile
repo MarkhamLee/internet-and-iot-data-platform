@@ -40,7 +40,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /etl
 
-COPY --from=builder /app/wheels /wheels
+COPY --from=builder /build/wheels /wheels
 
 RUN python -m pip install --no-cache-dir /wheels/* && \
     rm -rf /wheels && \
