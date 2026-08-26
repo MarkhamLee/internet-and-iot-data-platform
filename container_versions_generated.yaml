@@ -23,7 +23,7 @@ services:
     dockerfile: IoT/cyberpowerpc_pfc1500_ups/Dockerfile
     image: markhamlee/cyberpowerpc_pfc1500_ups
     path: IoT/cyberpowerpc_pfc1500_ups
-    version: 1.8.3
+    version: 1.9.3
   dependabot_agent:
     dockerfile: ai_agents/dependabot_agent/Dockerfile
     image: markhamlee/dependabot_agent
