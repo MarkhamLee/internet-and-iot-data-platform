@@ -27,7 +27,7 @@ RUN python -m pip install --no-cache-dir --upgrade pip && \
 
 
 # final stage - 
-FROM python:3.12-slim-bookworm AS builder
+FROM python:3.12-slim-bookworm
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
