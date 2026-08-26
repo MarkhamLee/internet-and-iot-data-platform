@@ -1,12 +1,15 @@
-name: ups1_cyberpowerpfc1500_build
+name: cyberpowerpc_ups_monitoring_container_build
 
 on:
   push:
     branches:
       - "main"
     paths:
+      - "pyproject.toml"
+      - "platform_utils/**"
       - "IoT/cyberpowerpc_pfc1500_ups/*"
       - "IoT/iot_libraries/*"
+      - ".github/workflows/ups1_cyberpowerpfc1500.yaml"
 
 jobs:
   docker:
@@ -34,7 +37,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: ./IoT/
+          context: .
           file: ./IoT/cyberpowerpc_pfc1500_ups/Dockerfile
           platforms: linux/arm64,linux/amd64
           push: true

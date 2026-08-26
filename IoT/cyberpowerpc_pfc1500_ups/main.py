@@ -9,19 +9,14 @@ import gc
 import json
 import os
 import requests
-import sys
 from time import sleep
 import subprocess as sp
 
-
-parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(parent_dir)
-
-from iot_libraries.logging_util import console_logging  # noqa: E402
+from platform_utils.platform_logger import configure_logger
 from iot_libraries.communications_utilities\
-    import IoTCommunications  # noqa: E402
+    import IoTCommunications
 
-logger = console_logging('cyberpowerpc_pfc1500_ups_monitoring')
+logger = configure_logger('cyberpowerpc_pfc1500_ups_monitoring')
 
 # instantiate hardware monitoring class
 monitor_utilities = IoTCommunications()

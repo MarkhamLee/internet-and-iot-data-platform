@@ -1,26 +1,47 @@
 # temp stage
-FROM python:3.11.9-slim-bookworm AS builder
+FROM python:3.12-slim-bookworm AS builder
 
-WORKDIR /app
+WORKDIR /build
 
 RUN apt-get update -y && apt-get install -y gcc python3-dev
 
-COPY /cyberpowerpc_pfc1500_ups/requirements.txt .
+# copy platform level libraries 
+COPY pyproject.toml ./pyproject.toml
+COPY platform_utils/ ./platform_utils/
 
-RUN pip wheel --no-cache-dir --no-deps --wheel-dir /app/wheels -r requirements.txt
+# copy app specific libraries 
+COPY Iot/cyberpowerpc_pfc1500_ups/requirements.txt ./requirements.txt
+# COPY IoT/pyproject.toml ./IoT/pyproject.toml
+
+
+# install packages and create build wheels
+RUN python -m pip install --no-cache-dir --upgrade pip && \
+    python -m pip wheel \
+        --no-cache-dir \
+        --wheel-dir /build/wheels \
+        -r /build/requirements.txt && \
+    python -m pip wheel \
+        --no-cache-dir \
+        --wheel-dir /build/wheels \
+        /build 
 
 
 # final stage - 
-FROM python:3.11.9-slim-bookworm
+FROM python:3.12-slim-bookworm AS builder
 
-COPY --from=builder /app/wheels /wheels
-COPY --from=builder /app/requirements.txt .
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
 
-RUN pip install --no-cache-dir /wheels/* && \
+
+COPY --from=builder /build/wheels /wheels
+
+RUN python -m pip install --no-cache-dir /wheels/* && \
     rm -rf /wheels && \
     useradd --create-home --uid 10001 appuser
 
+# Install's the nut-client into the container's Linux environment
 RUN apt-get update -y && apt-get install -y nut-client
+
 
 COPY --chown=appuser:appuser ./iot_libraries ./iot_libraries
 
