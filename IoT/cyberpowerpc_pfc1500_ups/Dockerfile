@@ -10,7 +10,7 @@ COPY pyproject.toml ./pyproject.toml
 COPY platform_utils/ ./platform_utils/
 
 # copy app specific libraries 
-COPY Iot/cyberpowerpc_pfc1500_ups/requirements.txt ./requirements.txt
+COPY IoT/cyberpowerpc_pfc1500_ups/requirements.txt ./requirements.txt
 # COPY IoT/pyproject.toml ./IoT/pyproject.toml
 
 
@@ -43,11 +43,11 @@ RUN python -m pip install --no-cache-dir /wheels/* && \
 RUN apt-get update -y && apt-get install -y nut-client
 
 
-COPY --chown=appuser:appuser ./iot_libraries ./iot_libraries
+COPY --chown=appuser:appuser ./IoT/iot_libraries ./IoT/iot_libraries
 
 WORKDIR /hw_telemetry
 
-COPY --chown=appuser:appuser ./cyberpowerpc_pfc1500_ups ./
+COPY --chown=appuser:appuser ./IoT/cyberpowerpc_pfc1500_ups ./
 
 USER appuser
 
