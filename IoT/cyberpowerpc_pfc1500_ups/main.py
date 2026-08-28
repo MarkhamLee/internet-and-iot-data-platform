@@ -2,24 +2,20 @@
 # Internet & IoT Data Platform:
 # https://github.com/MarkhamLee/internet-and-iot-data-platform
 # Script for pulling leveraging the Network Ups Tools (NUT) application to
-# to pull data from an UPS device connected to a small server running the
-# NUT server. Running this requires the NUT client to installed on the
-# machine running it
+# to pull data from an UPS device connected to a small server running
+# NUT server.
 import gc
 import json
 import os
-import requests
 from time import sleep
 import subprocess as sp
 
+import iot_libraries.iot_com_utilities as iot_com
 from platform_utils.platform_logger import configure_logger
-from iot_libraries.communications_utilities\
-    import IoTCommunications
+
 
 logger = configure_logger('cyberpowerpc_pfc1500_ups_monitoring')
 
-# instantiate hardware monitoring class
-monitor_utilities = IoTCommunications()
 
 # load environmental variables
 # Note:  UPS IP is the IP of the mini server connected
@@ -37,7 +33,6 @@ TAG_VALUE = os.environ['TAG_VALUE']
 TOPIC = os.environ['UPS_TOPIC']
 UPS_ID = os.environ['UPS_ID']
 UPS_IP = os.environ['UPS_IP']
-UPTIME_KUMA_WEBHOOK = os.environ['UPTIME_KUMA_WEBHOOK']
 
 
 # start monitoring loop
@@ -62,14 +57,10 @@ def ups_monitoring(CMD: str, TOPIC: str, client: object):
             # query the UPS via bash to acquire data
             data = sp.check_output(CMD, shell=True)
 
-            # successfully pinged the device, send heartbeat
-            send_uptime_kuma_heartbeat()
-
         except Exception as e:
-            logger.debug(f'Failed to read data from UPS: {UPS_ID} with error: {e}')  # noqa: E501
-            # TODO: add Slack alert for when UPS goes down, low priority for
-            # now as the firewall will detect this and send out a Slack alert.
-            # Will need to add in the future once I add more UPS devices.
+            logger.debug('Failed to read data from UPS: %s, with error: %s',
+                         UPS_ID,
+                         e)  # noqa: E501
             sleep(600)
             continue
 
@@ -77,9 +68,6 @@ def ups_monitoring(CMD: str, TOPIC: str, client: object):
         payload = parse_data(data)
 
         # check load status, send alert if it's too high
-        # TODO: add a series of alerts based on the values above
-        # Note: running on battery already generates alerts via the
-        # Firewall.
 
         if float(payload['load_percentage']) > 50:
             excessive_load_count += 1
@@ -90,7 +78,7 @@ def ups_monitoring(CMD: str, TOPIC: str, client: object):
         if excessive_load_count > load_threshold:
             message = (f'Power load has exceeded 50% on {UPS_ID} for more than 15 minutes')  # noqa: E501
             logger.info(message)
-            monitor_utilities.send_slack_webhook(SLACK_WEBHOOK, message)
+            iot_com.send_slack_webhook(SLACK_WEBHOOK, message)
             excessive_load_count = 0  # reset the timer
 
         ups_status = payload['ups_status']
@@ -99,19 +87,22 @@ def ups_monitoring(CMD: str, TOPIC: str, client: object):
         # AKA using mains AC power.
         if ups_status == ' OB DISCHRG':
             power_alert_count += 1
-            logger.info(f'UPS {UPS_ID} has switched to battery power')
+            logger.info('UPS %s has switched to battery power',
+                        UPS_ID)
             ac_status = 0
 
         if ups_status == ' OL CHRG' and ac_status == 0:
             # reset threshold
             ac_status = 1
             power_alert_count = power_alert_threshold
-            back_on_ac_message = (f'UPS {UPS_ID} is back on AC/Mains Power, battery is recharging')  # noqa: E501
+            back_on_ac_message = ('UPS %s is back on AC/Mains Power, battery is recharging',  # noqa: E501
+                                  UPS_ID)  # noqa: E501
             logger.info(back_on_ac_message)
             send_power_status_alert(back_on_ac_message)
 
         if power_alert_count > power_alert_threshold:
-            lost_power_message = (f'UPS {UPS_ID} has lost mains power and is running off of the battery')  # noqa: E501
+            lost_power_message = ('UPS %s has lost mains power and is running off of the battery',  # noqa: E501
+                                  UPS_ID)  # noqa: E501
             logger.info(lost_power_message)
             logger.info('Sending loss of AC mains alert')
             send_power_status_alert(lost_power_message)
@@ -121,7 +112,9 @@ def ups_monitoring(CMD: str, TOPIC: str, client: object):
             issue_count += 1
 
             if issue_count > issue_threshold:
-                logger.info(f'UPS device: {UPS_ID} status change alert to: {ups_status}, sending Slack alert...')  # noqa: E501
+                logger.info('UPS device: %s status change alert to: %s, sending Slack alert...',  # noqa: E501
+                            UPS_ID,
+                            ups_status)  # noqa: E501
                 send_device_alert(ups_status)
                 issue_count = 0
 
@@ -129,9 +122,12 @@ def ups_monitoring(CMD: str, TOPIC: str, client: object):
         payload = json.dumps(payload)
 
         result = client.publish(TOPIC, payload)
+        result_code = result[0]
 
         if result[0] != 0:  # checking status code
-            logger.debug(f'MQTT publishing failure for monitoring UPS: {UPS_ID}, return code: {result[0]}')  # noqa: E501
+            logger.debug('MQTT publishing failure for monitoring UPS: %s, return code: %s',  # noqa: E501
+                         UPS_ID,
+                         result_code)  # noqa: E501
 
         del data, payload, result
         gc.collect()
@@ -142,15 +138,17 @@ def ups_monitoring(CMD: str, TOPIC: str, client: object):
 def send_power_status_alert(message):
 
     logger.info(message)
-    monitor_utilities.send_slack_webhook(SLACK_WEBHOOK, message)
+    iot_com.send_slack_webhook(SLACK_WEBHOOK, message)
 
 
 def send_device_alert(ups_status):
 
-    message = (f'UPS device {UPS_ID} status is: {ups_status}, which may require direct attention')  # noqa: E501
+    message = ('UPS device %s status is: %s, which may require direct attention',  # noqa: E501
+               UPS_ID,
+               ups_status)  # noqa: E501
     logger.info(message)
     logger.info('Sending UPS device status change Slack alert')
-    monitor_utilities.send_slack_webhook(SLACK_WEBHOOK, message)
+    iot_com.send_slack_webhook(SLACK_WEBHOOK, message)
 
 
 # build UPS bash query string
@@ -188,17 +186,6 @@ def parse_data(data: str) -> dict:
     return payload
 
 
-def send_uptime_kuma_heartbeat():
-
-    # TODO: check response to verify that response
-    # is proper, if not trigger alert
-    try:
-        requests.get(UPTIME_KUMA_WEBHOOK)
-
-    except Exception as e:
-        logger.info(f'Publishing of Uptime Kuma alert for {UPS_ID} failed with error: {e}')  # noqa: E501
-
-
 def main():
 
     logger.info('Monitoring utilities class instantiated')
@@ -206,18 +193,19 @@ def main():
     CMD = build_ups_query()
 
     # get unique client ID
-    clientID = monitor_utilities.getClientID()
+    clientID = iot_com.getClientID()
 
     # get mqtt client
-    client = monitor_utilities.mqttClient(clientID,
-                                          MQTT_USER,
-                                          MQTT_SECRET,
-                                          MQTT_BROKER,
-                                          MQTT_PORT)
+    client = iot_com.mqttClient(clientID,
+                                MQTT_USER,
+                                MQTT_SECRET,
+                                MQTT_BROKER,
+                                MQTT_PORT)
 
-    message = (f'{UPS_ID} monitoring is online')
+    message = ('%s monitoring is online',
+               UPS_ID)
     logger.info(message)
-    monitor_utilities.send_slack_webhook(SLACK_WEBHOOK, message)
+    iot_com.send_slack_webhook(SLACK_WEBHOOK, message)
 
     # start monitoring
     try:

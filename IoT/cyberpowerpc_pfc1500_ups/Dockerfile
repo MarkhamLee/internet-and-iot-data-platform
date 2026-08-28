@@ -11,7 +11,8 @@ COPY platform_utils/ ./platform_utils/
 
 # copy app specific libraries 
 COPY IoT/cyberpowerpc_pfc1500_ups/requirements.txt ./requirements.txt
-# COPY IoT/pyproject.toml ./IoT/pyproject.toml
+COPY IoT/pyproject.toml ./IoT/pyproject.toml
+COPY IoT/iot_libraries ./IoT/iot_libraries
 
 
 # install packages and create build wheels
@@ -23,7 +24,11 @@ RUN python -m pip install --no-cache-dir --upgrade pip && \
     python -m pip wheel \
         --no-cache-dir \
         --wheel-dir /build/wheels \
-        /build 
+        /build \
+    python -m pip wheel \
+        --no-cache-dir \
+        --wheel-dir /build/wheels \
+        /build/IoT 
 
 
 # final stage - 
@@ -42,8 +47,6 @@ RUN python -m pip install --no-cache-dir /wheels/* && \
 # Install's the nut-client into the container's Linux environment
 RUN apt-get update -y && apt-get install -y nut-client
 
-
-COPY --chown=appuser:appuser ./IoT/iot_libraries ./IoT/iot_libraries
 
 WORKDIR /hw_telemetry
 

@@ -12,20 +12,20 @@ from platform_utils.platform_logger import configure_logger
 logger = configure_logger('iot_com_utilities')
 
 
-def getClientID():
+def get_client_id():
 
     clientID = str(uuid.uuid4())
 
     return clientID
 
 
-def mqttClient(clientID, username, pwd, host, port):
+def mqtt_client(clientID, username, pwd, host, port):
 
-    def connectionStatus(client,
-                         userdata,
-                         flags,
-                         reasonCode,
-                         properties=None):
+    def connection_status(client,
+                          userdata,
+                          flags,
+                          reasonCode,
+                          properties=None):
 
         if reasonCode == 0 or getattr(reasonCode,
                                       'value',
@@ -38,11 +38,9 @@ def mqttClient(clientID, username, pwd, host, port):
             logger.warning('connection error occured, return code: %s, retrying...',  # noqa: E501
                            reason_string)  # noqa: E501
 
-    # TODO: while this is good enought to "work", need to look into
-    # the updated API library, etc., and re-work the reconnection logic.
     client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, clientID)
     client.username_pw_set(username=username, password=pwd)
-    client.on_connect = connectionStatus
+    client.on_connect = connection_status
 
     client.connect(host, port)
 
@@ -95,16 +93,3 @@ def send_slack_webhook(url: str, message: str):
                        code)
 
     return response.status_code
-
-
-def send_uptime_kuma_heartbeat(id, uptime_kuma_webhook):
-
-    # TODO: check response to verify that response
-    # is proper, if not trigger alert
-    try:
-        requests.get(uptime_kuma_webhook)
-
-    except Exception as e:
-        logger.warning('Publishing of Uptime Kuma alert for %s failed with error: %s',  # noqa: E501
-                       id,
-                       e)  # noqa: E501

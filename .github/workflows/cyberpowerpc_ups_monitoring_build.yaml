@@ -7,8 +7,9 @@ on:
     paths:
       - "pyproject.toml"
       - "platform_utils/**"
-      - "IoT/cyberpowerpc_pfc1500_ups/*"
+      - "IoT/pyproject.toml"
       - "IoT/iot_libraries/*"
+      - "IoT/cyberpowerpc_pfc1500_ups/*"
       - ".github/workflows/ups1_cyberpowerpfc1500.yaml"
 
 jobs:
