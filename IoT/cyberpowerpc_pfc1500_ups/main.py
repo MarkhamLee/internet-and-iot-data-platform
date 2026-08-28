@@ -193,10 +193,10 @@ def main():
     CMD = build_ups_query()
 
     # get unique client ID
-    clientID = iot_com.getClientID()
+    clientID = iot_com.get_client_id()
 
     # get mqtt client
-    client = iot_com.mqttClient(clientID,
+    client = iot_com.mqtt_client(clientID,
                                 MQTT_USER,
                                 MQTT_SECRET,
                                 MQTT_BROKER,
