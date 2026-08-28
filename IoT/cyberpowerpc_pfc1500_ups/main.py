@@ -10,8 +10,9 @@ import os
 from time import sleep
 import subprocess as sp
 
-import iot_libraries.iot_com_utilities as iot_com
+import platform_utils.alert_utils as alerting
 from platform_utils.platform_logger import configure_logger
+import iot_libraries.iot_com_utilities as iot_com
 
 
 logger = configure_logger('cyberpowerpc_pfc1500_ups_monitoring')
@@ -38,7 +39,8 @@ UPS_IP = os.environ['UPS_IP']
 # start monitoring loop
 def ups_monitoring(CMD: str, TOPIC: str, client: object):
 
-    logger.info(f'Starting monitoring for {UPS_ID}')
+    logger.info('Starting monitoring for %s',
+                UPS_ID)
     excessive_load_count = 0
     load_threshold = 900/INTERVAL
     issue_count = 0
@@ -76,9 +78,10 @@ def ups_monitoring(CMD: str, TOPIC: str, client: object):
             excessive_load_count = 0  # reset counter
 
         if excessive_load_count > load_threshold:
-            message = (f'Power load has exceeded 50% on {UPS_ID} for more than 15 minutes')  # noqa: E501
+            message = (f'Power load has exceeded 50% on {UPS_ID} for more than 15 minutes',  # noqa: E501
+                       UPS_ID)  # noqa: E501
             logger.info(message)
-            iot_com.send_slack_webhook(SLACK_WEBHOOK, message)
+            alerting.send_slack_webhook_basic(SLACK_WEBHOOK, message)
             excessive_load_count = 0  # reset the timer
 
         ups_status = payload['ups_status']
@@ -138,7 +141,7 @@ def ups_monitoring(CMD: str, TOPIC: str, client: object):
 def send_power_status_alert(message):
 
     logger.info(message)
-    iot_com.send_slack_webhook(SLACK_WEBHOOK, message)
+    alerting.send_slack_webhook_basic(SLACK_WEBHOOK, message)
 
 
 def send_device_alert(ups_status):
@@ -148,7 +151,7 @@ def send_device_alert(ups_status):
                ups_status)  # noqa: E501
     logger.info(message)
     logger.info('Sending UPS device status change Slack alert')
-    iot_com.send_slack_webhook(SLACK_WEBHOOK, message)
+    alerting.send_slack_webhook_basic(SLACK_WEBHOOK, message)
 
 
 # build UPS bash query string
@@ -197,15 +200,15 @@ def main():
 
     # get mqtt client
     client = iot_com.mqtt_client(clientID,
-                                MQTT_USER,
-                                MQTT_SECRET,
-                                MQTT_BROKER,
-                                MQTT_PORT)
+                                 MQTT_USER,
+                                 MQTT_SECRET,
+                                 MQTT_BROKER,
+                                 MQTT_PORT)
 
     message = ('%s monitoring is online',
                UPS_ID)
     logger.info(message)
-    iot_com.send_slack_webhook(SLACK_WEBHOOK, message)
+    alerting.send_slack_webhook_basic(SLACK_WEBHOOK, message)
 
     # start monitoring
     try:
