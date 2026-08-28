@@ -1,85 +1,88 @@
+from __future__ import annotations
+
 import requests
+from collections.abc import Mapping
+from typing import Any
+from requests import Response
+
 from platform_utils.platform_logger import configure_logger
 
 logger = configure_logger('alert_utilities_logs')
 
 
-def send_slack_webhook_basic(url: str, message: str) -> int:
-    headers = {
-        "Content-Type": "application/json; charset=utf-8",
-    }
-
-    payload = {"text": message}
-
-    try:
-        response = requests.post(
-            url,
-            headers=headers,
-            json=payload,
-            timeout=(5, 20),
-        )
-        response.raise_for_status()
-    except requests.RequestException as exc:
-        status_code = getattr(exc.response, "status_code", 0)
-        logger.warning(
-            "Publishing of alert to Slack webhook failed with response code: %s with error: %s",  # noqa: E501
-            status_code,
-            exc,
-        )
-        return status_code
-
-    # verify successful message send as the Slack API will return 200
-    # when the message doesn't go through but the webhook is invalid
-    # or stale
-    return evaluate_slack_response(response)
+SLACK_WEBHOOK_TIMEOUT = (5, 20)
+SLACK_SUCCESS_RESPONSE = "ok"
+SLACK_SEND_FAILURE_STATUS = 400
 
 
-def send_slack_webhook_block(webhook_url: str, payload: dict) -> int:
-    headers = {
-        "Content-Type": "application/json; charset=utf-8",
-    }
+def send_slack_webhook_basic(webhook_url: str, message: str) -> int:
+    """Entry method for sending plain text Slack messages via a webhook."""
+    return _send_slack_webhook(
+        webhook_url=webhook_url,
+        payload={"text": message},
+    )
 
+
+def send_slack_webhook_block(
+    webhook_url: str,
+    payload: Mapping[str, Any],
+) -> int:
+    """Entry method for sending a block format Slack message via a webhook."""
+    return _send_slack_webhook(
+        webhook_url=webhook_url,
+        payload=payload,
+    )
+
+
+def _send_slack_webhook(
+    webhook_url: str,
+    payload: Mapping[str, Any],
+) -> int:
+    """Sends the Slack webhook payload"""
     try:
         response = requests.post(
             webhook_url,
-            headers=headers,
             json=payload,
-            timeout=(5, 20),
+            timeout=SLACK_WEBHOOK_TIMEOUT,
         )
         response.raise_for_status()
+
     except requests.RequestException as exc:
-        status_code = getattr(exc.response, "status_code", 0)
+        status_code = (
+            exc.response.status_code
+            if exc.response is not None
+            else 0
+        )
+
         logger.warning(
-            "Publishing of alert to Slack webhook failed with response code: %s with error: %s",  # noqa: E501
+            "Slack webhook publish failed: status_code=%d error_type=%s",
             status_code,
-            exc,
+            type(exc).__name__,
         )
         return status_code
 
-    # verify successful message send as the Slack API will return 200
-    # when the message doesn't go through but the webhook is invalid
-    # or stale
     return evaluate_slack_response(response)
 
 
-# Slack's API returns 200 for a successful webhook connection,
-# even if the message send fail, this "intercept" ensures that a
-# 200 code is only returned for a successfully sent message.
-def evaluate_slack_response(response) -> int:
+def evaluate_slack_response(response: Response) -> int:
+    """
+    Slack's API returns 200 for a successful webhook connection,
+    even if the message send fail, this "intercept" ensures that a
+    200 code is only returned for a successfully sent message.
+    """
     response_message = response.text.strip()
 
-    if response_message != "ok":
+    if response_message != SLACK_SUCCESS_RESPONSE:
         logger.warning(
-            "Slack webhook problem, status=%s response=%r",
+            "Slack webhook returned an unexpected success response: "
+            "status_code=%d response=%r",
             response.status_code,
             response_message,
         )
-        return 400
+        return SLACK_SEND_FAILURE_STATUS
 
     logger.info(
-        "Slack message sent successfully with response code %s and response message %r",  # noqa: E501
+        "Slack webhook message sent: status_code=%d",
         response.status_code,
-        response_message,
     )
-
-    return 200
+    return response.status_code
