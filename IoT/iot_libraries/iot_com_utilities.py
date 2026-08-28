@@ -4,7 +4,7 @@
 # General communication utilities for IoT devices
 # import os
 import uuid
-import requests
+# import requests
 from paho.mqtt import client as mqtt
 
 from platform_utils.platform_logger import configure_logger
@@ -50,46 +50,3 @@ def mqtt_client(clientID, username, pwd, host, port):
     client.loop_start()
 
     return client
-
-
-def send_slack_alert(message: str, device_failure_channel, alert_endpoint):
-
-    payload = {
-        "text": message,
-        "slack_channel": device_failure_channel
-    }
-
-    headers = {'Content-type': 'application/json'}
-
-    response = requests.post(alert_endpoint, json=payload, headers=headers)
-    logger.info('Device failure alert sent with code %s',
-                response.text)
-
-
-def send_slack_webhook(url: str, message: str):
-
-    headers = {'Content-type': 'application/json'}
-
-    payload = {"text": message}
-
-    try:
-
-        response = requests.post(url, headers=headers, json=payload)
-        logger.info('Slack pipeline failure alert published succesfully with code: %s',  # noqa: E501
-                    response.status_code)
-
-    except Exception as e:
-
-        logger.warning('Publishing of Slack alert failed with error: %s',
-                       e)
-
-    code = response.status_code
-
-    if code == 200:
-        logger.info('Publishing of alert to Slack webhook was successful')
-
-    else:
-        logger.warning('Publishing of alert to Slack webhook failed, with error code: %s',  # noqa: E501
-                       code)
-
-    return response.status_code
