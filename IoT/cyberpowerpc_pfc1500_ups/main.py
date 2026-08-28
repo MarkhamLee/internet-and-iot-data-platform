@@ -205,8 +205,7 @@ def main():
                                  MQTT_BROKER,
                                  MQTT_PORT)
 
-    message = ('%s monitoring is online',
-               UPS_ID)
+    message = (f'{UPS_ID} monitoring is online')
     logger.info(message)
     alerting.send_slack_webhook_basic(SLACK_WEBHOOK, message)
 
