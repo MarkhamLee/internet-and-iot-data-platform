@@ -24,7 +24,7 @@ RUN python -m pip install --no-cache-dir --upgrade pip && \
     python -m pip wheel \
         --no-cache-dir \
         --wheel-dir /build/wheels \
-        /build \
+        /build && \
     python -m pip wheel \
         --no-cache-dir \
         --wheel-dir /build/wheels \
