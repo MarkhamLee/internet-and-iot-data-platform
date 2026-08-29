@@ -8,8 +8,7 @@ import requests
 from requests.exceptions import RequestException
 
 from platform_utils.platform_logger import configure_logger
-from agent_library.\
-    agent_utilities import send_slack_webhook_basic
+from platform_utils.alert_utils import send_slack_webhook_basic
 
 logger = configure_logger("GitHub client")
 
