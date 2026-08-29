@@ -7,8 +7,7 @@ from datetime import UTC, datetime
 from time import perf_counter
 
 from platform_utils.platform_logger import configure_logger
-from agent_library.\
-    agent_utilities import send_slack_webhook_block
+from platform_utils.alert_utils import send_slack_webhook_block
 from agent_library.qwen_client import QwenClient
 
 from config import AppConfig
