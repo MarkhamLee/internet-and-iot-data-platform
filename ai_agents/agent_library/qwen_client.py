@@ -4,16 +4,18 @@
 # Ollama. Inputs are the URL of the Ollama instance, model name,
 # approved model list, prompt parameters, and the response model
 # that you'll need to select from the schemas file.
+from __future__ import annotations
+
 import json
 import requests
 from pydantic import BaseModel, ValidationError
 from requests.exceptions import RequestException
 from time import perf_counter
 from typing import Type
-from agent_library.logging_util import console_logging
 
+from platform_utils.platform_logger import configure_logger
 
-logger = console_logging("Qwen client")
+logger = configure_logger("Qwen client")
 
 
 class QwenClient:
