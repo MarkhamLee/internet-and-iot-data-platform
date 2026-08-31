@@ -45,7 +45,7 @@ RUN python -m pip install --no-cache-dir /wheels/* && \
 
 WORKDIR /iot_sensors
 
-COPY --chown=appuser:appuser  ./kasa_smart_plug ./
+COPY --chown=appuser:appuser  ./IoT/kasa_smart_plug ./
 
 USER appuser
 
