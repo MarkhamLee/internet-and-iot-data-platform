@@ -53,7 +53,7 @@ services:
     dockerfile: IoT/kasa_smart_plug/Dockerfile
     image: markhamlee/kasa_smart_plug
     path: IoT/kasa_smart_plug
-    version: 2.1.4
+    version: 2.2.4
   kasa_smart_plug_mqtt:
     dockerfile: IoT/kasa_smart_plug_mqtt/Dockerfile
     image: markhamlee/kasa_smart_plug_mqtt
