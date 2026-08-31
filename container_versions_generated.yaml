@@ -28,12 +28,12 @@ services:
     dockerfile: ai_agents/dependabot_agent/Dockerfile
     image: markhamlee/dependabot_agent
     path: ai_agents/dependabot_agent
-    version: 1.7.3
+    version: 1.7.4
   dependabot_data_ingestion:
     dockerfile: ai_agents/dependabot_data_ingestion/Dockerfile
     image: markhamlee/dependabot_data_ingestion
     path: ai_agents/dependabot_data_ingestion
-    version: 1.8.3
+    version: 1.8.4
   finnhub_nodejs:
     dockerfile: etl_pipelines_nodejs/finnhub_nodejs/Dockerfile
     image: markhamlee/finnhub_nodejs
@@ -83,12 +83,12 @@ services:
     dockerfile: ai_agents/site_monitor_agent/Dockerfile
     image: markhamlee/site_monitor_agent
     path: ai_agents/site_monitor_agent
-    version: 1.6.3
+    version: 1.6.4
   site_monitor_data_ingestion:
     dockerfile: ai_agents/site_monitor_data_ingestion/Dockerfile
     image: markhamlee/site_monitor_data_ingestion
     path: ai_agents/site_monitor_data_ingestion
-    version: 1.6.8
+    version: 1.6.10
   site_monitor_reminder_service:
     dockerfile: ai_agents/site_monitor_reminder_service/Dockerfile
     image: markhamlee/site_monitor_reminder_service
