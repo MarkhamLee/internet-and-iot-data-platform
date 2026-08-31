@@ -3,9 +3,9 @@
 # https://github.com/MarkhamLee/internet-and-iot-data-platform
 # General utlities to support agentic workflows
 import requests
-from agent_library.logging_util import console_logging
+from platform_utils.platform_logger import configure_logger
 
-logger = console_logging('agent_utilities_logs')
+logger = configure_logger('agent_utilities_logs')
 
 
 def send_slack_webhook_basic(url: str, message: str) -> int:
