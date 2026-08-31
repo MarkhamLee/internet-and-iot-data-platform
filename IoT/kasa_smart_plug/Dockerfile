@@ -1,23 +1,47 @@
 FROM python:3.11.9-slim-bookworm AS builder
 
-WORKDIR /app
+WORKDIR /build
 
 COPY ./kasa_smart_plug/requirements.txt .
 
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip wheel --no-cache-dir --wheel-dir /app/wheels -r requirements.txt
+
+# copy platform level libraries 
+COPY pyproject.toml ./pyproject.toml
+COPY platform_utils/ ./platform_utils/
+
+# copy app specific libraries 
+COPY IoT/kasa_smart_plug/requirements.txt ./requirements.txt
+COPY IoT/pyproject.toml ./IoT/pyproject.toml
+COPY IoT/iot_libraries ./IoT/iot_libraries
+
+
+# install packages and create build wheels
+RUN python -m pip install --no-cache-dir --upgrade pip && \
+    python -m pip wheel \
+        --no-cache-dir \
+        --wheel-dir /build/wheels \
+        -r /build/requirements.txt && \
+    python -m pip wheel \
+        --no-cache-dir \
+        --wheel-dir /build/wheels \
+        /build && \
+    python -m pip wheel \
+        --no-cache-dir \
+        --wheel-dir /build/wheels \
+        /build/IoT 
 
 
 FROM python:3.11.9-slim-bookworm
 
-COPY --from=builder /app/wheels /wheels
-COPY --from=builder /app/requirements.txt .
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
 
-RUN pip install --no-cache-dir /wheels/* && \
+COPY --from=builder /build/wheels /wheels
+
+RUN python -m pip install --no-cache-dir /wheels/* && \
     rm -rf /wheels && \
     useradd --create-home --uid 10001 appuser
 
-COPY --chown=appuser:appuser  ./iot_libraries ./iot_libraries 
 
 WORKDIR /iot_sensors
 

@@ -5,8 +5,12 @@ on:
     branches:
       - "main"
     paths:
-    - "IoT/iot_libraries/*"
-    - "IoT/kasa_smart_plug/*"
+      - "pyproject.toml"
+      - "platform_utils/**"
+      - "IoT/pyproject.toml"
+      - "IoT/iot_libraries/*"
+      - "IoT/kasa_smart_plug/*"
+      - ".github/workflows/kasa_plug_monitor_image.yaml"
 
 jobs:
   docker:
@@ -34,7 +38,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: ./IoT/
+          context: .
           file: ./IoT/kasa_smart_plug/Dockerfile
           platforms: linux/arm64,linux/amd64
           push: true
