@@ -5,7 +5,7 @@ import subprocess as sp
 
 
 UPS_ID = ''
-UPS_IP = ''
+UPS_IP = '192.168.47.55'
 
 
 # build UPS bash query string
