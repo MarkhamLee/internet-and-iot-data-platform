@@ -7,8 +7,8 @@ WORKDIR /build
 COPY pyproject.toml ./pyproject.toml
 COPY platform_utils/ ./platform_utils/
 
-# copy app specific libraries 
-COPY /network_management/tailscale_device_status/requirements.txt . 
+# copy app specific private libraries and dependencies
+COPY network_management/tailscale_device_status/requirements.txt . 
 
 # install packages and create build wheels
 RUN python -m pip install --no-cache-dir --upgrade pip && \
@@ -19,11 +19,7 @@ RUN python -m pip install --no-cache-dir --upgrade pip && \
     python -m pip wheel \
         --no-cache-dir \
         --wheel-dir /build/wheels \
-        /build && \
-    python -m pip wheel \
-        --no-cache-dir \
-        --wheel-dir /build/wheels \
-        /build/network_management
+        /build 
 
 # Final Stage 
 FROM python:slim-bookworm
