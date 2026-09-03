@@ -98,7 +98,7 @@ services:
     dockerfile: network_management/tailscale_device_status/Dockerfile
     image: markhamlee/tailscale_device_status
     path: network_management/tailscale_device_status
-    version: 1.3.13
+    version: 1.4.13
   yield_curve_daily:
     dockerfile: etl_pipelines/yield_curve_daily/Dockerfile
     image: markhamlee/yield_curve_daily
