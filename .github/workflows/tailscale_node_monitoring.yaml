@@ -5,9 +5,12 @@ on:
     branches:
       - "main"
     paths:
+      - "pyproject.toml"
+      - "platform_utils/**"
       - "network_management/network_monitoring_libraries/*"
       - "network_management/tailscale_device_status/*"
       - "network_management/tailscale_library/*"
+      - ".github/workflows/tailscale_node_monitoring.yaml"
 
 jobs:
   docker:
@@ -35,7 +38,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: ./network_management/
+          context: .
           file: ./network_management/tailscale_device_status/Dockerfile
           platforms: linux/arm64,linux/amd64
           push: true

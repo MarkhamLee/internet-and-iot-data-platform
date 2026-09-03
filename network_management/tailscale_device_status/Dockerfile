@@ -1,27 +1,49 @@
 # Temp Stage 
 FROM python:slim-bookworm AS builder
 
-WORKDIR /app
+WORKDIR /build
 
-RUN apt-get update -y && apt-get install -y gcc  python3-dev
+# copy platform level libraries 
+COPY pyproject.toml ./pyproject.toml
+COPY platform_utils/ ./platform_utils/
 
-COPY /tailscale_device_status/requirements.txt . 
+# copy app specific libraries 
+COPY /network_management/tailscale_device_status/requirements.txt . 
 
-RUN pip wheel --no-cache-dir --no-deps --wheel-dir /app/wheels -r requirements.txt
+# install packages and create build wheels
+RUN python -m pip install --no-cache-dir --upgrade pip && \
+    python -m pip wheel \
+        --no-cache-dir \
+        --wheel-dir /build/wheels \
+        -r /build/requirements.txt && \
+    python -m pip wheel \
+        --no-cache-dir \
+        --wheel-dir /build/wheels \
+        /build && \
+    python -m pip wheel \
+        --no-cache-dir \
+        --wheel-dir /build/wheels \
+        /build/network_management
 
 # Final Stage 
 FROM python:slim-bookworm
 
-COPY --from=builder /app/wheels /wheels
-COPY --from=builder /app/requirements.txt .
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
 
-RUN pip install --no-cache /wheels/*
+COPY --from=builder /build/wheels /wheels
 
-COPY ./network_monitoring_libraries ./network_monitoring_libraries
-COPY ./tailscale_library ./tailscale_library
+RUN python -m pip install --no-cache-dir /wheels/* && \
+    rm -rf /wheels && \
+    useradd --create-home --uid 10001 appuser
+
+COPY --chown=appuser:appuser ./network_management/network_monitoring_libraries ./network_monitoring_libraries
+COPY --chown=appuser:appuser ./network_management/tailscale_library ./tailscale_library
 
 WORKDIR /tailscale_monitoring
 
-COPY ./tailscale_device_status ./
+COPY --chown=appuser:appuser ./tailscale_device_status ./
+
+USER appuser
 
 ENTRYPOINT ["python3", "/tailscale_monitoring/main.py"]
