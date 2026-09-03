@@ -38,7 +38,7 @@ COPY --chown=appuser:appuser ./network_management/tailscale_library ./tailscale_
 
 WORKDIR /tailscale_monitoring
 
-COPY --chown=appuser:appuser ./tailscale_device_status ./
+COPY --chown=appuser:appuser ./network_management/tailscale_device_status ./
 
 USER appuser
 
