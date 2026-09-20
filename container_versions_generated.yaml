@@ -38,7 +38,7 @@ services:
     dockerfile: IoT/dht22_temp_sensor/Dockerfile
     image: markhamlee/dht22_temp_sensor
     path: IoT/dht22_temp_sensor
-    version: 2.0.0
+    version: 2.0.1
   finnhub_nodejs:
     dockerfile: etl_pipelines_nodejs/finnhub_nodejs/Dockerfile
     image: markhamlee/finnhub_nodejs
