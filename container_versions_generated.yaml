@@ -43,7 +43,7 @@ services:
     dockerfile: etl_pipelines_nodejs/finnhub_nodejs/Dockerfile
     image: markhamlee/finnhub_nodejs
     path: etl_pipelines_nodejs/finnhub_nodejs
-    version: 2.0.3
+    version: 2.0.4
   github_actions_data:
     dockerfile: etl_pipelines/github_actions_data/Dockerfile
     image: markhamlee/github_actions_data
@@ -53,7 +53,7 @@ services:
     dockerfile: etl_pipelines_nodejs/github_node/Dockerfile
     image: markhamlee/github_node
     path: etl_pipelines_nodejs/github_node
-    version: 1.7.4
+    version: 1.7.5
   kasa_smart_plug:
     dockerfile: IoT/kasa_smart_plug/Dockerfile
     image: markhamlee/kasa_smart_plug
@@ -68,12 +68,12 @@ services:
     dockerfile: etl_pipelines_nodejs/openweather_airquality_nodejs/Dockerfile
     image: markhamlee/openweather_airquality_nodejs
     path: etl_pipelines_nodejs/openweather_airquality_nodejs
-    version: 1.7.4
+    version: 1.7.5
   openweather_current_ts:
     dockerfile: etl_pipelines_nodejs/openweather_current_ts/Dockerfile
     image: markhamlee/openweather_current_ts
     path: etl_pipelines_nodejs/openweather_current_ts
-    version: 1.7.5
+    version: 1.7.6
   plantower_s5003_airquality:
     dockerfile: IoT/plantower_s5003_airquality/Dockerfile
     image: markhamlee/plantower_s5003_airquality
