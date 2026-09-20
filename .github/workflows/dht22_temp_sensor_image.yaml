@@ -21,7 +21,7 @@ jobs:
     
       - name: Read version
         id: version
-        run: echo "value=$(cat IoT/dht22_tempo_sensor/VERSION)" >> "$GITHUB_OUTPUT"   
+        run: echo "value=$(cat IoT/dht22_temp_sensor/VERSION)" >> "$GITHUB_OUTPUT"   
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
