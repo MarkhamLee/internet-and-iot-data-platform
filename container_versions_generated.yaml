@@ -34,6 +34,11 @@ services:
     image: markhamlee/dependabot_data_ingestion
     path: ai_agents/dependabot_data_ingestion
     version: 1.8.4
+  dht22_temp_sensor:
+    dockerfile: IoT/dht22_temp_sensor/Dockerfile
+    image: markhamlee/dht22_temp_sensor
+    path: IoT/dht22_temp_sensor
+    version: 2.0.0
   finnhub_nodejs:
     dockerfile: etl_pipelines_nodejs/finnhub_nodejs/Dockerfile
     image: markhamlee/finnhub_nodejs
