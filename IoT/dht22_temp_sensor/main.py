@@ -1,23 +1,23 @@
-# Markham Lee 2023 - 2024
-# Finance, Productivity, IoT, & Weather dashboard
-# https://github.com/MarkhamLee/finance-productivity-iot-informational-weather-dashboard
-# This script pulls data from a DHT22 temperature sensor and the publishes it
-# to an MQTT topic.
+# Markham Lee 2023 - 2026
+# Internet & IoT Data Platform
+# This script pulls data from a DHT22 temperature sensor
+# and publishes it to an MQTT topic.
 import adafruit_dht
 import board
 import json
-import gc
 import os
 import sys
 from time import sleep
-
+from platform_utils.platform_logger import configure_logger
 
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(parent_dir)
 
-from iot_libraries.logging_util import logger  # noqa: E402
 from iot_libraries.communications_utilities\
     import IoTCommunications  # noqa: E402
+
+logger = configure_logger('DHT_temp_sensor')
+
 
 com_utilities = IoTCommunications()
 
@@ -70,8 +70,6 @@ def get_temps(client: object, topic: str, interval: int):
 
             payload = json.dumps(payload)
             send_message(client, payload, topic)
-            del temp, humidity, payload
-            gc.collect()
 
         sleep(interval)
 
@@ -85,12 +83,6 @@ def send_message(client: object, payload: dict, topic: str):
     except Exception as error:
         logger.debug(f'MQTT connection error: {error}\
                             with status: {status}')
-
-    # given that this is a RAM constrained device,
-    # let's delete everything and do some garbage collection
-
-    del payload, result, status
-    gc.collect()
 
 
 def main():
