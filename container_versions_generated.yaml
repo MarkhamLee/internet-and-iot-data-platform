@@ -3,7 +3,7 @@ services:
     dockerfile: etl_pipelines/alpha_vantage_bond_load/Dockerfile
     image: markhamlee/alpha_vantage_bond_load
     path: etl_pipelines/alpha_vantage_bond_load
-    version: 1.4.3
+    version: 1.4.4
   alpha_vantage_bonds:
     dockerfile: etl_pipelines/alpha_vantage_bonds/Dockerfile
     image: markhamlee/alpha_vantage_bonds
@@ -18,7 +18,7 @@ services:
     dockerfile: etl_pipelines/asana/Dockerfile
     image: markhamlee/asana
     path: etl_pipelines/asana
-    version: 1.9.4
+    version: 1.9.5
   cyberpowerpc_pfc1500_ups:
     dockerfile: IoT/cyberpowerpc_pfc1500_ups/Dockerfile
     image: markhamlee/cyberpowerpc_pfc1500_ups
@@ -38,7 +38,7 @@ services:
     dockerfile: IoT/dht22_temp_sensor/Dockerfile
     image: markhamlee/dht22_temp_sensor
     path: IoT/dht22_temp_sensor
-    version: 2.0.2
+    version: 2.0.3
   finnhub_nodejs:
     dockerfile: etl_pipelines_nodejs/finnhub_nodejs/Dockerfile
     image: markhamlee/finnhub_nodejs
