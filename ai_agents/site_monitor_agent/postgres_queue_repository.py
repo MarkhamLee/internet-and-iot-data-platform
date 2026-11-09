@@ -7,7 +7,12 @@ from __future__ import annotations
 from datetime import datetime
 import psycopg
 from psycopg.rows import dict_row
-from schemas import ResearchQueueItem, PageAnalysisWrite
+from schemas import (
+    ResearchQueueItem,
+    PageAnalysisWrite,
+    ResearchCompletion,
+    decide_initial_alert,
+)
 from platform_utils.platform_logger import configure_logger
 
 logger = configure_logger("postgres_queue_repository")
@@ -135,7 +140,7 @@ class PostgresQueueRepository:
         return updated
 
     def complete_research(self, *, item: ResearchQueueItem,
-                          result: PageAnalysisWrite, now: datetime) -> None:
+                          result: PageAnalysisWrite, now: datetime) -> ResearchCompletion:
         """Commit state and queue completion together;
         never perform Slack I/O here."""
 
@@ -205,6 +210,28 @@ class PostgresQueueRepository:
                                item.claimed_at,
                                item.attempt_count):
                         raise RuntimeError(f"Queue item {item.id} is missing, changed, or not claimed")  # noqa: E501
+                    cur.execute(
+                        "SELECT current_status FROM page_watch_current WHERE page_key = %s FOR UPDATE",
+                        [item.page_key],
+                    )
+                    state_row = cur.fetchone()
+                    if state_row is None:
+                        raise RuntimeError(f"Missing state row for {item.page_key}; transaction rolled back")
+                    previous_status = state_row[0]
+                    metadata = item.payload.get("target_metadata", {})
+                    missed_it = metadata.get("send_missed_it_message") if isinstance(metadata, dict) else None
+                    if type(missed_it) is not bool:
+                        logger.warning(
+                            "Missing/invalid missed-it flag queue_id=%s; disabling missed-it notification",
+                            item.id,
+                        )
+                        missed_it = False
+                    completion = decide_initial_alert(
+                        previous_status, result.result_page_status,
+                        send_missed_it_message=missed_it,
+                    )
+                    # Queue history stores the application event, not the model's proposed label.
+                    params["event_type"] = completion.event_type
                     cur.execute(state_sql, params)
                     if cur.rowcount != 1:
                         raise RuntimeError(f"Missing state row for {item.page_key}; transaction rolled back")  # noqa: E501
@@ -213,3 +240,12 @@ class PostgresQueueRepository:
                         raise RuntimeError(f"Queue completion failed for {item.id}; transaction rolled back")  # noqa: E501
         logger.info("Research committed queue_id=%s page_key=%s status=%s",
                     item.id, item.page_key, result.result_page_status)
+
+        logger.info(
+            "Initial-alert decision queue_id=%s previous=%s current=%s state_changed=%s "
+            "should_alert=%s event=%s suppression_reason=%s",
+            item.id, completion.previous_status, completion.current_status,
+            completion.state_changed, completion.should_alert, completion.event_type,
+            completion.suppression_reason,
+        )
+        return completion

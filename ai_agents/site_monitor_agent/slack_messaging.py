@@ -5,7 +5,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from schemas import PageAnalysisWrite
+from schemas import PageAnalysisWrite, ResearchCompletion
 
 
 CONFIDENCE_EMOJI = {
@@ -14,25 +14,29 @@ CONFIDENCE_EMOJI = {
     "low": "🔴",
 }
 
-ACTION_LABEL = {
-    "alert": "🔔 Alert",
-    "monitor": "👁 Monitor",
-    "no_action": "✅ No Action",
-}
-
 
 def build_alert_blocks(
     result: PageAnalysisWrite,
     now: datetime,
+    completion: ResearchCompletion | None = None,
 ) -> dict:
     confidence_label = (
         CONFIDENCE_EMOJI.get(result.confidence, "⚪")
         + f" {result.confidence}"
     )
-    action_label = ACTION_LABEL.get(
-        result.recommended_action,
-        f"ℹ️ {result.recommended_action}",
+    event_type = completion.\
+        event_type if completion is not None else result.result_event_type
+    event_labels = {
+        "desired_state_confirmed": "Desired state confirmed",
+        "became_desired": "Desired state reached",
+        "became_undesired": "Desired state no longer met",
+    }
+    action_label = event_labels.get(event_type, "State notification")
+    transition_label = (
+        f"{completion.previous_status} -> {completion.current_status}"
+        if completion is not None else result.result_page_status
     )
+
     timestamp = now.strftime("%Y-%m-%d %H:%M UTC")
 
     blocks = [
@@ -40,7 +44,7 @@ def build_alert_blocks(
             "type": "header",
             "text": {
                 "type": "plain_text",
-                "text": "🔍 Site Monitor Alert",
+                "text": action_label,
                 "emoji": True,
             },
         },
@@ -74,7 +78,7 @@ def build_alert_blocks(
                 },
                 {
                     "type": "mrkdwn",
-                    "text": f"*Action:*\n{action_label}",
+                    "text": f"*Notification:*\n{action_label}",
                 },
                 {
                     "type": "mrkdwn",
@@ -83,7 +87,7 @@ def build_alert_blocks(
                 {
                     "type": "mrkdwn",
                     "text": (
-                        f"*Event Type:*\n`{result.result_event_type or 'N/A'}`"
+                        f"*Event Type:*\n`{event_type or 'N/A'}`"
                     ),
                 },
             ],
@@ -111,6 +115,7 @@ def build_alert_blocks(
                     "text": (
                         f"Model: `{result.model_name}` | "
                         f"Queue ID: `{result.queue_id}` | "
+                        f"Transition: `{transition_label}` | "
                         f"Desired state found: `{result.desired_state_found}`"
                     ),
                 }
@@ -119,7 +124,7 @@ def build_alert_blocks(
     ]
 
     fallback_text = (
-        f"Site Monitor Alert: {result.page_key} — "
+        f"{action_label}: {result.page_key} — "
         f"{result.summary} "
         f"[{result.result_page_status or 'unknown'}, "
         f"confidence: {result.confidence}] "

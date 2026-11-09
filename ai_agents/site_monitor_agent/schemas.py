@@ -64,3 +64,54 @@ class PageAnalysisWrite(AssessmentFields):
     url: str
     model_name: str
     alert_sent: bool = False
+
+
+class ResearchCompletion(BaseModel):
+    """Committed state transition and
+    application-owned notification decision."""
+    previous_status: PageStatus
+    current_status: PageStatus
+    state_changed: bool
+    should_alert: bool
+    event_type: Literal[
+        "desired_state_confirmed", "became_desired", "became_undesired",
+        "state_unknown", "state_unchanged", "state_confirmed_undesired",
+    ]
+    suppression_reason: str | None = None
+
+
+def decide_initial_alert(
+    previous_status: PageStatus, current_status: PageStatus, *,
+    send_missed_it_message: bool,
+) -> ResearchCompletion:
+    """
+    Pure policy; the caller must supply the state
+    locked inside completion.
+    """
+
+    if previous_status not in {"desired", "undesired", "unknown"}:
+        raise ValueError("Invalid previous page status")
+    if current_status not in {"desired", "undesired", "unknown"}:
+        raise ValueError("Invalid current page status")
+    if type(send_missed_it_message) is not bool:
+        raise ValueError("send_missed_it_message must be a bool")
+    changed = previous_status != current_status
+    if not changed:
+        alert, event, reason = False, "state_unchanged", "same_state"
+    elif current_status == "desired":
+        alert = True
+        event = "desired_state_confirmed" if previous_status ==\
+            "unknown" else "became_desired"
+        reason = None
+    elif current_status == "unknown":
+        alert, event, reason = False, "state_unknown", "insufficient_evidence"
+    elif previous_status == "desired":
+        alert, event = send_missed_it_message, "became_undesired"
+        reason = None if alert else "missed_it_disabled"
+    else:
+        alert, event, reason = False, "state_confirmed_undesired", "desired_state_not_found"  # noqa: E501
+    return ResearchCompletion(
+        previous_status=previous_status, current_status=current_status,
+        state_changed=changed, should_alert=alert, event_type=event,
+        suppression_reason=reason,
+    )

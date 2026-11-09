@@ -2,6 +2,7 @@
 # https://github.com/MarkhamLee/internet-and-iot-data-platform
 # Research pipeline orchestrator for the site monitor agent
 from __future__ import annotations
+
 from datetime import UTC, datetime
 from time import perf_counter
 from platform_utils.platform_logger import configure_logger
@@ -38,6 +39,9 @@ availability or prices.
   no_action: no meaningful alert is warranted.
 - result_event_type: optional concise event label, or null.
 Keep execution success, page condition, and notification action distinct.
+Your action and event labels are advisory. Application policy determines actual
+notifications from accepted state transitions; do not assume your alert
+recommendation sends a message.
 """.strip()
 
 
@@ -56,7 +60,7 @@ def process_queue_item(*, item: ResearchQueueItem, app: AppConfig,
     metrics.update(llm_invoked=0, slack_attempted=0, slack_sent=0,
                    llm_seconds=None, error=None,
                    notification_failed=False,
-                   research_committed=False)
+                   research_committed=False, alert_suppressed=False)
     repo = PostgresQueueRepository(app.postgres_dsn)
     claimed = False
     result = None
@@ -94,7 +98,9 @@ def process_queue_item(*, item: ResearchQueueItem, app: AppConfig,
             **response.model_dump(), queue_id=item.id, page_key=item.page_key,
             url=item.url, model_name=client.model)
         logger.info("Persisting assessment queue_id=%s", item.id)
-        repo.complete_research(item=item, result=result, now=datetime.now(UTC))
+        completion = repo.complete_research(item=item,
+                                            result=result,
+                                            now=datetime.now(UTC))
         metrics["research_committed"] = True
     except Exception as exc:
         metrics["error"] = str(exc)
@@ -111,17 +117,20 @@ def process_queue_item(*, item: ResearchQueueItem, app: AppConfig,
                                  item.id)
         return "failed", result
 
-    should_alert = result.\
-        desired_state_found or result.recommended_action == "alert"
-    if not should_alert:
-        logger.info("No initial alert queue_id=%s status=%s action=%s",
-                    item.id,
-                    result.result_page_status,
-                    result.recommended_action)
+    result.result_event_type = completion.event_type
+    if not completion.should_alert:
+        metrics["alert_suppressed"] = True
+        logger.info(
+            "Initial alert suppressed queue_id=%s previous=%s current=%s reason=%s "  # noqa: E501
+            "model_recommendation=%s",
+            item.id, completion.previous_status, completion.current_status,
+            completion.suppression_reason, result.recommended_action,
+        )
         return "no_action", result
     try:
         logger.info("Building and sending Slack alert queue_id=%s", item.id)
-        payload = build_alert_blocks(result=result, now=datetime.now(UTC))
+        payload = build_alert_blocks(result=result, now=datetime.now(UTC),
+                                     completion=completion)
         metrics["slack_attempted"] = 1
         code = send_slack_webhook_block(app.slack_webhook_url, payload)
         if code != 200:
@@ -146,7 +155,8 @@ def run_research_cycle(*, app: AppConfig, client: QwenClient,
         fetch_pending_items(limit=review_limit)
     counts = {"items_fetched": len(items), "llm_invoked": 0, "alerted": 0,
               "slack_attempted": 0, "slack_sent": 0, "failed": 0,
-              "skipped": 0, "notification_failed": 0, "succeeded": 0}
+              "skipped": 0, "notification_failed": 0, "succeeded": 0,
+              "alert_suppressed": 0}
     errors = []
     durations = []
     logger.info("Queue fetch complete items=%s", len(items))
@@ -163,6 +173,7 @@ def run_research_cycle(*, app: AppConfig, client: QwenClient,
         for key in ("llm_invoked", "slack_attempted", "slack_sent"):
             counts[key] += metrics[key]
         counts["succeeded"] += int(metrics["research_committed"])
+        counts["alert_suppressed"] += int(metrics["alert_suppressed"])
         if metrics["llm_seconds"] is not None:
             durations.append(metrics["llm_seconds"])
         if outcome in ("alerted", "failed", "skipped", "notification_failed"):
