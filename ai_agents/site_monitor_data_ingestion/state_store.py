@@ -6,6 +6,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import Any
 
+from contextlib import nullcontext
 import psycopg
 from psycopg.rows import dict_row
 
@@ -43,7 +44,8 @@ class StateStore:
             pending_http_etag,
             pending_http_last_modified,
             last_research_completed_at,
-            last_research_queue_id
+            last_research_queue_id,
+            reminder_count
         from page_watch_current
         where page_key = %s
         """
@@ -57,27 +59,18 @@ class StateStore:
                     return None
                 return TrackedPageState(**row)
 
-    def ensure_tracking_row(self,
-                            *,
-                            page_key: str,
-                            url: str,
-                            now: datetime) -> None:
+    def ensure_tracking_row(self, *, page_key: str, url: str, now: datetime,
+                            conn: psycopg.Connection | None = None) -> None:
         sql = """
-        insert into page_watch_current (
-            page_key,
-            url,
-            current_status,
-            first_seen_at,
-            last_checked_at,
-            state_changed_at,
-            research_needed,
-            pending_reconfirmation
-        )
-        values (%s, %s, 'unknown', %s, %s, %s, false, false)
-        on conflict (page_key) do nothing
+        INSERT INTO page_watch_current (
+            page_key, url, current_status, first_seen_at, last_checked_at,
+            state_changed_at, research_needed, pending_reconfirmation)
+        VALUES (%s, %s, 'unknown', %s, %s, %s, false, false)
+        ON CONFLICT (page_key) DO NOTHING
         """
-        with psycopg.connect(self.dsn, autocommit=True) as conn:
-            with conn.cursor() as cur:
+        manager = nullcontext(conn) if conn is not None else psycopg.connect(self.dsn)
+        with manager as active_conn:
+            with active_conn.cursor() as cur:
                 cur.execute(sql, (page_key, url, now, now, now))
 
     def record_collection_check(
@@ -99,8 +92,7 @@ class StateStore:
             last_checked_at = %(last_checked_at)s,
             last_http_etag = coalesce(%(last_http_etag)s, last_http_etag),
             last_http_last_modified = coalesce(%(last_http_last_modified)s, last_http_last_modified),
-            last_content_hash = coalesce(%(last_content_hash)s, last_content_hash),
-            pending_final_url = coalesce(%(pending_final_url)s, pending_final_url)
+            last_content_hash = coalesce(%(last_content_hash)s, last_content_hash)
         where page_key = %(page_key)s
         """
         payload: dict[str, Any] = {
@@ -129,8 +121,9 @@ class StateStore:
         final_url: str | None,
         http_etag: str | None,
         http_last_modified: str | None,
+        conn: psycopg.Connection | None = None,
     ) -> None:
-        self.ensure_tracking_row(page_key=page_key, url=url, now=now)
+        
         sql = """
         update page_watch_current
         set
@@ -161,10 +154,14 @@ class StateStore:
             "pending_http_last_modified": http_last_modified,
             "last_research_queue_id": queue_id,
         }
-        with psycopg.connect(self.dsn, autocommit=True) as conn:
-            with conn.transaction():
-                with conn.cursor() as cur:
+        manager = nullcontext(conn) if conn is not None else psycopg.connect(self.dsn)
+        with manager as active_conn:
+            with active_conn.transaction():
+                self.ensure_tracking_row(page_key=page_key, url=url, now=now, conn=active_conn)
+                with active_conn.cursor() as cur:
                     cur.execute(sql, payload)
+                    if cur.rowcount != 1:
+                        raise RuntimeError(f"Cannot mark research pending for {page_key}")
 
     def record_reminder_sent(
         self,
@@ -418,8 +415,12 @@ def should_enqueue_research(
         return True, "previous_unknown"
     if previous.last_llm_reviewed_hash != content_hash:
         return True, "content_changed"
-    if force_research_after_hours is not None and previous.last_checked_at:
-        elapsed = now - previous.last_checked_at
+    if force_research_after_hours is not None:
+        if force_research_after_hours < 0:
+            raise ValueError("force_research_after_hours cannot be negative")
+        if previous.last_research_completed_at is None:
+            return True, "never_reviewed"
+        elapsed = now - previous.last_research_completed_at
         if elapsed.total_seconds() >= force_research_after_hours * 3600:
             return True, "forced_refresh"
     return False, "content_unchanged"

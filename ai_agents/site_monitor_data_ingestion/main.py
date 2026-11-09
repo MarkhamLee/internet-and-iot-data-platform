@@ -16,10 +16,10 @@ from state_store import StateStore
 
 logger = configure_logger("site_monitor_data_ingestion_logs")
 
-path = os.environ.get("MONITORING_TARGETS_PATH", "monitoring_targets.yml")
-
 
 def main() -> None:
+    path = os.environ.get("MONITORING_TARGETS_PATH", "monitoring_targets.yml")
+    logger.info("Loading monitoring configuration path=%s", path)
     app = load_config(path)
 
     deps = IngestionDependencies(
@@ -35,7 +35,14 @@ def main() -> None:
         len(app.targets),
         app.force_research_after_hours,
     )
-    run_ingestion_cycle(app=app, deps=deps, started_at=started_at)
+    try:
+        summary = run_ingestion_cycle(app=app,
+                                      deps=deps,
+                                      started_at=started_at)
+    except Exception:
+        logger.exception("Site monitor ingestion terminated unexpectedly")
+        raise
+    logger.info("Site monitor ingestion finished summary=%s", summary)
 
 
 if __name__ == "__main__":

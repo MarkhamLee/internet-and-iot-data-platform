@@ -4,10 +4,12 @@
 # detecting changes via hash comparison(s).
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from time import perf_counter
 from typing import Any
+
+import psycopg
 
 from platform_utils.platform_logger import configure_logger
 
@@ -99,6 +101,28 @@ def process_target(
             details={"status_code": fetch_result.status_code},
         )
 
+        if fetch_result.status_code == 304:
+            should_refetch = previous is None or not previous.last_content_hash
+            if not should_refetch:
+                should_refetch, reason = should_enqueue_research(
+                    previous=previous, content_hash=previous.last_content_hash,
+                    now=now,
+                    force_research_after_hours=app.force_research_after_hours)
+            else:
+                reason = "missing_content_snapshot"
+            if should_refetch:
+                logger.info("304 requires fresh evidence page_key=%s reason=%s; fetching unconditionally",  # noqa: E501
+                            target.page_key, reason)
+                fetch_result = fetch_page(str(target.url))
+                if fetch_result.status_code == 304:
+                    raise RuntimeError("Unconditional fetch returned 304 without a usable body")  # noqa: E501
+                deps.instrumentation_store.update_target_run(
+                    target_run_id=target_run_id,
+                    http_status_code=fetch_result.status_code,
+                    final_url=fetch_result.final_url,
+                    http_etag=fetch_result.etag,
+                    http_last_modified=fetch_result.last_modified)
+
         if fetch_result.status_code == 304 and previous is not None:
             deps.state_store.record_collection_check(
                 page_key=target.page_key,
@@ -157,6 +181,8 @@ def process_target(
             request_reason=request_reason,
         )
 
+        logger.info("Research decision page_key=%s should_queue=%s reason=%s",
+                    target.page_key, should_queue, request_reason)
         if should_queue:
             logger.info(
                 "Adding target page: %s to research queue, reason: %s",
@@ -174,28 +200,37 @@ def process_target(
                 previous=previous,
                 pending_reconfirmation=pending_reconfirmation,
             )
-            queue_id, queue_created = deps.queue_store.enqueue_research(
-                page_key=target.page_key,
-                url=str(target.url),
-                request_reason=request_reason,
-                content_hash=content_hash,
-                final_url=fetch_result.final_url,
-                http_etag=fetch_result.etag,
-                http_last_modified=fetch_result.last_modified,
-                pending_reconfirmation=pending_reconfirmation,
-                payload=queue_payload,
-            )
-            deps.state_store.mark_research_pending(
-                page_key=target.page_key,
-                url=str(target.url),
-                now=now,
-                content_hash=content_hash,
-                queue_id=queue_id,
-                pending_reconfirmation=pending_reconfirmation,
-                final_url=fetch_result.final_url,
-                http_etag=fetch_result.etag,
-                http_last_modified=fetch_result.last_modified,
-            )
+            logger.info("Persisting queue handoff page_key=%s",
+                        target.page_key)
+            with psycopg.connect(app.postgres_dsn) as conn:
+                with conn.transaction():
+                    queue_id, queue_created = deps.queue_store.enqueue_research(  # noqa E501
+                        page_key=target.page_key,
+                        url=str(target.url),
+                        request_reason=request_reason,
+                        content_hash=content_hash,
+                        final_url=fetch_result.final_url,
+                        http_etag=fetch_result.etag,
+                        http_last_modified=fetch_result.last_modified,
+                        pending_reconfirmation=pending_reconfirmation,
+                        payload=queue_payload,
+                        conn=conn,
+                    )
+                    deps.state_store.mark_research_pending(
+                        page_key=target.page_key,
+                        url=str(target.url),
+                        now=now,
+                        content_hash=content_hash,
+                        queue_id=queue_id,
+                        pending_reconfirmation=pending_reconfirmation,
+                        final_url=fetch_result.final_url,
+                        http_etag=fetch_result.etag,
+                        http_last_modified=fetch_result.last_modified,
+                        conn=conn,
+                    )
+            logger.info("Queue handoff committed page_key=%s queue_id=%s created=%s",  # noqa: E501
+                        target.page_key, queue_id, queue_created)
+
             deps.instrumentation_store.finalize_target_run(
                 target_run_id=target_run_id,
                 completed_at=datetime.now(UTC),
@@ -223,21 +258,24 @@ def process_target(
         return "unchanged"
 
     except Exception as exc:
-        deps.instrumentation_store.append_target_error(
-            target_run_id=target_run_id,
-            stage="process_target",
-            message=str(exc),
-            exception_type=type(exc).__name__,
-            details={"page_key": target.page_key, "url": str(target.url)},
-        )
-        deps.instrumentation_store.finalize_target_run(
-            target_run_id=target_run_id,
-            completed_at=datetime.now(UTC),
-            duration_seconds=perf_counter() - target_start,
-            status="persist_failed",
-        )
-        deps.logger.exception("Collection processing failed page_key=%s",
-                              target.page_key)
+        deps.logger.exception("Collection failed page_key=%s", target.page_key)
+        try:
+            deps.instrumentation_store.append_target_error(
+                target_run_id=target_run_id,
+                stage="process_target",
+                message=str(exc),
+                exception_type=type(exc).__name__,
+                details={"page_key": target.page_key, "url": str(target.url)},
+            )
+            deps.instrumentation_store.finalize_target_run(
+                target_run_id=target_run_id,
+                completed_at=datetime.now(UTC),
+                duration_seconds=perf_counter() - target_start,
+                status="persist_failed",
+            )
+        except Exception:
+            deps.logger.exception("Could not record target failure page_key=%s",  # noqa: E501
+                                  target.page_key)
         return "failed"
 
 
@@ -246,7 +284,7 @@ def run_ingestion_cycle(
     app: AppConfig,
     deps: IngestionDependencies,
     started_at: datetime,
-) -> None:
+) -> dict:
     counters = IngestionRunCounters()
     run_id = deps.instrumentation_store.create_run(
         pipeline_name="site_monitor_data_ingestion",
@@ -300,3 +338,8 @@ def run_ingestion_cycle(
         warning_count=0,
         metadata={},
     )
+
+    summary = {"run_id": run_id, "status": run_status, "duration_seconds": duration_seconds,  # noqa: E501
+               **asdict(counters)}
+    logger.info("Ingestion cycle complete summary=%s", summary)
+    return summary
