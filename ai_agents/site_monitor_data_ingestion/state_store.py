@@ -68,7 +68,8 @@ class StateStore:
         VALUES (%s, %s, 'unknown', %s, %s, %s, false, false)
         ON CONFLICT (page_key) DO NOTHING
         """
-        manager = nullcontext(conn) if conn is not None else psycopg.connect(self.dsn)
+        manager = nullcontext(conn) if\
+            conn is not None else psycopg.connect(self.dsn)
         with manager as active_conn:
             with active_conn.cursor() as cur:
                 cur.execute(sql, (page_key, url, now, now, now))
@@ -91,8 +92,10 @@ class StateStore:
             url = %(url)s,
             last_checked_at = %(last_checked_at)s,
             last_http_etag = coalesce(%(last_http_etag)s, last_http_etag),
-            last_http_last_modified = coalesce(%(last_http_last_modified)s, last_http_last_modified),
-            last_content_hash = coalesce(%(last_content_hash)s, last_content_hash)
+            last_http_last_modified = coalesce(%(last_http_last_modified)s,
+            last_http_last_modified),
+            last_content_hash = coalesce(%(last_content_hash)s,
+            last_content_hash)
         where page_key = %(page_key)s
         """
         payload: dict[str, Any] = {
@@ -123,7 +126,7 @@ class StateStore:
         http_last_modified: str | None,
         conn: psycopg.Connection | None = None,
     ) -> None:
-        
+
         sql = """
         update page_watch_current
         set
@@ -137,9 +140,11 @@ class StateStore:
             pending_http_etag = %(pending_http_etag)s,
             pending_http_last_modified = %(pending_http_last_modified)s,
             last_research_queue_id = %(last_research_queue_id)s,
-            last_content_hash = coalesce(%(pending_content_hash)s, last_content_hash),
+            last_content_hash = coalesce(%(pending_content_hash)s,
+            last_content_hash),
             last_http_etag = coalesce(%(pending_http_etag)s, last_http_etag),
-            last_http_last_modified = coalesce(%(pending_http_last_modified)s, last_http_last_modified)
+            last_http_last_modified = coalesce(%(pending_http_last_modified)s,
+            last_http_last_modified)
         where page_key = %(page_key)s
         """
         payload: dict[str, Any] = {
@@ -154,14 +159,16 @@ class StateStore:
             "pending_http_last_modified": http_last_modified,
             "last_research_queue_id": queue_id,
         }
-        manager = nullcontext(conn) if conn is not None else psycopg.connect(self.dsn)
+        manager = nullcontext(conn) if\
+            conn is not None else psycopg.connect(self.dsn)
         with manager as active_conn:
             with active_conn.transaction():
-                self.ensure_tracking_row(page_key=page_key, url=url, now=now, conn=active_conn)
+                self.ensure_tracking_row(page_key=page_key, url=url, now=now,
+                                         conn=active_conn)
                 with active_conn.cursor() as cur:
                     cur.execute(sql, payload)
                     if cur.rowcount != 1:
-                        raise RuntimeError(f"Cannot mark research pending for {page_key}")
+                        raise RuntimeError(f"Cannot mark research pending for {page_key}")  # noqa: E501
 
     def record_reminder_sent(
         self,
@@ -319,7 +326,8 @@ class StateStore:
             pending_reconfirmation
         )
         values (
-            %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+            %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+            %s, %s, %s, %s, %s, %s
         )
         """
 
