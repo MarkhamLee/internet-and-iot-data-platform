@@ -1,6 +1,7 @@
 # (C) Markham Lee 2023 - 2026
 # https://github.com/MarkhamLee/internet-and-iot-data-platform
 # Entry point for the site monitor agent
+
 from __future__ import annotations
 
 import os
@@ -48,17 +49,18 @@ def main() -> None:
 
     app = load_config()
 
-    client = QwenClient(
-        ollama_url=app.ollama_url,
-        model=app.qwen_model,
-        approved_models=APPROVED_MODELS,
-        timeout=(10, read_timeout),
-        temperature=app.llm_temperature,
-    )
-
     run_start = perf_counter()
+    logger.info("Initializing Ollama client model=%s", app.qwen_model)
 
     try:
+        client = QwenClient(
+            ollama_url=app.ollama_url,
+            model=app.qwen_model,
+            approved_models=APPROVED_MODELS,
+            timeout=(10, read_timeout),
+            temperature=app.llm_temperature,
+        )
+        logger.info("Ollama client ready; starting research cycle")
         cycle_result = run_research_cycle(
             app=app,
             client=client,
@@ -72,16 +74,19 @@ def main() -> None:
             "alerted": 0,
             "slack_attempted": 0,
             "slack_sent": 0,
-            "failed": 1,
+            "failed": 0,
+            "succeeded": 0,
+            "status": "failed",
             "avg_llm_seconds": None,
             "duration_seconds": None,
             "errors": [str(exc)],
         }
         status = "failed"
-        errors.append(str(exc))
 
+    status = cycle_result.get("status", status)
     if cycle_result.get("errors"):
-        status = "partial"
+        if status != "failed":
+            status = "partial"
         errors.extend(cycle_result["errors"])
 
     completed_at = datetime.now(tz=UTC)
@@ -98,10 +103,7 @@ def main() -> None:
         "git_sha": git_sha,
         "target_count": cycle_result.get("items_fetched", 0),
         "items_fetched_count": cycle_result.get("items_fetched", 0),
-        "succeeded_target_count": (
-            cycle_result.get("llm_invoked", 0)
-            - cycle_result.get("failed", 0)
-        ),
+        "succeeded_target_count": cycle_result.get("succeeded", 0),
         "failed_target_count": cycle_result.get("failed", 0),
         "llm_invoked_target_count": cycle_result.get("llm_invoked", 0),
         "slack_attempted_target_count": cycle_result.get("slack_attempted", 0),
@@ -116,10 +118,17 @@ def main() -> None:
                 "prompt_version": prompt_version,
                 "model_name": app.qwen_model,
                 "avg_llm_seconds": cycle_result.get("avg_llm_seconds"),
+                "skipped": cycle_result.get("skipped", 0),
+                "notification_failed": cycle_result.get("notification_failed",
+                                                        0),
+                "cycle_status": status,
             }
         ),
     }
 
+    logger.info("Writing run instrumentation run_uuid=%s status=%s",
+                run_uuid,
+                status)
     try:
         with psycopg.connect(app.postgres_dsn, autocommit=True) as conn:
             write_instrumentation(

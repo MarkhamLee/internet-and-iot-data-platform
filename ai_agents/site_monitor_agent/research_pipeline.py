@@ -54,15 +54,28 @@ def process_queue_item(*, item: ResearchQueueItem, app: AppConfig,
     """Persist research before Slack. Notification errors never requeue committed research."""  # noqa: E501
     metrics = metrics if metrics is not None else {}
     metrics.update(llm_invoked=0, slack_attempted=0, slack_sent=0,
-                   llm_seconds=None, error=None, notification_failed=False)
+                   llm_seconds=None, error=None,
+                   notification_failed=False,
+                   research_committed=False)
     repo = PostgresQueueRepository(app.postgres_dsn)
     claimed = False
     result = None
     try:
-        claimed = repo.claim_item(queue_id=item.id, now=datetime.now(UTC))
+        logger.info("Processing queue_id=%s page_key=%s reason=%s",
+                    item.id,
+                    item.page_key,
+                    item.request_reason)
+        fresh_item = repo.claim_item(queue_id=item.id, now=datetime.now(UTC))
+        claimed = fresh_item is not None
+        if claimed:
+            item = fresh_item
         if not claimed:
             logger.info("Skipping unclaimed queue_id=%s", item.id)
             return "skipped", None
+        logger.info("Invoking Qwen queue_id=%s page_key=%s model=%s",
+                    item.id,
+                    item.page_key,
+                    client.model)
         started = perf_counter()
         metrics["llm_invoked"] = 1
         try:
@@ -72,10 +85,17 @@ def process_queue_item(*, item: ResearchQueueItem, app: AppConfig,
         finally:
             metrics["llm_seconds"] = perf_counter() - started
         response = PageAnalysisResponse.model_validate(raw)
+        logger.info("Qwen response validated queue_id=%s status=%s confidence=%s duration=%.2fs",  # noqa: E501
+                    item.id,
+                    response.result_page_status,
+                    response.confidence,
+                    metrics["llm_seconds"])
         result = PageAnalysisWrite(
             **response.model_dump(), queue_id=item.id, page_key=item.page_key,
             url=item.url, model_name=client.model)
+        logger.info("Persisting assessment queue_id=%s", item.id)
         repo.complete_research(item=item, result=result, now=datetime.now(UTC))
+        metrics["research_committed"] = True
     except Exception as exc:
         metrics["error"] = str(exc)
         logger.exception("Research failed queue_id=%s page_key=%s",
@@ -83,7 +103,7 @@ def process_queue_item(*, item: ResearchQueueItem, app: AppConfig,
                          item.page_key)
         if claimed:
             try:
-                repo.fail_item(queue_id=item.id,
+                repo.fail_item(item=item,
                                now=datetime.now(UTC),
                                error_message=str(exc))
             except Exception:
@@ -94,8 +114,13 @@ def process_queue_item(*, item: ResearchQueueItem, app: AppConfig,
     should_alert = result.\
         desired_state_found or result.recommended_action == "alert"
     if not should_alert:
+        logger.info("No initial alert queue_id=%s status=%s action=%s",
+                    item.id,
+                    result.result_page_status,
+                    result.recommended_action)
         return "no_action", result
     try:
+        logger.info("Building and sending Slack alert queue_id=%s", item.id)
         payload = build_alert_blocks(result=result, now=datetime.now(UTC))
         metrics["slack_attempted"] = 1
         code = send_slack_webhook_block(app.slack_webhook_url, payload)
@@ -116,14 +141,20 @@ def process_queue_item(*, item: ResearchQueueItem, app: AppConfig,
 def run_research_cycle(*, app: AppConfig, client: QwenClient,
                        review_limit: int = 25) -> dict:
     started = perf_counter()
+    logger.info("Research cycle starting review_limit=%s", review_limit)
     items = PostgresQueueRepository(app.postgres_dsn).\
         fetch_pending_items(limit=review_limit)
     counts = {"items_fetched": len(items), "llm_invoked": 0, "alerted": 0,
               "slack_attempted": 0, "slack_sent": 0, "failed": 0,
-              "skipped": 0, "notification_failed": 0}
+              "skipped": 0, "notification_failed": 0, "succeeded": 0}
     errors = []
     durations = []
-    for item in items:
+    logger.info("Queue fetch complete items=%s", len(items))
+    for index, item in enumerate(items, start=1):
+        logger.info("Processing item %s/%s queue_id=%s",
+                    index,
+                    len(items),
+                    item.id)
         metrics = {}
         outcome, result = process_queue_item(item=item,
                                              app=app,
@@ -131,6 +162,7 @@ def run_research_cycle(*, app: AppConfig, client: QwenClient,
                                              metrics=metrics)
         for key in ("llm_invoked", "slack_attempted", "slack_sent"):
             counts[key] += metrics[key]
+        counts["succeeded"] += int(metrics["research_committed"])
         if metrics["llm_seconds"] is not None:
             durations.append(metrics["llm_seconds"])
         if outcome in ("alerted", "failed", "skipped", "notification_failed"):
